@@ -80,14 +80,14 @@ graph TD
 ### GIAI ĐOẠN 2: PHÂN QUYỀN & KIẾN TRÚC ROUTING
 *Mục tiêu: Đảm bảo khách hàng, nhân viên và ban quản trị truy cập đúng chức năng theo vai trò.*
 
-- [ ] **Bước 2.1: Middleware kiểm tra Vai trò (Role-based Access Control)**
+- [x] **Bước 2.1: Middleware kiểm tra Vai trò (Role-based Access Control)**
   - Tạo middleware `CheckRole.php` (hoặc kiểm tra role trực tiếp trên route group):
     - Khách hàng (`khach_hang`): Truy cập trang mua sắm, giỏ hàng, thông tin cá nhân, lịch sử mua hàng.
     - Nhân viên (`nhan_vien`): Truy cập POS bán hàng tại quầy chi nhánh, đóng gói đơn, quản lý kiểm kê kho chi nhánh của mình.
     - Quản lý (`quan_ly`): Quản lý nhập/xuất kho chi nhánh, duyệt đơn hủy/đổi trả, xem báo cáo doanh thu chi nhánh.
     - Admin (`admin`): Toàn quyền cấu hình chuỗi cửa hàng, quản trị danh mục, nhân sự, bảng giá, báo cáo toàn hệ thống.
 
-- [ ] **Bước 2.2: Phân chia cấu trúc Route rõ ràng (`routes/web.php`)**
+- [x] **Bước 2.2: Phân chia cấu trúc Route rõ ràng (`routes/web.php`)**
   - `routes/client.php` hoặc nhóm route Client: `/`, `/san-pham`, `/san-pham/{slug}`, `/danh-muc/{slug}`, `/gio-hang`, `/thanh-toan`, `/tra-cuu-don-hang`.
   - `routes/admin.php`: Nhóm tiền tố `/admin` kèm middleware `['auth', 'role:admin,quan_ly']`.
   - `routes/store.php` (POS & Kho): Tiền tố `/store` hoặc tích hợp trong admin panel dành cho nhân viên chi nhánh.
