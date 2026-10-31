@@ -62,7 +62,7 @@ graph TD
   - **Cập nhật `User.php`:**
     - Bổ sung `role` (`khach_hang`, `nhan_vien`, `quan_ly`, `admin`), `store_id`, `loyalty_points`, các quan hệ `diaChis`, `donHangs`, `cuaHang`.
 
-- [ ] **Bước 1.2: Tạo Seeder dữ liệu thực tế chất lượng cao**
+- [x] **Bước 1.2: Tạo Seeder dữ liệu thực tế chất lượng cao**
   - Tạo `CuaHangSeeder.php`: 3-5 chi nhánh tại TP.HCM/Hà Nội (có tọa độ GPS, địa chỉ, giờ mở cửa).
   - Tạo `DanhMucSeeder.php`: Rau củ hữu cơ, Trái cây tươi, Thịt heo - bò - gà sạch, Thủy hải sản tươi sống, Trứng - Sữa bơ, Gia vị thực phẩm.
   - Tạo `NhaCungCapSeeder.php`: Nông trại Đà Lạt, Nông sản Miền Tây, Hải sản Phan Thiết,...
@@ -71,7 +71,7 @@ graph TD
   - Tạo `MaGiamGiaSeeder.php`: Mã giảm % (FRESH10), mã tiền mặt (GIAM50K), mã cho đơn tối thiểu.
   - Tạo `UserSeeder.php`: 1 Admin, 2 Quản lý cửa hàng, 3 Nhân viên thu ngân/kho, 5 Khách hàng mẫu.
 
-- [ ] **Bước 1.3: Chạy nghiệm thu cơ sở dữ liệu**
+- [x] **Bước 1.3: Chạy nghiệm thu cơ sở dữ liệu**
   - Thực thi: `php artisan migrate:fresh --seed`
   - Đảm bảo không có lỗi Foreign Key hoặc sai lệch kiểu dữ liệu.
 
