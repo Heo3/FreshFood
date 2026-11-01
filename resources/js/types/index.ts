@@ -20,6 +20,13 @@ export interface SharedData {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
+    selectedStoreId?: number;
+    stores?: Array<{
+        id: number;
+        ten_cua_hang: string;
+        dia_chi: string;
+        so_dien_thoai?: string;
+    }>;
     ziggy: {
         location: string;
         url: string;

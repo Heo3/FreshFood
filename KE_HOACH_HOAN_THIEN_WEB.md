@@ -97,7 +97,7 @@ graph TD
 ### GIAI ĐOẠN 3: XÂY DỰNG GIAO DIỆN & TRẢI NGHIỆM KHÁCH HÀNG (STOREFRONT)
 *Mục tiêu: Giao diện chuẩn phong cách thực phẩm tươi sạch - hiện đại, tốc độ tải nhanh, màu sắc tươi sáng, tối ưu chuyển đổi đặt hàng.*
 
-- [ ] **Bước 3.1: Xây dựng Layout & Thành phần dùng chung (Storefront Layout)**
+- [x] **Bước 3.1: Xây dựng Layout & Thành phần dùng chung (Storefront Layout)**
   - `StoreHeader.vue`:
     - Thanh thông báo trên cùng (Flash message, hotline giao hàng nhanh 2h).
     - Bộ chọn chi nhánh / Cửa hàng gần nhất (dựa trên địa chỉ người dùng).
@@ -107,19 +107,19 @@ graph TD
   - `StoreFooter.vue`: Thông tin giấy chứng nhận ATTP, chính sách đổi trả trong 24h, danh sách chi nhánh, liên kết MXH.
   - `ProductCard.vue`: Card sản phẩm tươi sống gồm ảnh, nhãn giảm giá, tag "Tươi mới hôm nay", giá gốc/giá bán, đơn vị tính (Kg/Khay), nút bấm thêm vào giỏ nhanh.
 
-- [ ] **Bước 3.2: Trang chủ Cửa hàng (`resources/js/pages/client/Home.vue`)**
+- [x] **Bước 3.2: Trang chủ Cửa hàng (`resources/js/pages/client/Home.vue`)**
   - Banner Slider nổi bật các chương trình ưu đãi, combo dinh dưỡng.
   - Thanh Danh mục icon trực quan (Rau củ, Thịt heo, Cá hồi, Trái cây nhập khẩu,...).
   - Khu vực **"Flash Sale / Giá sốc hôm nay"** có đồng hồ đếm ngược.
   - Khu vực **"Sản phẩm tươi mới về sáng nay"** (lọc theo lô hàng mới nhất).
   - Khối Cam kết chất lượng (100% VietGAP/Organic, Giao hàng siêu tốc 2h, Đổi trả miễn phí nếu dập nát).
 
-- [ ] **Bước 3.3: Trang Danh mục & Danh sách Sản phẩm (`Category.vue` / `Products.vue`)**
+- [x] **Bước 3.3: Trang Danh mục & Danh sách Sản phẩm (`Category.vue` / `Products.vue`)**
   - Bộ lọc thông minh đa tiêu chí: Lọc theo mức giá, danh mục con, xuất xứ, sắp xếp (bán chạy, giá tăng/giảm, hàng mới về).
   - Phân trang hoặc Infinite Scroll với Inertia v2.
   - Xem theo dạng Grid hoặc List.
 
-- [ ] **Bước 3.4: Trang Chi tiết Sản phẩm (`ProductDetail.vue`)**
+- [x] **Bước 3.4: Trang Chi tiết Sản phẩm (`ProductDetail.vue`)**
   - Thư viện ảnh sản phẩm (chọn ảnh phóng to, ảnh thực tế đóng gói).
   - Thông tin nguồn gốc xuất xứ, tiêu chuẩn nuôi trồng/thu hoạch, hạn sử dụng khuyến nghị.
   - Chọn số lượng / khối lượng (Ví dụ: 0.5kg, 1kg hoặc số lượng khay).
@@ -127,7 +127,7 @@ graph TD
   - Mục Đánh giá & Bình luận của khách hàng kèm hình ảnh thực tế.
   - Danh sách gợi ý: "Thường mua kèm" (Mẹo nấu ăn, nguyên liệu đi kèm).
 
-- [ ] **Bước 3.5: Giỏ hàng & Luồng Đặt hàng (Checkout Flow)**
+- [x] **Bước 3.5: Giỏ hàng & Luồng Đặt hàng (Checkout Flow)**
   - `Cart.vue`: Quản lý giỏ hàng, cập nhật số lượng với tính toán giá tức thì, nhập mã giảm giá xem trước số tiền giảm.
   - `Checkout.vue`:
     - Chọn hình thức nhận hàng: **Giao hàng tận nơi** hoặc **Nhận tại cửa hàng**.
@@ -138,7 +138,7 @@ graph TD
     - Phương thức thanh toán: COD (Tiền mặt khi nhận hàng), Quét mã VietQR Chuyển khoản, Ví điện tử (VNPay/MoMo).
   - `OrderSuccess.vue`: Thông báo đặt hàng thành công, hiển thị mã đơn hàng và mã QR theo dõi tiến độ.
 
-- [ ] **Bước 3.6: Trang Quản lý Khách hàng (Customer Account Portal)**
+- [x] **Bước 3.6: Trang Quản lý Khách hàng (Customer Account Portal)**
   - Quản lý sổ địa chỉ nhận hàng (`dia_chi_giao_hang`).
   - Lịch sử đơn hàng & Trạng thái đơn (Chờ xác nhận -> Đang đóng gói -> Đang giao -> Đã hoàn thành).
   - **Chức năng Yêu cầu Đổi trả Hàng:** Cho phép khách bấm đổi/trả với sản phẩm bị dập, hư hại trong 24h kèm ảnh chụp.

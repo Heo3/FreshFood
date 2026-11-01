@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\GioHang;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -43,12 +44,35 @@ class RegisteredUserController extends Controller
             'phone' => $request->phone,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => 'khach_hang',
+            'status' => 1,
         ]);
+
+        $sessionId = $request->session()->getId();
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return to_route('dashboard');
+        if ($sessionId) {
+            $guestItems = GioHang::where('session_id', $sessionId)->whereNull('user_id')->get();
+            foreach ($guestItems as $guestItem) {
+                $existing = GioHang::where('user_id', $user->id)
+                    ->where('cua_hang_id', $guestItem->cua_hang_id)
+                    ->where('san_pham_id', $guestItem->san_pham_id)
+                    ->first();
+                if ($existing) {
+                    $existing->so_luong += $guestItem->so_luong;
+                    $existing->save();
+                    $guestItem->delete();
+                } else {
+                    $guestItem->update(['user_id' => $user->id]);
+                }
+            }
+        }
+
+        $request->session()->forget('url.intended');
+
+        return to_route('home');
     }
 }

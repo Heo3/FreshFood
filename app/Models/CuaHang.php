@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\Request;
 
 class CuaHang extends Model
 {
@@ -36,6 +37,25 @@ class CuaHang extends Model
             'vi_do' => 'decimal:7',
             'trang_thai' => 'integer',
         ];
+    }
+
+    /**
+     * Xác định ID chi nhánh hiện tại đang được chọn từ Request / Session / Cookie
+     */
+    public static function layIdCuaHangHienTai(?Request $request = null): int
+    {
+        $req = $request ?? request();
+
+        $storeId = $req?->input('store_id')
+            ?? $req?->cookie('freshfood_store_id')
+            ?? ($req?->hasSession() ? $req->session()->get('selected_store_id') : null)
+            ?? $req?->user()?->store_id;
+
+        if ($storeId && self::where('id', (int) $storeId)->where('trang_thai', 1)->exists()) {
+            return (int) $storeId;
+        }
+
+        return self::where('trang_thai', 1)->value('id') ?? 1;
     }
 
     public function users(): HasMany

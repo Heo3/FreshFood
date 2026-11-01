@@ -17,6 +17,7 @@ class GioHang extends Model
      */
     protected $fillable = [
         'user_id',
+        'session_id',
         'cua_hang_id',
         'san_pham_id',
         'so_luong',

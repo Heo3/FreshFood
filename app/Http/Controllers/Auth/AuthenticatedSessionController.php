@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\GioHang;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,11 +30,33 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        $previousSessionId = $request->session()->getId();
+
         $request->authenticate();
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $request->session()->forget('url.intended');
+
+        $user = $request->user();
+        if ($user && $previousSessionId) {
+            $guestItems = GioHang::where('session_id', $previousSessionId)->whereNull('user_id')->get();
+            foreach ($guestItems as $guestItem) {
+                $existing = GioHang::where('user_id', $user->id)
+                    ->where('cua_hang_id', $guestItem->cua_hang_id)
+                    ->where('san_pham_id', $guestItem->san_pham_id)
+                    ->first();
+                if ($existing) {
+                    $existing->so_luong += $guestItem->so_luong;
+                    $existing->save();
+                    $guestItem->delete();
+                } else {
+                    $guestItem->update(['user_id' => $user->id]);
+                }
+            }
+        }
+
+        return to_route('home');
     }
 
     /**
