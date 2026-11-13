@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -30,6 +31,10 @@ return new class extends Migration
             $table->index('nha_cung_cap_id');
             $table->index('phieu_nhap_id');
         });
+
+        if (DB::connection()->getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE `lo_hang` ADD CONSTRAINT `chk_lo_hang_ngay_han` CHECK (`ngay_san_xuat` IS NULL OR `ngay_het_han` >= `ngay_san_xuat`)');
+        }
     }
 
     /**

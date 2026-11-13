@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\Banner;
 use App\Models\CuaHang;
 use App\Models\DanhMuc;
 use App\Models\GioHang;
@@ -81,10 +82,14 @@ class HomeController extends Controller
         // Mã giảm giá đang hiệu lực
         $coupons = MaGiamGia::hieuLuc()->limit(4)->get();
 
+        // Banners quảng cáo động
+        $banners = Banner::dangHienThi()->get();
+
         return Inertia::render('client/Home', [
             'stores' => $stores,
             'selectedStoreId' => $storeId,
             'categories' => $categories,
+            'banners' => $banners,
             'flashSales' => $flashSales,
             'freshToday' => $freshToday,
             'meatsAndSeafood' => $meatsAndSeafood,
@@ -131,5 +136,40 @@ class HomeController extends Controller
         }
 
         return back()->with('success', 'Đã chuyển sang chi nhánh mới.');
+    }
+
+    /**
+     * Tìm chi nhánh gần nhất dựa trên tọa độ GPS hoặc chuỗi địa chỉ giao hàng.
+     */
+    public function findNearestStore(Request $request)
+    {
+        $lat = $request->input('lat');
+        $lon = $request->input('lon');
+        $address = $request->input('address');
+
+        $nearestStore = null;
+        $distanceKm = null;
+
+        if ($lat !== null && $lon !== null) {
+            $nearestStore = CuaHang::timChiNhanhGanNhatTheoToaDo((float) $lat, (float) $lon);
+            if ($nearestStore && $nearestStore->vi_do && $nearestStore->kinh_do) {
+                $distanceKm = CuaHang::tinhKhoangCachKm((float) $lat, (float) $lon, (float) $nearestStore->vi_do, (float) $nearestStore->kinh_do);
+            }
+        } elseif (! empty($address)) {
+            $nearestStore = CuaHang::timChiNhanhPhuHopTheoDiaChi($address);
+        }
+
+        if (! $nearestStore) {
+            $nearestStore = CuaHang::where('trang_thai', 1)->first();
+        }
+
+        return response()->json([
+            'success' => true,
+            'store' => $nearestStore,
+            'distance_km' => $distanceKm,
+            'message' => $distanceKm !== null
+                ? "Đã tìm thấy chi nhánh gần bạn nhất: {$nearestStore->ten_cua_hang} (Cách ~{$distanceKm} km)"
+                : "Đã gợi ý chi nhánh phù hợp: {$nearestStore->ten_cua_hang}",
+        ]);
     }
 }

@@ -18,6 +18,7 @@ import {
     Package,
     LayoutDashboard,
     X,
+    LocateFixed,
 } from 'lucide-vue-next';
 
 defineProps<{
@@ -165,6 +166,48 @@ function handleStoreChange(store: any) {
     );
 }
 
+const isHeaderLocating = ref(false);
+
+function autoLocateHeader() {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+        showToast('Trình duyệt không hỗ trợ GPS.', 'error');
+        return;
+    }
+    isHeaderLocating.value = true;
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            try {
+                const res = await fetch(route('store.find-nearest'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
+                    },
+                    body: JSON.stringify({
+                        lat: pos.coords.latitude,
+                        lon: pos.coords.longitude,
+                    }),
+                });
+                const data = await res.json();
+                if (data.success && data.store) {
+                    handleStoreChange(data.store);
+                    const distMsg = data.distance_km ? ` (Cách ~${data.distance_km} km)` : '';
+                    showToast(`Đã chọn: ${data.store.ten_cua_hang}${distMsg}`, 'success');
+                }
+            } catch (e) {
+                showToast('Lỗi khi định vị chi nhánh.', 'error');
+            } finally {
+                isHeaderLocating.value = false;
+            }
+        },
+        () => {
+            isHeaderLocating.value = false;
+            showToast('Không thể lấy vị trí hiện tại của bạn.', 'error');
+        },
+        { timeout: 10000 }
+    );
+}
+
 function handleSearch() {
     showSuggestions.value = false;
     if (searchQuery.value.trim()) {
@@ -252,7 +295,23 @@ function formatPrice(value: number): string {
                     v-if="isStoreSelectOpen"
                     class="absolute left-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
                 >
-                    <p class="text-xs font-bold text-gray-700 px-3 py-2 border-b">Chọn cửa hàng phục vụ:</p>
+                    <div class="flex items-center justify-between px-3 py-2 border-b">
+                        <p class="text-xs font-bold text-gray-700">Chọn cửa hàng phục vụ:</p>
+                    </div>
+
+                    <!-- Nút định vị GPS tự chọn chi nhánh gần nhất -->
+                    <button
+                        type="button"
+                        @click="autoLocateHeader"
+                        :disabled="isHeaderLocating"
+                        class="w-full text-left p-2.5 my-1.5 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center justify-between border border-emerald-200"
+                    >
+                        <div class="flex items-center space-x-2">
+                            <LocateFixed class="w-4 h-4 text-emerald-600" :class="{ 'animate-spin': isHeaderLocating }" />
+                            <span>{{ isHeaderLocating ? 'Đang xác định vị trí...' : '📍 Tự động chọn chi nhánh gần nhất' }}</span>
+                        </div>
+                    </button>
+
                     <div class="max-h-60 overflow-y-auto mt-1 space-y-1">
                         <button
                             v-for="store in stores"
@@ -437,6 +496,16 @@ function formatPrice(value: number): string {
                                 >
                                     <ShoppingBag class="w-4 h-4 text-teal-600" />
                                     <span>POS Bán hàng & Kho</span>
+                                </Link>
+
+                                <!-- Delivery / Shipper portal link -->
+                                <Link
+                                    v-if="authUser.role === 'giao_hang'"
+                                    :href="route('delivery.index')"
+                                    class="flex items-center space-x-2.5 px-3 py-2 text-xs text-sky-700 hover:bg-sky-50 rounded-lg transition-colors font-semibold"
+                                >
+                                    <Truck class="w-4 h-4 text-sky-600" />
+                                    <span>Đơn Giao Của Tôi (Shipper)</span>
                                 </Link>
                             </div>
 

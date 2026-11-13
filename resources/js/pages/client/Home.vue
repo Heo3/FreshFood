@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import StoreLayout from '@/layouts/StoreLayout.vue';
 import ProductCard from '@/components/storefront/ProductCard.vue';
@@ -17,9 +17,10 @@ import {
     HeartHandshake,
 } from 'lucide-vue-next';
 
-defineProps<{
+const props = defineProps<{
     stores: Array<any>;
     categories: Array<any>;
+    banners?: Array<any>;
     flashSales: Array<any>;
     freshToday: Array<any>;
     meatsAndSeafood: Array<any>;
@@ -29,11 +30,35 @@ defineProps<{
 
 const { showToast } = useCart();
 
-// Flash sale countdown timer simulation (ví dụ: đếm ngược đến hết ngày)
+// Dynamic Banner Carousel State
+const currentBannerIndex = ref(0);
+let bannerTimer: any = null;
+
+const defaultBanner = {
+    tieu_de: 'Thực Phẩm Tươi Sống Giao Siêu Tốc 2 Giờ',
+    phu_de: 'Rau củ hái sớm từ Đà Lạt, thịt mát công nghệ Oxy-Fresh, cá hồi Nauy phi lê tươi sống mỗi ngày. Kiểm soát hạn dùng chuẩn nguyên tắc FEFO cho bữa ăn trọn vị.',
+    hinh_anh: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=80',
+    duong_dan: '/san-pham',
+    nhan_nut: 'Khám phá thực phẩm ngay',
+};
+
+const activeBanner = computed(() => {
+    if (props.banners && props.banners.length > 0) {
+        return props.banners[currentBannerIndex.value] || props.banners[0];
+    }
+    return defaultBanner;
+});
+
+// Flash sale countdown timer simulation
 const timeLeft = ref({ hours: 7, minutes: 24, seconds: 50 });
 let timer: any = null;
 
 onMounted(() => {
+    if (props.banners && props.banners.length > 1) {
+        bannerTimer = setInterval(() => {
+            currentBannerIndex.value = (currentBannerIndex.value + 1) % props.banners.length;
+        }, 5000);
+    }
     timer = setInterval(() => {
         if (timeLeft.value.seconds > 0) {
             timeLeft.value.seconds--;
@@ -50,6 +75,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     if (timer) clearInterval(timer);
+    if (bannerTimer) clearInterval(bannerTimer);
 });
 
 const copiedCode = ref<string | null>(null);
@@ -68,36 +94,43 @@ function copyCoupon(code: string) {
 
 <template>
     <StoreLayout title="Trang Chủ" :stores="stores">
-        <!-- 1. HERO BANNER SECTION -->
+        <!-- 1. HERO BANNER SECTION (DYNAMIC CAROUSEL) -->
         <section class="max-w-7xl mx-auto px-4 py-6">
-            <div class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 text-white p-8 md:p-14 shadow-2xl">
+            <div class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-950 text-white min-h-[380px] sm:min-h-[420px] flex items-center shadow-2xl">
+                <!-- Background Banner Image with Gradient Overlay -->
+                <div
+                    class="absolute inset-0 bg-cover bg-center transition-all duration-700"
+                    :style="{
+                        backgroundImage: `url(${activeBanner.hinh_anh})`
+                    }"
+                >
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-950/95 via-emerald-900/80 to-transparent"></div>
+                </div>
+
                 <!-- Background decorative blur circles -->
                 <div class="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-400/20 rounded-full blur-3xl pointer-events-none"></div>
 
-                <div class="relative z-10 max-w-2xl">
+                <div class="relative z-10 max-w-2xl p-8 md:p-14">
                     <span class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-black bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 mb-4 backdrop-blur-md">
                         <Sparkles class="w-3.5 h-3.5 mr-1.5 text-amber-300" />
                         100% NÔNG SẢN VIETGAP & HỮU CƠ TƯƠI SẠCH
                     </span>
 
                     <h1 class="text-3xl sm:text-5xl font-black tracking-tight leading-tight text-white mb-4">
-                        Thực Phẩm Tươi Sống <br class="hidden sm:inline" />
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-amber-300">
-                            Giao Siêu Tốc 2 Giờ
-                        </span>
+                        {{ activeBanner.tieu_de }}
                     </h1>
 
-                    <p class="text-sm sm:text-base text-emerald-100/90 leading-relaxed mb-8">
-                        Rau củ hái sớm từ Đà Lạt, thịt mát công nghệ Oxy-Fresh, cá hồi Nauy phi lê tươi sống mỗi ngày. Kiểm soát hạn dùng chuẩn nguyên tắc FEFO cho bữa ăn trọn vị.
+                    <p class="text-sm sm:text-base text-emerald-100/90 leading-relaxed mb-8 max-w-xl">
+                        {{ activeBanner.phu_de || 'Rau củ hái sớm từ Đà Lạt, thịt mát công nghệ Oxy-Fresh, cá hồi Nauy phi lê tươi sống mỗi ngày.' }}
                     </p>
 
                     <div class="flex flex-wrap items-center gap-3">
                         <Link
-                            :href="route('products.index')"
+                            :href="activeBanner.duong_dan || route('products.index')"
                             class="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black px-6 py-3.5 rounded-2xl shadow-lg shadow-emerald-500/30 flex items-center space-x-2 transition-all hover:scale-105 active:scale-95 text-sm"
                         >
-                            <span>Khám phá thực phẩm ngay</span>
+                            <span>{{ activeBanner.nhan_nut || 'Khám phá thực phẩm ngay' }}</span>
                             <ArrowRight class="w-4 h-4" />
                         </Link>
 
@@ -107,6 +140,17 @@ function copyCoupon(code: string) {
                         >
                             Hàng tươi sáng nay
                         </Link>
+                    </div>
+
+                    <!-- BANNER DOTS -->
+                    <div v-if="banners && banners.length > 1" class="flex items-center space-x-2 mt-8">
+                        <button
+                            v-for="(b, idx) in banners"
+                            :key="b.id"
+                            @click="currentBannerIndex = idx"
+                            :class="currentBannerIndex === idx ? 'w-8 bg-emerald-400' : 'w-2 bg-white/40 hover:bg-white/70'"
+                            class="h-2 rounded-full transition-all duration-300 cursor-pointer"
+                        ></button>
                     </div>
                 </div>
             </div>

@@ -18,6 +18,7 @@ class ChiTietDonHang extends Model
     protected $fillable = [
         'don_hang_id',
         'san_pham_id',
+        'lo_hang_id',
         'ten_san_pham',
         'hinh_anh_snapshot',
         'don_vi_tinh',
@@ -33,6 +34,7 @@ class ChiTietDonHang extends Model
     protected function casts(): array
     {
         return [
+            'lo_hang_id' => 'integer',
             'don_gia' => 'decimal:2',
             'gia_von' => 'decimal:2',
             'so_luong' => 'decimal:2',
@@ -48,5 +50,10 @@ class ChiTietDonHang extends Model
     public function sanPham(): BelongsTo
     {
         return $this->belongsTo(SanPham::class, 'san_pham_id');
+    }
+
+    public function loHang(): BelongsTo
+    {
+        return $this->belongsTo(LoHang::class, 'lo_hang_id');
     }
 }

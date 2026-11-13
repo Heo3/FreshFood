@@ -131,10 +131,10 @@ import {
                 <h4 class="text-white text-sm font-bold uppercase tracking-wider mb-4">Chính Sách & Hỗ Trợ</h4>
                 <ul class="space-y-2 text-xs mb-6">
                     <li><Link :href="route('orders.tracking')" class="hover:text-emerald-400 transition-colors">Kiểm tra & Theo dõi đơn hàng</Link></li>
-                    <li><a href="#" class="hover:text-emerald-400 transition-colors">Chính sách giao hàng siêu tốc 2h</a></li>
-                    <li><a href="#" class="hover:text-emerald-400 transition-colors">Quy trình kiểm định chất lượng ATTP</a></li>
-                    <li><a href="#" class="hover:text-emerald-400 transition-colors">Chính sách đổi trả & Hoàn tiền 100%</a></li>
-                    <li><a href="#" class="hover:text-emerald-400 transition-colors">Quy định tích điểm & Thẻ thành viên</a></li>
+                    <li><Link :href="route('privacy')" class="hover:text-emerald-400 transition-colors">Chính sách bảo mật thông tin</Link></li>
+                    <li><Link :href="route('terms')" class="hover:text-emerald-400 transition-colors">Điều khoản dịch vụ & Đổi trả</Link></li>
+                    <li><Link :href="route('terms')" class="hover:text-emerald-400 transition-colors">Chính sách giao hàng siêu tốc 2h</Link></li>
+                    <li><Link :href="route('privacy')" class="hover:text-emerald-400 transition-colors">Quy trình kiểm định chất lượng ATTP</Link></li>
                 </ul>
 
                 <h5 class="text-xs font-bold text-gray-200 mb-2">Thanh toán tiện lợi & an toàn</h5>

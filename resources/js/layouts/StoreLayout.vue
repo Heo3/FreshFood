@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
 import StoreHeader from '@/components/storefront/StoreHeader.vue';
 import StoreFooter from '@/components/storefront/StoreFooter.vue';
+import ToastContainer from '@/components/ui/ToastContainer.vue';
 import { useCart } from '@/composables/useCart';
 import { CheckCircle2, AlertCircle, Info } from 'lucide-vue-next';
 
@@ -12,7 +13,21 @@ defineProps<{
 }>();
 
 const page = usePage();
-const { toast, syncWithServer } = useCart();
+const { toast, syncWithServer, showToast } = useCart();
+
+watch(
+    () => (page.props as any).flash,
+    (flash: any) => {
+        if (flash?.success) {
+            showToast(flash.success, 'success');
+        } else if (flash?.error) {
+            showToast(flash.error, 'error');
+        } else if (flash?.info) {
+            showToast(flash.info, 'info');
+        }
+    },
+    { immediate: true, deep: true }
+);
 
 onMounted(() => {
     if (page.props.serverCart) {
@@ -47,5 +62,8 @@ onMounted(() => {
 
             <span class="text-xs font-semibold tracking-wide">{{ toast.message }}</span>
         </div>
+
+        <!-- GLOBAL TOAST NOTIFICATION CONTAINER -->
+        <ToastContainer />
     </div>
 </template>

@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             SanPhamSeeder::class,
             LoHangSeeder::class,
             MaGiamGiaSeeder::class,
+            BannerSeeder::class,
+            DeliveryStaffSeeder::class,
         ]);
     }
 }

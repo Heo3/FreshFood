@@ -1,52 +1,60 @@
 <?php
 
+use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\StoreController;
+use App\Http\Controllers\Admin\SupplierController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 // ==========================================
 // ADMIN & MANAGER PORTAL (/admin)
 // ==========================================
 Route::middleware(['auth', 'role:admin,quan_ly'])->prefix('admin')->as('admin.')->group(function () {
-    Route::get('/', function () {
-        return Inertia::render('admin/Dashboard');
-    })->name('dashboard');
+    // 1. Dashboard
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/san-pham', function () {
-        return Inertia::render('admin/products/Index');
-    })->name('products.index');
+    // 2. Sản phẩm & Bảng giá chi nhánh
+    Route::resource('san-pham', ProductController::class)->names('products');
+    Route::post('san-pham/{sanPham}/gia-chi-nhanh', [ProductController::class, 'updateBranchPrice'])->name('products.branch-price');
 
-    Route::get('/danh-muc', function () {
-        return Inertia::render('admin/categories/Index');
-    })->name('categories.index');
+    // 3. Danh mục
+    Route::resource('danh-muc', CategoryController::class)->except(['create', 'show', 'edit'])->names('categories');
 
-    Route::get('/don-hang', function () {
-        return Inertia::render('admin/orders/Index');
-    })->name('orders.index');
+    // 4. Đơn hàng
+    Route::resource('don-hang', OrderController::class)->only(['index', 'show'])->names('orders');
+    Route::post('don-hang/{donHang}/trang-thai', [OrderController::class, 'updateStatus'])->name('orders.update-status');
 
-    Route::get('/khuyen-mai', function () {
-        return Inertia::render('admin/coupons/Index');
-    })->name('coupons.index');
+    // 5. Khuyến mãi & Voucher
+    Route::resource('khuyen-mai', CouponController::class)->except(['create', 'show', 'edit'])->names('coupons');
 
-    Route::get('/nha-cung-cap', function () {
-        return Inertia::render('admin/suppliers/Index');
-    })->name('suppliers.index');
+    // 6. Nhà cung cấp
+    Route::resource('nha-cung-cap', SupplierController::class)->except(['create', 'show', 'edit'])->names('suppliers');
 
-    Route::get('/bao-cao', function () {
-        return Inertia::render('admin/reports/Index');
-    })->name('reports.index');
+    // 7. Báo cáo thống kê
+    Route::get('bao-cao', [ReportController::class, 'index'])->name('reports.index');
 
-    // Các tính năng cấu hình toàn hệ thống dành riêng cho Admin tối cao
+    // 8. Đánh giá & Phản hồi khách hàng
+    Route::get('danh-gia', [ReviewController::class, 'index'])->name('reviews.index');
+    Route::post('danh-gia/{review}/toggle', [ReviewController::class, 'toggle'])->name('reviews.toggle');
+    Route::delete('danh-gia/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+
+    // 9. Banner & Quảng cáo trang chủ
+    Route::resource('banners', BannerController::class)->except(['create', 'show', 'edit'])->names('banners');
+    Route::post('banners/{banner}/toggle', [BannerController::class, 'toggle'])->name('banners.toggle');
+
+    // ==========================================
+    // DÀNH RIÊNG CHO QUẢN TRỊ VIÊN CẤP CAO (ADMIN)
+    // ==========================================
     Route::middleware('role:admin')->group(function () {
-        Route::get('/cua-hang', function () {
-            return Inertia::render('admin/stores/Index');
-        })->name('stores.index');
-
-        Route::get('/nhan-su', function () {
-            return Inertia::render('admin/users/Index');
-        })->name('users.index');
-
-        Route::get('/cai-dat-he-thong', function () {
-            return Inertia::render('admin/settings/Index');
-        })->name('settings.index');
+        Route::resource('cua-hang', StoreController::class)->except(['create', 'show', 'edit'])->names('stores');
+        Route::resource('nhan-su', UserController::class)->parameters(['nhan-su' => 'user'])->except(['create', 'show', 'edit'])->names('users');
+        Route::post('nhan-su/{user}/khoa-tai-khoan', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
     });
 });

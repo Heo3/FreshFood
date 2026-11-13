@@ -25,11 +25,27 @@ class User extends Authenticatable
         'name',
         'phone',
         'email',
+        'google_id',
+        'avatar',
         'password',
         'role',
         'store_id',
+        'loai_phuong_tien',
+        'bien_so_xe',
+        'tai_trong_kg',
+        'trang_thai_giao',
         'loyalty_points',
         'status',
+    ];
+
+    /**
+     * The model's default values for attributes.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'status' => 1,
+        'role' => 'khach_hang',
     ];
 
     /**
@@ -107,6 +123,16 @@ class User extends Authenticatable
         return $this->hasMany(PhieuXuat::class, 'nguoi_tao_id');
     }
 
+    public function donHangsGiao(): HasMany
+    {
+        return $this->hasMany(DonHang::class, 'nguoi_giao_hang_id');
+    }
+
+    public function phieuXuatsGiao(): HasMany
+    {
+        return $this->hasMany(PhieuXuat::class, 'nguoi_giao_hang_id');
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
@@ -120,6 +146,26 @@ class User extends Authenticatable
     public function isNhanVien(): bool
     {
         return $this->role === 'nhan_vien';
+    }
+
+    public function isGiaoHang(): bool
+    {
+        return $this->role === 'giao_hang';
+    }
+
+    public function isXeTai(): bool
+    {
+        return $this->loai_phuong_tien === 'xe_tai';
+    }
+
+    public function isXeMay(): bool
+    {
+        return $this->loai_phuong_tien === 'xe_may';
+    }
+
+    public function isSanSangGiao(): bool
+    {
+        return $this->trang_thai_giao === 'san_sang';
     }
 
     public function isKhachHang(): bool

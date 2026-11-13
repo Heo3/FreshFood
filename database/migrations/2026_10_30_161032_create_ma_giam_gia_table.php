@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -26,7 +27,13 @@ return new class extends Migration
             $table->tinyInteger('trang_thai')->default(1);
             $table->timestamps();
             $table->index(['ngay_bat_dau', 'ngay_ket_thuc'], 'ma_giam_gia_thoi_gian_index');
+            $table->index(['ma_khuyen_mai', 'trang_thai', 'ngay_bat_dau', 'ngay_ket_thuc'], 'idx_magiamgia_lookup_valid');
         });
+
+        if (DB::connection()->getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE `ma_giam_gia` ADD CONSTRAINT `chk_ma_giam_gia_thoi_gian` CHECK (`ngay_ket_thuc` >= `ngay_bat_dau`)');
+            DB::statement('ALTER TABLE `ma_giam_gia` ADD CONSTRAINT `chk_ma_giam_gia_so_luong` CHECK (`da_su_dung` <= `so_luong`)');
+        }
     }
 
     /**

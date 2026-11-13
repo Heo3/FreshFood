@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import StoreLayout from '@/layouts/StoreLayout.vue';
 import AccountSidebar from '@/components/storefront/AccountSidebar.vue';
+import { useToast } from '@/composables/useToast';
 import {
     ChevronRight,
     ArrowLeft,
@@ -13,6 +14,9 @@ import {
     CheckCircle2,
     Clock,
     X,
+    Ban,
+    Star,
+    MessageSquare,
 } from 'lucide-vue-next';
 
 const props = defineProps<{
@@ -84,6 +88,75 @@ function submitReturn() {
     });
 }
 
+const isCancelModalOpen = ref(false);
+const cancelReasonSelect = ref('Đổi ý không muốn mua nữa');
+const cancelReasonCustom = ref('');
+const isSubmittingCancel = ref(false);
+
+const toast = useToast();
+const isReviewModalOpen = ref(false);
+const selectedItemForReview = ref<any>(null);
+const reviewStar = ref(5);
+const reviewText = ref('');
+const isSubmittingReview = ref(false);
+
+function openReviewModal(item: any) {
+    selectedItemForReview.value = item;
+    reviewStar.value = 5;
+    reviewText.value = '';
+    isReviewModalOpen.value = true;
+}
+
+function submitReview() {
+    if (!selectedItemForReview.value) return;
+    if (!reviewText.value.trim()) {
+        toast.warning('Vui lòng nhập lời nhận xét hoặc chia sẻ trải nghiệm của bạn.');
+        return;
+    }
+
+    isSubmittingReview.value = true;
+    router.post(
+        route('account.review.store'),
+        {
+            san_pham_id: selectedItemForReview.value.san_pham_id,
+            don_hang_id: props.order.id,
+            so_sao: reviewStar.value,
+            noi_dung: reviewText.value.trim(),
+        },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                isReviewModalOpen.value = false;
+                toast.success(`Cảm ơn bạn đã đánh giá sản phẩm "${selectedItemForReview.value.ten_san_pham}"!`);
+            },
+            onError: () => {
+                toast.error('Có lỗi xảy ra khi gửi đánh giá.');
+            },
+            onFinish: () => {
+                isSubmittingReview.value = false;
+            },
+        }
+    );
+}
+
+function submitCancel() {
+    const finalReason = cancelReasonSelect.value === 'Khác'
+        ? cancelReasonCustom.value.trim()
+        : (cancelReasonCustom.value.trim() ? `${cancelReasonSelect.value} - ${cancelReasonCustom.value.trim()}` : cancelReasonSelect.value);
+
+    isSubmittingCancel.value = true;
+    router.post(route('account.orders.cancel', props.order.id), {
+        ly_do: finalReason || 'Khách hàng yêu cầu hủy đơn',
+    }, {
+        onSuccess: () => {
+            isCancelModalOpen.value = false;
+        },
+        onFinish: () => {
+            isSubmittingCancel.value = false;
+        },
+    });
+}
+
 function formatPrice(val: number): string {
     return new Intl.NumberFormat('vi-VN').format(val) + 'đ';
 }
@@ -93,6 +166,7 @@ const statusMap: Record<string, { label: string; class: string }> = {
     dang_chuan_bi: { label: 'Đang chuẩn bị', class: 'bg-blue-100 text-blue-800' },
     dang_giao: { label: 'Đang giao hàng', class: 'bg-indigo-100 text-indigo-800' },
     da_giao: { label: 'Đã giao thành công', class: 'bg-emerald-100 text-emerald-800' },
+    hoan_thanh: { label: 'Đã hoàn thành', class: 'bg-emerald-100 text-emerald-800' },
     da_huy: { label: 'Đã hủy', class: 'bg-red-100 text-red-800' },
 };
 </script>
@@ -120,20 +194,42 @@ const statusMap: Record<string, { label: string; class: string }> = {
                 <!-- ORDER DETAIL MAIN -->
                 <div class="lg:col-span-3 space-y-6">
                     <!-- TOP BAR -->
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
                         <Link :href="route('account.orders')" class="text-xs font-bold text-gray-500 hover:text-emerald-600 flex items-center">
                             <ArrowLeft class="w-4 h-4 mr-1" /> Quay lại danh sách đơn hàng
                         </Link>
 
-                        <!-- ĐỔI TRẢ BUTTON NẾU ĐÃ GIAO -->
-                        <button
-                            v-if="order.trang_thai_don_hang === 'da_giao' || order.trang_thai_don_hang === 'dang_giao'"
-                            @click="isReturnModalOpen = true"
-                            class="px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold flex items-center space-x-1.5 transition-colors shadow-sm"
-                        >
-                            <RotateCcw class="w-3.5 h-3.5 text-amber-700" />
-                            <span>Yêu cầu Đổi / Trả hàng dập nát (24h)</span>
-                        </button>
+                        <div class="flex items-center space-x-2">
+                            <!-- NÚT HỦY ĐƠN HÀNG KHI CHỜ XÁC NHẬN -->
+                            <button
+                                v-if="order.trang_thai_don_hang === 'cho_xac_nhan'"
+                                @click="isCancelModalOpen = true"
+                                class="px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold flex items-center space-x-1.5 transition-colors shadow-xs"
+                            >
+                                <Ban class="w-3.5 h-3.5 text-red-600" />
+                                <span>Hủy đơn hàng</span>
+                            </button>
+
+                            <!-- THÔNG BÁO KHÔNG THỂ HỦY KHI ĐÃ DUYỆT VÀ ĐANG CHUẨN BỊ -->
+                            <div
+                                v-else-if="order.trang_thai_don_hang === 'dang_chuan_bi'"
+                                class="px-3.5 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold flex items-center space-x-1.5"
+                                title="Đơn hàng đã được duyệt và đang chuẩn bị đóng gói, không thể hủy đơn"
+                            >
+                                <Clock class="w-3.5 h-3.5 text-blue-600" />
+                                <span>Đang chuẩn bị (Không thể hủy)</span>
+                            </div>
+
+                            <!-- ĐỔI TRẢ BUTTON NẾU ĐÃ GIAO / HOÀN THÀNH -->
+                            <button
+                                v-if="order.trang_thai_don_hang === 'da_giao' || order.trang_thai_don_hang === 'hoan_thanh' || order.trang_thai_don_hang === 'dang_giao'"
+                                @click="isReturnModalOpen = true"
+                                class="px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold flex items-center space-x-1.5 transition-colors shadow-sm"
+                            >
+                                <RotateCcw class="w-3.5 h-3.5 text-amber-700" />
+                                <span>Yêu cầu Đổi / Trả hàng dập nát (24h)</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- ORDER SUMMARY CARD -->
@@ -156,6 +252,20 @@ const statusMap: Record<string, { label: string; class: string }> = {
                             </span>
                         </div>
 
+                        <!-- THÔNG BÁO RÕ RÀNG KHI ĐÃ DUYỆT VÀ ĐANG CHUẨN BỊ -->
+                        <div v-if="order.trang_thai_don_hang === 'dang_chuan_bi'" class="p-4 rounded-2xl bg-blue-50/80 border border-blue-200 flex items-start sm:items-center justify-between gap-3 text-xs">
+                            <div class="flex items-center space-x-2.5 text-blue-900">
+                                <Clock class="w-5 h-5 text-blue-600 shrink-0" />
+                                <div>
+                                    <span class="font-bold block text-blue-950">Đơn hàng đã được duyệt và đang chuẩn bị đóng gói</span>
+                                    <span class="text-blue-700 text-[11px]">Đơn hàng đã được xác nhận và nhân viên đang soạn hàng từ kho. Quý khách không thể tự hủy đơn hàng lúc này.</span>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 font-bold text-[11px] whitespace-nowrap shrink-0">
+                                Không thể hủy
+                            </span>
+                        </div>
+
                         <!-- ADDRESS & BRANCH INFO -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                             <div class="p-4 bg-gray-50 rounded-2xl">
@@ -170,8 +280,26 @@ const statusMap: Record<string, { label: string; class: string }> = {
                                 <strong class="text-emerald-800 block text-sm">{{ order.cua_hang?.ten_cua_hang }}</strong>
                                 <p class="text-gray-500 text-[11px] mb-2">{{ order.cua_hang?.dia_chi }}</p>
                                 <p class="text-gray-700">
-                                    Phương thức: <strong class="uppercase text-gray-900">{{ order.phuong_thuc_thanh_toan }}</strong>
+                                    Phương thức: <strong class="text-gray-900">{{ order.phuong_thuc_thanh_toan === 'vnpay' ? 'Quét mã VNPAY-QR' : (order.phuong_thuc_thanh_toan === 'cod' ? 'Tiền mặt khi nhận hàng (COD)' : order.phuong_thuc_thanh_toan.toUpperCase()) }}</strong>
                                 </p>
+                            </div>
+                        </div>
+
+                        <!-- VNPAY-QR QUICK SCAN IF UNPAID -->
+                        <div
+                            v-if="(order.phuong_thuc_thanh_toan === 'vnpay' || order.phuong_thuc_thanh_toan === 'chuyen_khoan') && order.trang_thai_thanh_toan !== 'da_thanh_toan'"
+                            class="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-xs flex flex-col sm:flex-row items-center gap-4"
+                        >
+                            <img
+                                :src="`https://img.vietqr.io/image/VPB-0329643444-compact2.png?amount=${order.tong_thanhtoan}&addInfo=VNPAY%20${order.ma_don_hang}&accountName=PHAN%20VAN%20THIEN%20DUY`"
+                                alt="Mã VNPAY-QR"
+                                class="w-28 h-28 rounded-xl border border-blue-300 bg-white p-1 shrink-0"
+                            />
+                            <div class="space-y-1 text-slate-700">
+                                <h4 class="font-bold text-blue-900 text-sm">Quét mã VNPAY-QR để thanh toán</h4>
+                                <p class="text-[11px] text-slate-600">Mở ứng dụng Ngân hàng hoặc Ví VNPAY để quét mã này và thanh toán <strong class="text-blue-700">{{ formatPrice(order.tong_thanhtoan) }}</strong>.</p>
+                                <p class="text-[11px] text-slate-600">Ngân hàng: <strong>VPBank</strong> - STK: <strong class="font-mono text-blue-700">0329643444</strong> (PHAN VAN THIEN DUY)</p>
+                                <p class="text-[11px] text-slate-500">Nội dung chuyển khoản: <strong class="font-mono text-blue-700">VNPAY {{ order.ma_don_hang }}</strong></p>
                             </div>
                         </div>
 
@@ -193,6 +321,15 @@ const statusMap: Record<string, { label: string; class: string }> = {
                                         <div>
                                             <p class="font-bold text-gray-900">{{ item.ten_san_pham }}</p>
                                             <p class="text-gray-400 text-[11px]">{{ item.so_luong }} × {{ formatPrice(item.don_gia) }}</p>
+                                            <button
+                                                v-if="order.trang_thai_don_hang === 'da_giao' || order.trang_thai_don_hang === 'hoan_thanh'"
+                                                @click="openReviewModal(item)"
+                                                type="button"
+                                                class="mt-1.5 inline-flex items-center space-x-1 text-[11px] font-bold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200 transition-colors cursor-pointer"
+                                            >
+                                                <Star class="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                                                <span>Đánh giá sản phẩm</span>
+                                            </button>
                                         </div>
                                     </div>
                                     <span class="font-black text-gray-900">{{ formatPrice(item.thanh_tien) }}</span>
@@ -315,6 +452,157 @@ const statusMap: Record<string, { label: string; class: string }> = {
                         class="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors disabled:opacity-50"
                     >
                         {{ isSubmittingReturn ? 'Đang gửi...' : 'Gửi yêu cầu' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CANCEL ORDER CONFIRMATION MODAL -->
+        <div v-if="isCancelModalOpen" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in fade-in duration-200">
+                <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                    <h3 class="font-black text-base text-gray-900 flex items-center">
+                        <Ban class="w-5 h-5 mr-2 text-red-600" /> Xác Nhận Hủy Đơn Hàng
+                    </h3>
+                    <button @click="isCancelModalOpen = false" class="text-gray-400 hover:text-gray-600">
+                        <X class="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div class="p-3.5 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-800 space-y-1">
+                    <p class="font-bold">Lưu ý khi hủy đơn hàng:</p>
+                    <p class="text-[11px] leading-relaxed">
+                        Bạn chỉ có thể tự hủy đơn khi đơn hàng đang ở trạng thái <strong>Chờ xác nhận</strong>. Khi chi nhánh đã duyệt và chuyển sang trạng thái <strong>Đang chuẩn bị</strong> hàng, đơn hàng sẽ không thể hủy được nữa.
+                    </p>
+                </div>
+
+                <!-- Cancellation reason select -->
+                <div class="space-y-1.5 text-xs">
+                    <label class="font-bold text-gray-700 block">Chọn lý do hủy đơn *</label>
+                    <select
+                        v-model="cancelReasonSelect"
+                        class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-red-500 focus:outline-none"
+                    >
+                        <option value="Đổi ý không muốn mua nữa">Đổi ý không muốn mua nữa</option>
+                        <option value="Muốn thay đổi địa chỉ / số điện thoại">Muốn thay đổi địa chỉ / số điện thoại nhận</option>
+                        <option value="Đặt nhầm sản phẩm hoặc số lượng">Đặt nhầm sản phẩm hoặc số lượng</option>
+                        <option value="Tìm thấy nơi khác có giá hoặc thời gian giao tốt hơn">Tìm thấy nơi khác có giá hoặc thời gian giao tốt hơn</option>
+                        <option value="Khác">Lý do khác...</option>
+                    </select>
+                </div>
+
+                <!-- Optional Custom Note -->
+                <div class="space-y-1.5 text-xs">
+                    <label class="font-bold text-gray-700 block">Ghi chú thêm (tùy chọn)</label>
+                    <textarea
+                        v-model="cancelReasonCustom"
+                        rows="2"
+                        placeholder="Nhập thêm chi tiết lý do bạn muốn hủy đơn..."
+                        class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-red-500 focus:outline-none text-xs"
+                    ></textarea>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex space-x-3 pt-2">
+                    <button
+                        type="button"
+                        @click="isCancelModalOpen = false"
+                        class="flex-1 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold transition-colors"
+                    >
+                        Đóng
+                    </button>
+                    <button
+                        type="button"
+                        @click="submitCancel"
+                        :disabled="isSubmittingCancel"
+                        class="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center justify-center space-x-1"
+                    >
+                        <span>{{ isSubmittingCancel ? 'Đang hủy...' : 'Xác nhận hủy đơn' }}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- REVIEW MODAL -->
+        <div
+            v-if="isReviewModalOpen"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+        >
+            <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
+                <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+                    <div class="flex items-center space-x-2">
+                        <Star class="w-5 h-5 text-amber-500 fill-amber-400" />
+                        <h3 class="font-black text-gray-900 text-base">Đánh Giá Sản Phẩm</h3>
+                    </div>
+                    <button
+                        @click="isReviewModalOpen = false"
+                        class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-200 transition"
+                    >
+                        <X class="w-4 h-4" />
+                    </button>
+                </div>
+
+                <div class="p-3 bg-gray-50 rounded-2xl flex items-center space-x-3">
+                    <img
+                        :src="selectedItemForReview?.hinh_anh_snapshot || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200'"
+                        :alt="selectedItemForReview?.ten_san_pham"
+                        class="w-12 h-12 rounded-xl object-cover bg-white border border-gray-200 shrink-0"
+                    />
+                    <div>
+                        <h4 class="font-bold text-gray-900 text-xs line-clamp-1">{{ selectedItemForReview?.ten_san_pham }}</h4>
+                        <span class="text-[11px] text-gray-500">Đơn hàng: #{{ order.ma_don_hang }}</span>
+                    </div>
+                </div>
+
+                <!-- Star Rating Selector -->
+                <div class="space-y-2 text-center">
+                    <label class="text-xs font-bold text-gray-600 block">Bạn cảm thấy sản phẩm này thế nào?</label>
+                    <div class="flex items-center justify-center space-x-2">
+                        <button
+                            v-for="s in 5"
+                            :key="s"
+                            type="button"
+                            @click="reviewStar = s"
+                            class="p-1 hover:scale-125 transition-transform cursor-pointer"
+                        >
+                            <Star
+                                class="w-8 h-8 transition-colors"
+                                :class="s <= reviewStar ? 'fill-amber-400 text-amber-400' : 'text-gray-300 hover:text-amber-300'"
+                            />
+                        </button>
+                    </div>
+                    <p class="text-xs font-bold text-amber-600">
+                        {{ reviewStar === 5 ? 'Tuyệt vời, rất tươi ngon!' : reviewStar === 4 ? 'Hài lòng' : reviewStar === 3 ? 'Bình thường' : 'Chưa hài lòng' }}
+                    </p>
+                </div>
+
+                <!-- Comment Input -->
+                <div class="space-y-1.5 text-xs">
+                    <label class="font-bold text-gray-700 block">Nhận xét chi tiết *</label>
+                    <textarea
+                        v-model="reviewText"
+                        rows="3"
+                        placeholder="Hãy chia sẻ thêm về chất lượng sản phẩm, độ tươi, cách đóng gói..."
+                        class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-amber-500 focus:outline-none text-xs"
+                    ></textarea>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="flex space-x-3 pt-2">
+                    <button
+                        type="button"
+                        @click="isReviewModalOpen = false"
+                        class="flex-1 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold transition-colors cursor-pointer"
+                    >
+                        Hủy
+                    </button>
+                    <button
+                        type="button"
+                        @click="submitReview"
+                        :disabled="isSubmittingReview"
+                        class="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center justify-center space-x-1 cursor-pointer shadow-md shadow-amber-500/20"
+                    >
+                        <span>{{ isSubmittingReview ? 'Đang gửi...' : 'Gửi Đánh Giá' }}</span>
                     </button>
                 </div>
             </div>

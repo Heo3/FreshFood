@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\CuaHang;
 use App\Models\DanhMuc;
+use App\Models\LoHang;
 use App\Models\SanPham;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -118,11 +120,21 @@ class ProductController extends Controller
 
         $stores = CuaHang::where('trang_thai', 1)->get();
 
+        // Lấy thông tin lô hàng FEFO mới nhất khả dụng tại chi nhánh
+        $earliestLot = LoHang::where('san_pham_id', $product->id)
+            ->where('cua_hang_id', $storeId)
+            ->where('trang_thai', 1)
+            ->where('so_luong_con_lai', '>', 0)
+            ->where('ngay_het_han', '>=', Carbon::today()->toDateString())
+            ->orderBy('ngay_het_han', 'asc')
+            ->first(['ngay_san_xuat', 'ngay_het_han', 'ma_lo']);
+
         return Inertia::render('client/ProductDetail', [
             'product' => $product,
             'relatedProducts' => $relatedProducts,
             'stores' => $stores,
             'selectedStoreId' => $storeId,
+            'earliestLot' => $earliestLot,
         ]);
     }
 

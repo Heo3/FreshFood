@@ -115,8 +115,9 @@
   - `tracking`: Tra cứu đơn hàng công khai theo mã đơn và số điện thoại.
 - [AccountController.php](file:///d:/FreshFood/app/Http/Controllers/Client/AccountController.php):
   - `index`: Tổng quan tài khoản cá nhân, thống kê đơn mua và số dư điểm.
-  - `orders`: Danh sách đơn hàng có phân loại theo trạng thái (Chờ xác nhận, Đang giao, Đã giao,...).
+  - `orders`: Danh sách đơn hàng có phân loại theo trạng thái (Chờ xác nhận, Đang chuẩn bị, Đang giao, Đã giao,...).
   - `orderDetail`: Xem hóa đơn chi tiết của đơn hàng.
+  - `cancelOrder`: Xử lý hủy đơn hàng của khách hàng. Ràng buộc: chỉ cho phép hủy đơn (`da_huy`) trong thời gian `cho_xac_nhan`. Khi đơn hàng đã duyệt và chuyển sang `dang_chuan_bi` (hoặc các trạng thái sau), hệ thống khóa và không cho hủy. Tự động hoàn lại lượt dùng voucher và điểm thưởng tích lũy khi hủy hợp lệ.
   - `addresses` / `storeAddress` / `deleteAddress`: Quản lý sổ địa chỉ giao hàng của khách.
   - `points`: Lịch sử cộng/trừ điểm và xem thẻ thành viên VIP.
   - `requestReturn`: Gửi yêu cầu đổi trả thực phẩm hỏng/dập nát trong 24h, tự sinh phiếu `PhieuDoiTra`.

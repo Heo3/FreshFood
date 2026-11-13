@@ -84,6 +84,11 @@ class HandleInertiaRequests extends Middleware
                 'dia_chi',
                 'so_dien_thoai',
             ]),
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+                'info' => fn () => $request->session()->get('info'),
+            ],
         ]);
     }
 }

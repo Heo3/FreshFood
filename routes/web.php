@@ -1,11 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-// Dashboard chung sau đăng nhập
+// Dashboard chung sau đăng nhập -> chuyển hướng về Trang chủ storefront
 Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
+    return redirect()->route('home');
 })->middleware(['auth'])->name('dashboard');
 
 // Phân hệ Khách hàng & Trang bán lẻ Storefront

@@ -14,6 +14,22 @@ class PhieuXuat extends Model
 
     protected $table = 'phieu_xuat';
 
+    public const LOAI_XUAT_BAN = 1;
+
+    public const LOAI_XUAT_CHUYEN = 2;
+
+    public const LOAI_XUAT_HUY = 3;
+
+    public const LOAI_XUAT_TRA_NCC = 4;
+
+    public const TRANG_THAI_CHO_XUAT = 0;
+
+    public const TRANG_THAI_DA_XUAT = 1;
+
+    public const TRANG_THAI_DA_HUY = 2;
+
+    public const TRANG_THAI_DA_NHAN = 3;
+
     /**
      * @var list<string>
      */
@@ -26,6 +42,9 @@ class PhieuXuat extends Model
         'nha_cung_cap_id',
         'nguoi_tao_id',
         'nguoi_duyet_id',
+        'nguoi_giao_hang_id',
+        'loai_phuong_tien',
+        'bien_so_xe',
         'trang_thai',
         'tong_so_luong',
         'tong_gia_tri',
@@ -76,6 +95,11 @@ class PhieuXuat extends Model
     public function nguoiDuyet(): BelongsTo
     {
         return $this->belongsTo(User::class, 'nguoi_duyet_id');
+    }
+
+    public function nguoiGiaoHang(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'nguoi_giao_hang_id');
     }
 
     public function chiTiets(): HasMany

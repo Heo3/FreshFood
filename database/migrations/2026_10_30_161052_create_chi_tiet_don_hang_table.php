@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('don_hang_id')->constrained('don_hang')->cascadeOnDelete();
             $table->foreignId('san_pham_id')->constrained('san_pham');
+            $table->foreignId('lo_hang_id')->nullable()->constrained('lo_hang')->nullOnDelete();
             $table->string('ten_san_pham', 200);
             $table->string('hinh_anh_snapshot')->nullable();
             $table->string('don_vi_tinh', 20)->nullable();
@@ -25,6 +26,7 @@ return new class extends Migration
             $table->timestamps();
             $table->index('don_hang_id');
             $table->index('san_pham_id');
+            $table->index('lo_hang_id');
         });
     }
 

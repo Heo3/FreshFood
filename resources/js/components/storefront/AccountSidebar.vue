@@ -72,9 +72,10 @@ const user = page.props.auth?.user as any;
 
             <Link
                 :href="route('profile.edit')"
-                class="flex items-center space-x-2.5 px-3.5 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                class="flex items-center space-x-2.5 px-3.5 py-2.5 rounded-xl transition-colors"
+                :class="activeTab === 'profile' ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
             >
-                <User class="w-4 h-4 text-gray-400" />
+                <User class="w-4 h-4 text-emerald-600" />
                 <span>Cài đặt thông tin</span>
             </Link>
 

@@ -62,7 +62,10 @@ CREATE TABLE `ma_giam_gia` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ma_giam_gia_ma_khuyen_mai_unique` (`ma_khuyen_mai`),
-  KEY `ma_giam_gia_thoi_gian_index` (`ngay_bat_dau`,`ngay_ket_thuc`)
+  KEY `ma_giam_gia_thoi_gian_index` (`ngay_bat_dau`,`ngay_ket_thuc`),
+  KEY `idx_magiamgia_lookup_valid` (`ma_khuyen_mai`,`trang_thai`,`ngay_bat_dau`,`ngay_ket_thuc`),
+  CONSTRAINT `chk_ma_giam_gia_thoi_gian` CHECK (`ngay_ket_thuc` >= `ngay_bat_dau`),
+  CONSTRAINT `chk_ma_giam_gia_so_luong` CHECK (`da_su_dung` <= `so_luong`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `danh_muc` (
@@ -153,7 +156,8 @@ CREATE TABLE `san_pham` (
   KEY `san_pham_danh_muc_id_foreign` (`danh_muc_id`),
   KEY `san_pham_trang_thai_index` (`trang_thai`),
   KEY `san_pham_la_tuoi_song_index` (`la_tuoi_song`),
-  CONSTRAINT `san_pham_danh_muc_id_foreign` FOREIGN KEY (`danh_muc_id`) REFERENCES `danh_muc` (`id`)
+  CONSTRAINT `san_pham_danh_muc_id_foreign` FOREIGN KEY (`danh_muc_id`) REFERENCES `danh_muc` (`id`),
+  CONSTRAINT `chk_san_pham_gia_giam` CHECK (`gia_giam` IS NULL OR (`gia_giam` >= 0 AND `gia_giam` <= `gia_ban`))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `hinh_anh_san_pham` (
@@ -180,7 +184,8 @@ CREATE TABLE `gia_san_pham_cua_hang` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_cuahang_sanpham_gia` (`cua_hang_id`,`san_pham_id`),
   CONSTRAINT `fk_gia_cua_hang` FOREIGN KEY (`cua_hang_id`) REFERENCES `cua_hang` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_gia_san_pham` FOREIGN KEY (`san_pham_id`) REFERENCES `san_pham` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_gia_san_pham` FOREIGN KEY (`san_pham_id`) REFERENCES `san_pham` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_gia_cua_hang_gia_giam` CHECK (`gia_giam` IS NULL OR (`gia_giam` >= 0 AND `gia_giam` <= `gia_ban`))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -241,7 +246,8 @@ CREATE TABLE `lo_hang` (
   CONSTRAINT `lo_hang_cua_hang_id_foreign` FOREIGN KEY (`cua_hang_id`) REFERENCES `cua_hang` (`id`),
   CONSTRAINT `lo_hang_nha_cung_cap_id_foreign` FOREIGN KEY (`nha_cung_cap_id`) REFERENCES `nha_cung_cap` (`id`) ON DELETE SET NULL,
   CONSTRAINT `lo_hang_phieu_nhap_id_foreign` FOREIGN KEY (`phieu_nhap_id`) REFERENCES `phieu_nhap` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `lo_hang_san_pham_id_foreign` FOREIGN KEY (`san_pham_id`) REFERENCES `san_pham` (`id`)
+  CONSTRAINT `lo_hang_san_pham_id_foreign` FOREIGN KEY (`san_pham_id`) REFERENCES `san_pham` (`id`),
+  CONSTRAINT `chk_lo_hang_ngay_han` CHECK (`ngay_san_xuat` IS NULL OR `ngay_het_han` >= `ngay_san_xuat`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `chi_tiet_phieu_nhap` (
@@ -281,7 +287,8 @@ CREATE TABLE `ton_kho` (
   KEY `ton_kho_cua_hang_id_index` (`cua_hang_id`),
   KEY `ton_kho_san_pham_id_index` (`san_pham_id`),
   CONSTRAINT `ton_kho_cua_hang_id_foreign` FOREIGN KEY (`cua_hang_id`) REFERENCES `cua_hang` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `ton_kho_san_pham_id_foreign` FOREIGN KEY (`san_pham_id`) REFERENCES `san_pham` (`id`) ON DELETE CASCADE
+  CONSTRAINT `ton_kho_san_pham_id_foreign` FOREIGN KEY (`san_pham_id`) REFERENCES `san_pham` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_ton_kho_so_luong` CHECK (`so_luong_ton` >= 0 AND `so_luong_tam_giu` >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -335,6 +342,7 @@ CREATE TABLE `don_hang` (
   KEY `don_hang_trang_thai_don_hang_index` (`trang_thai_don_hang`),
   KEY `don_hang_trang_thai_thanh_toan_index` (`trang_thai_thanh_toan`),
   KEY `don_hang_cua_hang_id_index` (`cua_hang_id`),
+  KEY `idx_donhang_store_status_date` (`cua_hang_id`,`trang_thai_don_hang`,`created_at`),
   CONSTRAINT `don_hang_cua_hang_id_foreign` FOREIGN KEY (`cua_hang_id`) REFERENCES `cua_hang` (`id`),
   CONSTRAINT `don_hang_dia_chi_giao_hang_id_foreign` FOREIGN KEY (`dia_chi_giao_hang_id`) REFERENCES `dia_chi_giao_hang` (`id`) ON DELETE SET NULL,
   CONSTRAINT `don_hang_ma_giam_gia_id_foreign` FOREIGN KEY (`ma_giam_gia_id`) REFERENCES `ma_giam_gia` (`id`) ON DELETE SET NULL,
@@ -345,6 +353,7 @@ CREATE TABLE `chi_tiet_don_hang` (
   `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
   `don_hang_id` bigint(20) UNSIGNED NOT NULL,
   `san_pham_id` bigint(20) UNSIGNED NOT NULL,
+  `lo_hang_id` bigint(20) UNSIGNED DEFAULT NULL COMMENT 'Lo hang thuc te dong goi/xuat giao phuc vu truy vet nguon goc va han su dung',
   `ten_san_pham` varchar(200) NOT NULL,
   `hinh_anh_snapshot` varchar(255) DEFAULT NULL COMMENT 'Luu anh tai thoi diem mua de tranh sai lech khi sua SP',
   `don_vi_tinh` varchar(20) DEFAULT NULL,
@@ -357,8 +366,10 @@ CREATE TABLE `chi_tiet_don_hang` (
   PRIMARY KEY (`id`),
   KEY `chi_tiet_don_hang_don_hang_id_index` (`don_hang_id`),
   KEY `chi_tiet_don_hang_san_pham_id_index` (`san_pham_id`),
+  KEY `chi_tiet_don_hang_lo_hang_id_foreign` (`lo_hang_id`),
   CONSTRAINT `chi_tiet_don_hang_don_hang_id_foreign` FOREIGN KEY (`don_hang_id`) REFERENCES `don_hang` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `chi_tiet_don_hang_san_pham_id_foreign` FOREIGN KEY (`san_pham_id`) REFERENCES `san_pham` (`id`)
+  CONSTRAINT `chi_tiet_don_hang_san_pham_id_foreign` FOREIGN KEY (`san_pham_id`) REFERENCES `san_pham` (`id`),
+  CONSTRAINT `chi_tiet_don_hang_lo_hang_id_foreign` FOREIGN KEY (`lo_hang_id`) REFERENCES `lo_hang` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -623,6 +634,7 @@ CREATE TABLE `sessions` (
   PRIMARY KEY (`id`),
   KEY `sessions_user_id_index` (`user_id`),
   KEY `sessions_last_activity_index` (`last_activity`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 9. QUẢN LÝ ĐỔI TRẢ HÀNG (Dành cho thực phẩm tươi sống / lỗi / hỏng)
@@ -673,7 +685,6 @@ CREATE TABLE `chi_tiet_doi_tra` (
   CONSTRAINT `chi_tiet_doi_tra_san_pham_id_foreign` FOREIGN KEY (`san_pham_id`) REFERENCES `san_pham` (`id`),
   CONSTRAINT `chi_tiet_doi_tra_lo_hang_id_foreign` FOREIGN KEY (`lo_hang_id`) REFERENCES `lo_hang` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 
 -- --------------------------------------------------------
 -- 10. LỊCH SỬ TÍCH ĐIỂM VÀ SỬ DỤNG ĐIỂM THƯỞNG (Loyalty Program)

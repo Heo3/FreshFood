@@ -39,10 +39,53 @@ class CartController extends Controller
             }
         }
 
+        $availableCoupons = MaGiamGia::hieuLuc()->get()->map(function ($c) {
+            return [
+                'id' => $c->id,
+                'ma_khuyen_mai' => $c->ma_khuyen_mai,
+                'ten_chuong_trinh' => $c->ten_chuong_trinh,
+                'loai_giam_gia' => $c->loai_giam_gia,
+                'gia_tri_giam' => (float) $c->gia_tri_giam,
+                'don_hang_toi_thieu' => (float) $c->don_hang_toi_thieu,
+                'giam_toi_da' => $c->giam_toi_da ? (float) $c->giam_toi_da : null,
+                'ngay_ket_thuc' => $c->ngay_ket_thuc?->format('d/m/Y'),
+            ];
+        });
+
+        // Tự động khôi phục mã giảm giá từ session nếu còn hiệu lực
+        $sessionCouponCode = $request->session()->get('applied_coupon_code');
+        $initialAppliedCoupon = null;
+        if ($sessionCouponCode) {
+            $couponModel = MaGiamGia::where('ma_khuyen_mai', $sessionCouponCode)->first();
+            if ($couponModel && $couponModel->isAvailable()) {
+                $subtotal = 0;
+                foreach ($cartItems as $item) {
+                    $itemPrice = $item->sanPham ? ($item->sanPham->gia_giam ?? $item->sanPham->gia_ban) : 0;
+                    $subtotal += ($itemPrice * $item->so_luong);
+                }
+                if ($subtotal >= (float) $couponModel->don_hang_toi_thieu) {
+                    $initialAppliedCoupon = [
+                        'id' => $couponModel->id,
+                        'code' => $couponModel->ma_khuyen_mai,
+                        'program' => $couponModel->ten_chuong_trinh,
+                        'type' => $couponModel->loai_giam_gia,
+                        'value' => (float) $couponModel->gia_tri_giam,
+                        'discount_amount' => $couponModel->tinhSoTienGiam($subtotal),
+                    ];
+                } else {
+                    $request->session()->forget('applied_coupon_code');
+                }
+            } else {
+                $request->session()->forget('applied_coupon_code');
+            }
+        }
+
         return Inertia::render('client/Cart', [
             'stores' => $stores,
             'selectedStoreId' => $cartStoreId,
             'initialCartItems' => $cartItems,
+            'availableCoupons' => $availableCoupons,
+            'appliedCoupon' => $initialAppliedCoupon,
         ]);
     }
 
@@ -101,6 +144,8 @@ class CartController extends Controller
         $coupon = MaGiamGia::where('ma_khuyen_mai', $code)->first();
 
         if (! $coupon) {
+            $request->session()->forget('applied_coupon_code');
+
             return response()->json([
                 'success' => false,
                 'message' => 'Mã giảm giá không tồn tại.',
@@ -108,6 +153,8 @@ class CartController extends Controller
         }
 
         if (! $coupon->isAvailable()) {
+            $request->session()->forget('applied_coupon_code');
+
             return response()->json([
                 'success' => false,
                 'message' => 'Mã giảm giá đã hết hạn hoặc hết lượt sử dụng.',
@@ -115,6 +162,8 @@ class CartController extends Controller
         }
 
         if ($total < (float) $coupon->don_hang_toi_thieu) {
+            $request->session()->forget('applied_coupon_code');
+
             return response()->json([
                 'success' => false,
                 'message' => 'Đơn hàng chưa đạt giá trị tối thiểu '.number_format((float) $coupon->don_hang_toi_thieu).'đ để áp dụng mã này.',
@@ -122,6 +171,9 @@ class CartController extends Controller
         }
 
         $discount = $coupon->tinhSoTienGiam($total);
+
+        // Lưu vào session để tự động mang sang trang thanh toán (checkout)
+        $request->session()->put('applied_coupon_code', $coupon->ma_khuyen_mai);
 
         return response()->json([
             'success' => true,
@@ -134,6 +186,19 @@ class CartController extends Controller
                 'value' => (float) $coupon->gia_tri_giam,
                 'discount_amount' => $discount,
             ],
+        ]);
+    }
+
+    /**
+     * Gỡ bỏ mã giảm giá khỏi session
+     */
+    public function removeCoupon(Request $request): JsonResponse
+    {
+        $request->session()->forget('applied_coupon_code');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã gỡ bỏ mã giảm giá.',
         ]);
     }
 

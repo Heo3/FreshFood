@@ -76,6 +76,11 @@ class LoHang extends Model
         return $this->hasMany(ChiTietXuatKho::class, 'lo_hang_id');
     }
 
+    public function chiTietDonHangs(): HasMany
+    {
+        return $this->hasMany(ChiTietDonHang::class, 'lo_hang_id');
+    }
+
     public function scopeConHan(Builder $query): Builder
     {
         return $query->where('ngay_het_han', '>=', now()->toDateString())

@@ -36,6 +36,7 @@ return new class extends Migration
             $table->index('dia_chi_giao_hang_id');
             $table->index('ma_giam_gia_id');
             $table->index('cua_hang_id');
+            $table->index(['cua_hang_id', 'trang_thai_don_hang', 'created_at'], 'idx_donhang_store_status_date');
         });
     }
 

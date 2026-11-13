@@ -149,57 +149,57 @@ graph TD
 ### GIAI ĐOẠN 4: NGHIỆP VỤ KHO & BÁN HÀNG ĐẶC THÙ THỰC PHẨM TƯƠI SỐNG (OPERATIONS)
 *Mục tiêu: Đảm bảo kiểm soát chặt chẽ hạn sử dụng, xuất kho đúng nguyên tắc FEFO, kiểm kê và đổi trả hàng minh bạch.*
 
-- [ ] **Bước 4.1: Xây dựng Service Xuất Kho FEFO (`InventoryService.php`)**
+- [x] **Bước 4.1: Xây dựng Service Xuất Kho FEFO (`InventoryService.php`)**
   - Khi đơn hàng được duyệt/đóng gói:
     - Tìm kiếm tồn kho của sản phẩm tại cửa hàng được giao.
     - Sắp xếp các lô hàng còn tồn theo `lo_hang.ngay_het_han ASC` (Lô hết hạn sớm nhất được ưu tiên xuất trước).
     - Tự động trừ số lượng ở `ton_kho` và ghi bản ghi vào `chi_tiet_xuat_kho` & `the_kho`.
     - Trả về cảnh báo nếu số lượng hàng có hạn sử dụng an toàn không đủ đáp ứng.
 
-- [ ] **Bước 4.2: Phân hệ Quản lý Nhập Kho (`app/Http/Controllers/PhieuNhapController.php`)**
-  - Giao diện tạo phiếu nhập từ Nhà cung cấp: Chọn NCC, chọn cửa hàng nhận.
+- [x] **Bước 4.2: Phân hệ Quản lý Nhập Kho (`app/Http/Controllers/Store/PhieuNhapController.php`)**
+  - Giao diện tạo phiếu nhập từ Nhà cung cấp: Chọn NCC, chọn cửa hàng nhận (`store/inbound/Create.vue`).
   - Nhập từng mặt hàng: Đơn giá nhập, Số lượng, Số lô sản xuất, Ngày sản xuất (NSX), Ngày hết hạn (HSD).
   - Sau khi hoàn thành phiếu nhập: Tự động tạo bản ghi `lo_hang`, cập nhật số lượng vào bảng `ton_kho` của chi nhánh đó, ghi thẻ kho.
 
-- [ ] **Bước 4.3: Phân hệ Cảnh báo Cận Hạn Sử Dụng (Near-Expiry Alert) & Giảm giá xả hàng**
+- [x] **Bước 4.3: Phân hệ Cảnh báo Cận Hạn Sử Dụng (Near-Expiry Alert) & Giảm giá xả hàng (`NearExpiry.vue`)**
   - Dashboard danh sách các lô hàng:
     - 🔴 **Báo động Đỏ:** Lô hàng còn ≤ 1 ngày (Cần xuất hủy hoặc giảm giá sâu 50-70%).
     - 🟡 **Báo động Vàng:** Lô hàng còn ≤ 3 ngày.
     - 🟢 **An toàn:** Lô hàng mới nhập.
-  - Nút chuyển nhanh lô cận date thành giá khuyến mãi xả hàng trong ngày.
+  - Nút chuyển nhanh lô cận date thành giá khuyến mãi xả hàng trong ngày và xuất hủy hàng hỏng.
 
-- [ ] **Bước 4.4: Phân hệ Kiểm kê Kho & Cân bằng Tồn kho (`PhieuKiemKeController.php`)**
-  - Tạo đợt kiểm kê theo định kỳ (cuối ngày hoặc hàng tuần).
+- [x] **Bước 4.4: Phân hệ Kiểm kê Kho & Cân bằng Tồn kho (`app/Http/Controllers/Store/PhieuKiemKeController.php`)**
+  - Tạo đợt kiểm kê theo định kỳ (cuối ngày hoặc hàng tuần) (`store/audit/Create.vue`).
   - So sánh Tồn lý thuyết vs Tồn thực tế -> Tính chênh lệch (Thất thoát do bốc hơi, hư hỏng dập nát).
-  - Xác nhận cân bằng kho và lưu nguyên nhân hao hụt.
+  - Xác nhận cân bằng kho và lưu nguyên nhân hao hụt, tự động ghi thẻ kho `can_bang_kiem_ke`.
 
-- [ ] **Bước 4.5: Phân hệ Xử lý Đổi Trả Hàng Hỏng (`PhieuDoiTraController.php`)**
-  - Nhân viên/Quản lý duyệt yêu cầu đổi trả từ khách hàng hoặc tạo trực tiếp tại quầy:
+- [x] **Bước 4.5: Phân hệ Xử lý Đổi Trả Hàng Hỏng (`app/Http/Controllers/Store/PhieuDoiTraController.php`)**
+  - Nhân viên/Quản lý duyệt yêu cầu đổi trả từ khách hàng hoặc tạo trực tiếp tại quầy (`store/returns/Index.vue`):
     - Đánh giá tình trạng: Hư hỏng tiêu hủy, hoặc Trả về nhà cung cấp.
-    - Hình thức: Đổi sản phẩm tương đương (xuất kho bù) hoặc Hoàn tiền lại cho khách hàng.
-    - Tự động điều chỉnh thẻ kho và trừ/cộng lại điểm tích lũy tương ứng.
+    - Hình thức: Đổi sản phẩm tương đương (tự động xuất kho FEFO bù) hoặc Hoàn tiền lại cho khách hàng.
+    - Tự động điều chỉnh thẻ kho và cập nhật trạng thái phiếu đổi trả.
 
 ---
 
 ### GIAI ĐOẠN 5: TRANG QUẢN TRỊ TỔNG THỂ (ADMIN DASHBOARD & BÁO CÁO)
 *Mục tiêu: Cung cấp bức tranh toàn cảnh về doanh số, tồn kho, lợi nhuận và quản trị toàn bộ hệ sinh thái Fresh Food.*
 
-- [ ] **Bước 5.1: Dashboard Thống kê & Phân tích Trực quan**
+- [x] **Bước 5.1: Dashboard Thống kê & Phân tích Trực quan**
   - Biểu đồ Doanh thu theo ngày, tuần, tháng, quý (hỗ trợ lọc theo từng chi nhánh cửa hàng).
   - Thống kê Đơn hàng: Tỷ lệ giao hàng thành công, đơn hủy, đơn đổi trả.
   - Thống kê Tỷ lệ hao hụt / Hủy hàng do hết date (chỉ số sống còn của cửa hàng thực phẩm).
   - Top 10 sản phẩm bán chạy nhất / Danh mục mang lại doanh thu cao nhất.
 
-- [ ] **Bước 5.2: Quản lý Danh mục & Sản phẩm Nâng cao**
+- [x] **Bước 5.2: Quản lý Danh mục & Sản phẩm Nâng cao**
   - CRUD Danh mục sản phẩm (Hỗ trợ danh mục đa cấp, upload icon/ảnh).
   - CRUD Sản phẩm: Thông tin chi tiết, upload nhiều ảnh, cài đặt đơn vị tính, bảo quản.
   - Cấu hình Bảng giá theo từng chi nhánh (`gia_san_pham_cua_hang`): Cho phép chi nhánh trung tâm áp giá khác chi nhánh tỉnh/vùng ven.
 
-- [ ] **Bước 5.3: Quản lý Khuyến Mãi & Voucher (`MaGiamGiaController.php`)**
+- [x] **Bước 5.3: Quản lý Khuyến Mãi & Voucher (`MaGiamGiaController.php`)**
   - Tạo mã giảm giá theo %, tiền mặt, giới hạn số lượng, giá trị đơn tối thiểu, mức giảm tối đa.
   - Quản lý thời hạn chạy chiến dịch khuyến mãi (Tự động kích hoạt/hết hạn).
 
-- [ ] **Bước 5.4: Quản lý Chi nhánh Cửa hàng & Nhân sự**
+- [x] **Bước 5.4: Quản lý Chi nhánh Cửa hàng & Nhân sự**
   - Quản lý danh sách chi nhánh (`cua_hang`): Địa chỉ, hotline, tọa độ Google Maps, giờ đóng/mở cửa.
   - Quản lý Tài khoản & Phân quyền nhân viên: Gán nhân viên vào đúng `store_id` để giới hạn quyền dữ liệu của chi nhánh đó.
 

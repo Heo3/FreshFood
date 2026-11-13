@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -23,6 +24,10 @@ return new class extends Migration
             $table->index('cua_hang_id');
             $table->index('san_pham_id');
         });
+
+        if (DB::connection()->getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE `ton_kho` ADD CONSTRAINT `chk_ton_kho_so_luong` CHECK (`so_luong_ton` >= 0 AND `so_luong_tam_giu` >= 0)');
+        }
     }
 
     /**

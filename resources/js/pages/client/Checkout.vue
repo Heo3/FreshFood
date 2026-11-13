@@ -11,24 +11,44 @@ import {
     Sparkles,
     ChevronRight,
     Coins,
+    TicketPercent,
+    Check,
+    X,
+    LocateFixed,
+    AlertTriangle,
+    CheckCircle2,
 } from 'lucide-vue-next';
 
-const props = defineProps<{
-    stores: Array<any>;
-    addresses: Array<any>;
-    user?: {
-        id: number;
-        name: string;
-        email?: string;
-        phone?: string;
-        loyalty_points: number;
-    } | null;
-}>();
+const props = withDefaults(
+    defineProps<{
+        stores: Array<any>;
+        addresses: Array<any>;
+        availableCoupons?: Array<any>;
+        appliedCoupon?: any;
+        user?: {
+            id: number;
+            name: string;
+            email?: string;
+            phone?: string;
+            loyalty_points: number;
+        } | null;
+    }>(),
+    {
+        availableCoupons: () => [],
+        appliedCoupon: null,
+    }
+);
 
 const { cartItems, selectedStoreId, subtotal, clearCart, showToast, setStore, refreshCartPrices } = useCart();
 
 const deliveryType = ref<'delivery' | 'pickup'>('delivery');
 const selectedAddressId = ref<number | null>(props.addresses?.[0]?.id || null);
+
+const appliedCoupon = ref<any | null>(props.appliedCoupon || null);
+const couponCode = ref(props.appliedCoupon?.code || '');
+const couponError = ref('');
+const isCheckingCoupon = ref(false);
+const showVoucherList = ref(false);
 
 const form = ref({
     cua_hang_id: selectedStoreId.value || props.stores?.[0]?.id || 1,
@@ -41,7 +61,7 @@ const form = ref({
     time_slot: '8h - 10h',
     phuong_thuc_thanh_toan: 'cod',
     ghi_chu: '',
-    ma_giam_gia_code: '',
+    ma_giam_gia_code: props.appliedCoupon?.code || '',
     use_points: false,
 });
 
@@ -51,6 +71,114 @@ function onStoreBranchChange() {
     refreshCartPrices(newStoreId);
 }
 
+const isLocatingGps = ref(false);
+const autoDetectedNotice = ref('');
+const suggestedStoreForAddress = ref<any | null>(null);
+
+const isCrossRegionWarning = computed(() => {
+    const selectedStore = props.stores.find((s) => s.id === Number(form.value.cua_hang_id));
+    if (!selectedStore || !form.value.dia_chi_giao || deliveryType.value !== 'delivery') return false;
+    const dc = form.value.dia_chi_giao.toLowerCase();
+    const stDc = selectedStore.dia_chi.toLowerCase();
+
+    const isAddrHn = dc.includes('hà nội') || dc.includes('ha noi');
+    const isStoreHn = stDc.includes('hà nội') || stDc.includes('ha noi');
+
+    if (isAddrHn && !isStoreHn) return true;
+
+    const isAddrHcm =
+        dc.includes('hồ chí minh') ||
+        dc.includes('tp.hcm') ||
+        dc.includes('tphcm') ||
+        dc.includes('sài gòn') ||
+        dc.includes('quận ') ||
+        dc.includes('bình thạnh');
+
+    if (isAddrHcm && isStoreHn) return true;
+
+    return false;
+});
+
+let addressDebounce: ReturnType<typeof setTimeout> | null = null;
+
+async function detectNearestByAddress(address: string) {
+    if (!address || !address.trim() || deliveryType.value !== 'delivery') return;
+    try {
+        const res = await fetch(route('store.find-nearest'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
+            },
+            body: JSON.stringify({ address: address.trim() }),
+        });
+        const data = await res.json();
+        if (data.success && data.store) {
+            suggestedStoreForAddress.value = data.store;
+            if (Number(form.value.cua_hang_id) !== data.store.id) {
+                form.value.cua_hang_id = data.store.id;
+                onStoreBranchChange();
+                autoDetectedNotice.value = `Hệ thống đã tự động chọn chi nhánh ${data.store.ten_cua_hang} gần nơi giao của bạn nhất.`;
+            }
+        }
+    } catch (e) {
+        // silent fail
+    }
+}
+
+function detectNearestByGps() {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+        showToast('Trình duyệt của bạn không hỗ trợ định vị GPS.', 'error');
+        return;
+    }
+    isLocatingGps.value = true;
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            try {
+                const res = await fetch(route('store.find-nearest'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
+                    },
+                    body: JSON.stringify({
+                        lat: position.coords.latitude,
+                        lon: position.coords.longitude,
+                    }),
+                });
+                const data = await res.json();
+                if (data.success && data.store) {
+                    form.value.cua_hang_id = data.store.id;
+                    onStoreBranchChange();
+                    const distMsg = data.distance_km ? ` (Cách bạn ~${data.distance_km} km)` : '';
+                    autoDetectedNotice.value = `Đã tìm thấy chi nhánh gần bạn nhất: ${data.store.ten_cua_hang}${distMsg}`;
+                    showToast(`Đã định vị thành công: ${data.store.ten_cua_hang}${distMsg}`, 'success');
+                }
+            } catch (e) {
+                showToast('Lỗi khi tra cứu chi nhánh gần nhất.', 'error');
+            } finally {
+                isLocatingGps.value = false;
+            }
+        },
+        (error) => {
+            isLocatingGps.value = false;
+            if (error.code === error.PERMISSION_DENIED) {
+                showToast('Bạn đã từ chối quyền truy cập vị trí. Vui lòng nhập địa chỉ để hệ thống tự nhận diện chi nhánh.', 'info');
+            } else {
+                showToast('Không thể xác định vị trí hiện tại của bạn.', 'error');
+            }
+        },
+        { timeout: 10000, enableHighAccuracy: true }
+    );
+}
+
+function onAddressInput() {
+    if (addressDebounce) clearTimeout(addressDebounce);
+    addressDebounce = setTimeout(() => {
+        detectNearestByAddress(form.value.dia_chi_giao);
+    }, 600);
+}
+
 const isSubmitting = ref(false);
 
 const shippingFee = computed(() => {
@@ -58,14 +186,90 @@ const shippingFee = computed(() => {
     return 25000;
 });
 
+const couponDiscount = computed(() => {
+    if (!appliedCoupon.value) return 0;
+    if (appliedCoupon.value.type === 'phan_tram') {
+        const disc = (subtotal.value * appliedCoupon.value.value) / 100;
+        return appliedCoupon.value.giam_toi_da ? Math.min(disc, appliedCoupon.value.giam_toi_da) : disc;
+    }
+    return Math.min(subtotal.value, appliedCoupon.value.value);
+});
+
+async function handleApplyCoupon() {
+    couponError.value = '';
+    if (!couponCode.value.trim()) {
+        couponError.value = 'Vui lòng nhập mã giảm giá';
+        return;
+    }
+
+    isCheckingCoupon.value = true;
+    try {
+        const response = await fetch(route('cart.check-coupon'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
+            },
+            body: JSON.stringify({
+                code: couponCode.value.trim(),
+                total: subtotal.value,
+            }),
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            appliedCoupon.value = data.coupon;
+            form.value.ma_giam_gia_code = data.coupon.code;
+            showToast(data.message, 'success');
+        } else {
+            couponError.value = data.message;
+            appliedCoupon.value = null;
+            form.value.ma_giam_gia_code = '';
+        }
+    } catch (e) {
+        couponError.value = 'Lỗi kết nối khi kiểm tra mã.';
+    } finally {
+        isCheckingCoupon.value = false;
+    }
+}
+
+function removeCoupon() {
+    appliedCoupon.value = null;
+    couponCode.value = '';
+    form.value.ma_giam_gia_code = '';
+    fetch(route('cart.remove-coupon'), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
+        },
+    }).catch(() => {});
+}
+
+function selectVoucher(c: any) {
+    if (subtotal.value < c.don_hang_toi_thieu) {
+        showToast(`Đơn hàng cần tối thiểu ${formatPrice(c.don_hang_toi_thieu)} để dùng mã ${c.ma_khuyen_mai}.`, 'error');
+        return;
+    }
+    couponCode.value = c.ma_khuyen_mai;
+    handleApplyCoupon();
+}
+
 const pointsDiscount = computed(() => {
     if (!form.value.use_points || !props.user || props.user.loyalty_points <= 0) return 0;
-    const maxUsable = Math.min(props.user.loyalty_points, Math.floor((subtotal.value * 0.5) / 1000));
+    const remainingGoods = Math.max(0, subtotal.value - couponDiscount.value);
+    const maxUsable = Math.min(props.user.loyalty_points, Math.floor(remainingGoods / 1000));
     return maxUsable * 1000;
 });
 
 const finalTotal = computed(() => {
-    return Math.max(0, subtotal.value + shippingFee.value - pointsDiscount.value);
+    return Math.max(0, subtotal.value + shippingFee.value - couponDiscount.value - pointsDiscount.value);
+});
+
+const pointsWillEarn = computed(() => {
+    const tienThucTra = Math.max(0, subtotal.value - couponDiscount.value - pointsDiscount.value);
+    return Math.floor(tienThucTra / 10000);
 });
 
 function selectSavedAddress(addr: any) {
@@ -74,6 +278,7 @@ function selectSavedAddress(addr: any) {
     form.value.ten_nguoi_nhan = addr.ten_nguoi_nhan;
     form.value.so_dien_thoai_nhan = addr.so_dien_thoai_nhan;
     form.value.dia_chi_giao = `${addr.dia_chi_chi_tiet}, ${addr.phuong_xa}, ${addr.quan_huyen}, ${addr.tinh_thanh}`;
+    detectNearestByAddress(form.value.dia_chi_giao);
 }
 
 function handlePlaceOrder() {
@@ -169,17 +374,57 @@ function formatPrice(val: number): string {
                         </div>
 
                         <!-- CỬA HÀNG XUẤT KHO -->
-                        <div>
-                            <label class="text-xs font-bold text-gray-700 block mb-1.5">Chi nhánh xuất kho:</label>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-gray-700">Chi nhánh xuất kho giao hàng:</label>
+                                <button
+                                    type="button"
+                                    @click="detectNearestByGps"
+                                    :disabled="isLocatingGps"
+                                    class="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition cursor-pointer"
+                                    title="Tự động tính khoảng cách GPS để chọn chi nhánh gần nhất"
+                                >
+                                    <LocateFixed class="w-3.5 h-3.5 text-emerald-600" :class="{ 'animate-spin': isLocatingGps }" />
+                                    <span>{{ isLocatingGps ? 'Đang định vị GPS...' : '📍 Định vị gần tôi' }}</span>
+                                </button>
+                            </div>
                             <select
                                 v-model="form.cua_hang_id"
                                 @change="onStoreBranchChange"
-                                class="w-full text-xs font-medium bg-gray-50 border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-emerald-500"
+                                class="w-full text-xs font-bold bg-gray-50 border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-emerald-500"
                             >
                                 <option v-for="s in stores" :key="s.id" :value="s.id">
                                     {{ s.ten_cua_hang }} ({{ s.dia_chi }})
                                 </option>
                             </select>
+
+                            <!-- AUTO DETECTED BANNER -->
+                            <div
+                                v-if="autoDetectedNotice"
+                                class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-start justify-between gap-2 animate-in fade-in"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0" />
+                                    <span class="font-medium text-[11px]">{{ autoDetectedNotice }}</span>
+                                </div>
+                                <button @click="autoDetectedNotice = ''" class="text-emerald-600 hover:text-emerald-800 p-0.5 cursor-pointer">
+                                    <X class="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+
+                            <!-- CROSS-REGION WARNING -->
+                            <div
+                                v-if="isCrossRegionWarning"
+                                class="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 text-xs flex items-start gap-2.5 animate-in fade-in"
+                            >
+                                <AlertTriangle class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                                <div>
+                                    <strong class="block font-black text-amber-950">Khoảng cách quá xa - Khác khu vực địa lý!</strong>
+                                    <p class="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
+                                        Địa chỉ nhận hàng của bạn và chi nhánh đang chọn nằm ở hai thành phố/vùng khác nhau. Thực phẩm tươi sống không thể giao liên tỉnh siêu tốc trong 2h. Vui lòng bấm vào nút <strong>"Định vị gần tôi"</strong> hoặc chọn chi nhánh cùng khu vực.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -233,11 +478,18 @@ function formatPrice(val: number): string {
                         </div>
 
                         <div v-if="deliveryType === 'delivery'">
-                            <label class="text-xs font-bold text-gray-700 block mb-1">Địa chỉ nhận hàng chi tiết *</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="text-xs font-bold text-gray-700">Địa chỉ nhận hàng chi tiết *</label>
+                                <span class="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                                    <CheckCircle2 class="w-3 h-3 text-emerald-600" />
+                                    <span>Tự động nhận diện chi nhánh gần nhất khi gõ</span>
+                                </span>
+                            </div>
                             <input
                                 v-model="form.dia_chi_giao"
+                                @input="onAddressInput"
                                 type="text"
-                                placeholder="Số nhà, tên đường, tòa nhà/căn hộ, Phường, Quận, Thành phố"
+                                placeholder="Số nhà, tên đường, Phường, Quận (hoặc Huyện), Tỉnh/Thành phố..."
                                 class="w-full text-xs p-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-emerald-500 focus:outline-none"
                             />
                         </div>
@@ -279,43 +531,54 @@ function formatPrice(val: number): string {
                             Phương thức thanh toán
                         </h3>
 
-                        <div class="space-y-2.5">
-                            <label class="flex items-center space-x-3 p-3.5 rounded-2xl border cursor-pointer transition-colors"
-                                :class="form.phuong_thuc_thanh_toan === 'cod' ? 'border-emerald-600 bg-emerald-50/40' : 'border-gray-200 hover:bg-gray-50'">
-                                <input type="radio" value="cod" v-model="form.phuong_thuc_thanh_toan" class="text-emerald-600 focus:ring-emerald-500" />
-                                <div>
+                        <div class="space-y-3">
+                            <!-- COD PAYMENT -->
+                            <label
+                                class="flex items-start space-x-3.5 p-4 rounded-2xl border cursor-pointer transition-all"
+                                :class="form.phuong_thuc_thanh_toan === 'cod' ? 'border-emerald-600 bg-emerald-50/40 shadow-sm ring-1 ring-emerald-600/20' : 'border-gray-200 hover:bg-gray-50'"
+                            >
+                                <input
+                                    type="radio"
+                                    value="cod"
+                                    v-model="form.phuong_thuc_thanh_toan"
+                                    class="mt-1 text-emerald-600 focus:ring-emerald-500"
+                                />
+                                <div class="flex-1">
                                     <strong class="text-xs text-gray-900 block font-bold">Thanh toán khi nhận hàng (COD)</strong>
-                                    <span class="text-[11px] text-gray-500">Nhận hàng, kiểm tra thực phẩm tươi ngon rồi thanh toán tiền mặt</span>
+                                    <span class="text-[11px] text-gray-500 leading-relaxed block mt-0.5">
+                                        Nhận hàng tận nơi, kiểm tra thực phẩm tươi ngon đúng yêu cầu rồi thanh toán tiền mặt cho shipper.
+                                    </span>
                                 </div>
                             </label>
 
-                            <label class="flex items-center space-x-3 p-3.5 rounded-2xl border cursor-pointer transition-colors"
-                                :class="form.phuong_thuc_thanh_toan === 'chuyen_khoan' ? 'border-emerald-600 bg-emerald-50/40' : 'border-gray-200 hover:bg-gray-50'">
-                                <input type="radio" value="chuyen_khoan" v-model="form.phuong_thuc_thanh_toan" class="text-emerald-600 focus:ring-emerald-500" />
-                                <div class="flex items-center space-x-2">
-                                    <QrCode class="w-4 h-4 text-emerald-600" />
-                                    <div>
-                                        <strong class="text-xs text-gray-900 block font-bold">Quét mã VietQR chuyển khoản ngân hàng</strong>
-                                        <span class="text-[11px] text-gray-500">Chuyển khoản 24/7 tự động xác nhận đơn tức thì</span>
+                            <!-- VNPAY-QR PAYMENT -->
+                            <label
+                                class="flex items-start space-x-3.5 p-4 rounded-2xl border cursor-pointer transition-all"
+                                :class="form.phuong_thuc_thanh_toan === 'vnpay' ? 'border-emerald-600 bg-emerald-50/40 shadow-sm ring-1 ring-emerald-600/20' : 'border-gray-200 hover:bg-gray-50'"
+                            >
+                                <input
+                                    type="radio"
+                                    value="vnpay"
+                                    v-model="form.phuong_thuc_thanh_toan"
+                                    class="mt-1 text-emerald-600 focus:ring-emerald-500"
+                                />
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-2">
+                                        <QrCode class="w-4 h-4 text-emerald-600" />
+                                        <strong class="text-xs text-gray-900 font-bold">Thanh toán quét mã VNPAY-QR</strong>
+                                        <span class="text-[9px] font-black uppercase tracking-wider bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                                            Khuyên Dùng
+                                        </span>
                                     </div>
-                                </div>
-                            </label>
+                                    <span class="text-[11px] text-gray-500 leading-relaxed block mt-0.5">
+                                        Hệ thống sẽ tạo mã QR VNPAY tương ứng với số tiền đơn hàng. Quét mã bằng App Ngân hàng (Vietcombank, BIDV, VietinBank, MB, Techcombank, TPBank,...) hoặc Ví VNPAY để thanh toán tức thì.
+                                    </span>
 
-                            <label class="flex items-center space-x-3 p-3.5 rounded-2xl border cursor-pointer transition-colors"
-                                :class="form.phuong_thuc_thanh_toan === 'vnpay' ? 'border-emerald-600 bg-emerald-50/40' : 'border-gray-200 hover:bg-gray-50'">
-                                <input type="radio" value="vnpay" v-model="form.phuong_thuc_thanh_toan" class="text-emerald-600 focus:ring-emerald-500" />
-                                <div>
-                                    <strong class="text-xs text-gray-900 block font-bold">Cổng thanh toán VNPAY</strong>
-                                    <span class="text-[11px] text-gray-500">Hỗ trợ thẻ ATM, thẻ quốc tế Visa/Mastercard</span>
-                                </div>
-                            </label>
-
-                            <label class="flex items-center space-x-3 p-3.5 rounded-2xl border cursor-pointer transition-colors"
-                                :class="form.phuong_thuc_thanh_toan === 'momo' ? 'border-emerald-600 bg-emerald-50/40' : 'border-gray-200 hover:bg-gray-50'">
-                                <input type="radio" value="momo" v-model="form.phuong_thuc_thanh_toan" class="text-emerald-600 focus:ring-emerald-500" />
-                                <div>
-                                    <strong class="text-xs text-gray-900 block font-bold">Ví điện tử MoMo</strong>
-                                    <span class="text-[11px] text-gray-500">Thanh toán qua app MoMo nhanh chóng</span>
+                                    <!-- VNPAY HELPER NOTICE WHEN SELECTED -->
+                                    <div v-if="form.phuong_thuc_thanh_toan === 'vnpay'" class="mt-2.5 p-2.5 rounded-xl bg-blue-50/80 border border-blue-200/60 text-[11px] text-blue-800 flex items-center space-x-2">
+                                        <Sparkles class="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                        <span>Mã QR VNPAY được tạo tự động ngay sau khi bấm Xác nhận đặt hàng.</span>
+                                    </div>
                                 </div>
                             </label>
                         </div>
@@ -344,6 +607,108 @@ function formatPrice(val: number): string {
                             </div>
                         </div>
 
+                        <!-- MÃ GIẢM GIÁ / VOUCHER -->
+                        <div class="p-3 bg-gray-50 rounded-2xl border border-gray-200/80 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                                    <TicketPercent class="w-4 h-4 text-emerald-600" />
+                                    <span>Mã Giảm Giá / Voucher</span>
+                                </span>
+                                <button
+                                    v-if="availableCoupons && availableCoupons.length > 0"
+                                    type="button"
+                                    @click="showVoucherList = !showVoucherList"
+                                    class="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 transition cursor-pointer"
+                                >
+                                    {{ showVoucherList ? 'Thu gọn' : `Xem mã (${availableCoupons.length})` }}
+                                </button>
+                            </div>
+
+                            <!-- IF APPLIED -->
+                            <div v-if="appliedCoupon" class="flex items-center justify-between p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                <div>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="font-mono font-extrabold text-xs text-emerald-800 uppercase bg-emerald-100 px-1.5 py-0.5 rounded">
+                                            {{ appliedCoupon.code }}
+                                        </span>
+                                        <span class="text-[11px] font-bold text-emerald-700">-{{ formatPrice(couponDiscount) }}</span>
+                                    </div>
+                                    <p class="text-[10px] text-emerald-600 mt-0.5">{{ appliedCoupon.program }}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    @click="removeCoupon"
+                                    class="text-xs text-red-500 hover:text-red-700 font-bold transition px-2 py-1 rounded hover:bg-red-50"
+                                >
+                                    Gỡ bỏ
+                                </button>
+                            </div>
+
+                            <!-- INPUT TO ENTER CODE -->
+                            <div v-else class="space-y-1.5">
+                                <div class="flex gap-2">
+                                    <input
+                                        v-model="couponCode"
+                                        @keydown.enter.prevent="handleApplyCoupon"
+                                        type="text"
+                                        placeholder="Nhập mã ưu đãi..."
+                                        class="flex-1 uppercase font-mono text-xs px-3 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        @click="handleApplyCoupon"
+                                        :disabled="isCheckingCoupon || !couponCode.trim()"
+                                        class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white font-bold text-xs rounded-xl transition"
+                                    >
+                                        {{ isCheckingCoupon ? '...' : 'Áp dụng' }}
+                                    </button>
+                                </div>
+                                <p v-if="couponError" class="text-[11px] text-red-500">{{ couponError }}</p>
+                            </div>
+
+                            <!-- VOUCHER POPUP LIST -->
+                            <div v-if="showVoucherList" class="mt-2 pt-2 border-t border-gray-200 max-h-48 overflow-y-auto space-y-2">
+                                <div
+                                    v-for="c in availableCoupons"
+                                    :key="c.id"
+                                    class="p-2 rounded-xl border text-xs flex items-center justify-between gap-2"
+                                    :class="appliedCoupon?.code === c.ma_khuyen_mai ? 'border-emerald-500 bg-emerald-50/50' : 'border-gray-200 bg-white'"
+                                >
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-1">
+                                            <span class="font-mono font-bold text-[11px] text-emerald-700 bg-emerald-50 px-1 rounded">
+                                                {{ c.ma_khuyen_mai }}
+                                            </span>
+                                            <span class="text-[10px] text-gray-400">HSD: {{ c.ngay_ket_thuc }}</span>
+                                        </div>
+                                        <p class="text-[11px] font-medium text-gray-700 truncate mt-0.5">{{ c.ten_chuong_trinh }}</p>
+                                        <p class="text-[10px] text-gray-400">Đơn từ {{ formatPrice(c.don_hang_toi_thieu) }}</p>
+                                    </div>
+                                    <div>
+                                        <button
+                                            v-if="appliedCoupon?.code === c.ma_khuyen_mai"
+                                            type="button"
+                                            disabled
+                                            class="px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-bold"
+                                        >
+                                            Đang dùng
+                                        </button>
+                                        <button
+                                            v-else-if="subtotal >= c.don_hang_toi_thieu"
+                                            type="button"
+                                            @click="selectVoucher(c)"
+                                            class="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold cursor-pointer"
+                                        >
+                                            Dùng
+                                        </button>
+                                        <span v-else class="text-[9px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
+                                            Thiếu {{ formatPrice(c.don_hang_toi_thieu - subtotal) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- DÙNG ĐIỂM TÍCH LŨY -->
                         <div v-if="user && user.loyalty_points > 0" class="p-3 bg-amber-50 rounded-2xl border border-amber-200/60">
                             <label class="flex items-center space-x-2 text-xs font-bold text-amber-900 cursor-pointer">
@@ -354,9 +719,14 @@ function formatPrice(val: number): string {
                                 />
                                 <span class="flex items-center">
                                     <Coins class="w-4 h-4 mr-1 text-amber-600" />
-                                    Dùng {{ user.loyalty_points }} điểm (giảm tối đa {{ formatPrice(user.loyalty_points * 1000) }})
+                                    Dùng {{ Math.min(user.loyalty_points, Math.floor(Math.max(0, subtotal - couponDiscount) / 1000)) }} điểm (giảm {{ formatPrice(Math.min(user.loyalty_points, Math.floor(Math.max(0, subtotal - couponDiscount) / 1000)) * 1000) }})
                                 </span>
                             </label>
+                        </div>
+
+                        <div v-if="user" class="p-2.5 bg-emerald-50 rounded-xl text-xs text-emerald-800 flex items-center justify-between">
+                            <span>Tích lũy từ đơn này:</span>
+                            <strong class="text-emerald-700 font-extrabold">+{{ pointsWillEarn }} điểm (10k = 1 điểm)</strong>
                         </div>
 
                         <!-- CALCULATIONS -->
@@ -369,6 +739,10 @@ function formatPrice(val: number): string {
                                 <span>Phí vận chuyển:</span>
                                 <strong v-if="shippingFee === 0" class="text-emerald-700 font-bold">Miễn phí</strong>
                                 <strong v-else class="text-gray-900">{{ formatPrice(shippingFee) }}</strong>
+                            </div>
+                            <div v-if="couponDiscount > 0" class="flex justify-between text-emerald-700 font-bold">
+                                <span>Giảm giá voucher ({{ appliedCoupon.code }}):</span>
+                                <span>-{{ formatPrice(couponDiscount) }}</span>
                             </div>
                             <div v-if="pointsDiscount > 0" class="flex justify-between text-amber-700 font-bold">
                                 <span>Giảm từ điểm thưởng:</span>

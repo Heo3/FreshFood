@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -21,6 +22,10 @@ return new class extends Migration
             $table->unique(['cua_hang_id', 'san_pham_id'], 'uk_cuahang_sanpham_gia');
             $table->index('san_pham_id');
         });
+
+        if (DB::connection()->getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE `gia_san_pham_cua_hang` ADD CONSTRAINT `chk_gia_cua_hang_gia_giam` CHECK (`gia_giam` IS NULL OR (`gia_giam` >= 0 AND `gia_giam` <= `gia_ban`))');
+        }
     }
 
     /**

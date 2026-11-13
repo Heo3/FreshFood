@@ -56,6 +56,10 @@ class AuthenticatedSessionController extends Controller
             }
         }
 
+        if ($user && $user->isGiaoHang()) {
+            return redirect()->route('delivery.index');
+        }
+
         return to_route('home');
     }
 

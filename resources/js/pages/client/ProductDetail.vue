@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import StoreLayout from '@/layouts/StoreLayout.vue';
 import ProductCard from '@/components/storefront/ProductCard.vue';
 import { useCart } from '@/composables/useCart';
+import { useToast } from '@/composables/useToast';
 import {
     ShoppingBag,
     Truck,
@@ -16,6 +17,9 @@ import {
     CheckCircle,
     ChevronRight,
     Sparkles,
+    MessageSquare,
+    Send,
+    UserCheck,
 } from 'lucide-vue-next';
 
 const props = defineProps<{
@@ -39,17 +43,34 @@ const props = defineProps<{
         ton_khos?: Array<any>;
         danh_gias?: Array<any>;
     };
+    earliestLot?: {
+        id: number;
+        so_lo: string;
+        ngay_san_xuat: string;
+        ngay_het_han: string;
+        so_luong_ton: number;
+    } | null;
     relatedProducts?: Array<any>;
     stores?: Array<any>;
 }>();
 
-const { addToCart, selectedStoreId, setStore, showToast, cartItems, clearCart, saveCart } = useCart();
+const page = usePage();
+const toast = useToast();
+const { addToCart, selectedStoreId, setStore, cartItems, saveCart } = useCart();
 
 const quantity = ref(1);
 const activeImage = ref(props.product.hinh_anh_chinh);
+const reviewRating = ref(5);
+const reviewContent = ref('');
+const isSubmittingReview = ref(false);
 
 function formatPrice(val: number): string {
     return new Intl.NumberFormat('vi-VN').format(val) + 'đ';
+}
+
+function formatDate(dateStr: string | null): string {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleDateString('vi-VN');
 }
 
 const activeStore = computed(() => {
@@ -110,7 +131,7 @@ function switchToStore(store: any) {
                 onSuccess: () => {
                     cartItems.value = [];
                     saveCart();
-                    showToast(`Đã chuyển sang chi nhánh "${store.ten_cua_hang}" và làm mới giỏ hàng!`, 'success');
+                    toast.success(`Đã chuyển sang chi nhánh "${store.ten_cua_hang}" và làm mới giỏ hàng!`);
                 },
             }
         );
@@ -124,7 +145,7 @@ function switchToStore(store: any) {
         {
             preserveScroll: true,
             onSuccess: () => {
-                showToast(`Đã chuyển sang chi nhánh "${store.ten_cua_hang}"! Bảng giá đã được cập nhật.`, 'success');
+                toast.success(`Đã chuyển sang chi nhánh "${store.ten_cua_hang}"! Bảng giá đã được cập nhật.`);
             },
         }
     );
@@ -132,6 +153,7 @@ function switchToStore(store: any) {
 
 function handleAddToCart() {
     addToCart(props.product, quantity.value);
+    toast.success(`Đã thêm ${quantity.value} ${props.product.don_vi_tinh} vào giỏ hàng!`);
 }
 
 function handleBuyNow() {
@@ -145,6 +167,43 @@ const averageRating = computed(() => {
     const total = props.product.danh_gias.reduce((sum, r) => sum + r.so_sao, 0);
     return (total / props.product.danh_gias.length).toFixed(1);
 });
+
+function submitReview() {
+    if (!page.props.auth?.user) {
+        toast.warning('Vui lòng đăng nhập để gửi đánh giá sản phẩm.');
+        router.visit(route('login'));
+        return;
+    }
+
+    if (!reviewContent.value.trim()) {
+        toast.warning('Vui lòng nhập lời nhận xét hoặc cảm nhận của bạn.');
+        return;
+    }
+
+    isSubmittingReview.value = true;
+    router.post(
+        route('account.review.store'),
+        {
+            san_pham_id: props.product.id,
+            so_sao: reviewRating.value,
+            noi_dung: reviewContent.value.trim(),
+        },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Cảm ơn bạn đã gửi đánh giá cho sản phẩm!');
+                reviewContent.value = '';
+                reviewRating.value = 5;
+            },
+            onError: () => {
+                toast.error('Có lỗi xảy ra khi gửi đánh giá.');
+            },
+            onFinish: () => {
+                isSubmittingReview.value = false;
+            },
+        }
+    );
+}
 </script>
 
 <template>
@@ -266,6 +325,28 @@ const averageRating = computed(() => {
 
                         <!-- SPECIFICATIONS & PRESERVATION -->
                         <div class="grid grid-cols-2 gap-3 text-xs mb-6">
+                            <!-- LIVE EXPIRY CAM KẾT DATE TƯƠI MỚI (FEFO) -->
+                            <div v-if="earliestLot" class="col-span-2 p-3 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50/70 rounded-2xl border border-emerald-200/90 shadow-2xs flex items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                        <Sparkles class="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center space-x-1.5">
+                                            <span class="text-[11px] font-black uppercase text-emerald-900 tracking-wider">Cam kết Date tươi mới</span>
+                                            <span class="bg-emerald-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">FEFO</span>
+                                        </div>
+                                        <p class="text-xs text-emerald-800 font-medium">
+                                            Lô xuất hiện tại (HSD): <strong class="font-black text-emerald-900">{{ formatDate(earliestLot.ngay_het_han) }}</strong>
+                                            <span class="text-emerald-700/70 text-[10px] ml-1">(Lô #{{ earliestLot.so_lo }})</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <span class="text-[11px] font-bold bg-white text-emerald-800 px-2.5 py-1 rounded-xl border border-emerald-200 shadow-2xs shrink-0">
+                                    Còn {{ earliestLot.so_luong_ton }} {{ product.don_vi_tinh }}
+                                </span>
+                            </div>
+
                             <div class="p-3 bg-gray-50/70 rounded-xl border border-gray-100">
                                 <span class="text-gray-400 block mb-0.5">Quy cách đóng gói:</span>
                                 <strong class="text-gray-800">{{ product.quy_cach || ('Từng ' + product.don_vi_tinh) }}</strong>
@@ -424,6 +505,147 @@ const averageRating = computed(() => {
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- CUSTOMER REVIEWS & FEEDBACK -->
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-sm mb-12">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-gray-100 gap-4">
+                    <div>
+                        <h3 class="text-xl font-black text-gray-900 flex items-center">
+                            <Star class="w-5 h-5 text-amber-400 fill-amber-400 mr-2" />
+                            Đánh Giá Từ Khách Hàng
+                        </h3>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Nhận xét thực tế từ những khách hàng đã mua và trải nghiệm sản phẩm này.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center space-x-4 bg-amber-50/60 border border-amber-100 px-4 py-2.5 rounded-2xl w-fit">
+                        <div class="text-3xl font-black text-amber-600 font-mono">{{ averageRating }}</div>
+                        <div>
+                            <div class="flex items-center text-amber-400">
+                                <Star
+                                    v-for="s in 5"
+                                    :key="s"
+                                    class="w-4 h-4"
+                                    :class="s <= Math.round(Number(averageRating)) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'"
+                                />
+                            </div>
+                            <span class="text-[11px] font-bold text-gray-600 block mt-0.5">
+                                {{ product.danh_gias?.length || 0 }} lượt đánh giá
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WRITE A REVIEW FORM -->
+                <div class="my-8 p-5 rounded-2xl bg-gray-50 border border-gray-200/80">
+                    <h4 class="text-sm font-black text-gray-900 mb-3 flex items-center">
+                        <MessageSquare class="w-4 h-4 mr-2 text-emerald-600" />
+                        Gửi Đánh Giá Của Bạn
+                    </h4>
+
+                    <div v-if="page.props.auth?.user" class="space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs font-bold text-gray-700">Mức độ hài lòng:</span>
+                            <div class="flex items-center space-x-1">
+                                <button
+                                    v-for="star in 5"
+                                    :key="star"
+                                    type="button"
+                                    @click="reviewRating = star"
+                                    class="p-1 hover:scale-110 transition-transform cursor-pointer"
+                                >
+                                    <Star
+                                        class="w-6 h-6 transition-colors"
+                                        :class="star <= reviewRating ? 'fill-amber-400 text-amber-400' : 'text-gray-300 hover:text-amber-300'"
+                                    />
+                                </button>
+                            </div>
+                            <span class="text-xs font-bold text-amber-600">
+                                {{ reviewRating === 5 ? 'Tuyệt vời, rất tươi ngon!' : reviewRating === 4 ? 'Hài lòng' : reviewRating === 3 ? 'Bình thường' : 'Chưa hài lòng' }}
+                            </span>
+                        </div>
+
+                        <div>
+                            <textarea
+                                v-model="reviewContent"
+                                rows="3"
+                                placeholder="Chia sẻ cảm nhận chi tiết về độ tươi, đóng gói hoặc giao hàng của sản phẩm..."
+                                class="w-full text-xs rounded-xl border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 bg-white p-3 shadow-xs"
+                            ></textarea>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button
+                                @click="submitReview"
+                                :disabled="isSubmittingReview"
+                                class="inline-flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md transition disabled:opacity-50 cursor-pointer"
+                            >
+                                <Send class="w-3.5 h-3.5" />
+                                <span>{{ isSubmittingReview ? 'Đang gửi...' : 'Gửi Đánh Giá Ngay' }}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-else class="text-center py-4 space-y-2">
+                        <p class="text-xs text-gray-600">Bạn cần đăng nhập tài khoản để có thể đánh giá và chia sẻ trải nghiệm về sản phẩm này.</p>
+                        <Link
+                            :href="route('login')"
+                            class="inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-sm transition"
+                        >
+                            Đăng nhập để đánh giá
+                        </Link>
+                    </div>
+                </div>
+
+                <!-- REVIEWS LIST -->
+                <div v-if="product.danh_gias && product.danh_gias.length > 0" class="divide-y divide-gray-100">
+                    <div
+                        v-for="rev in product.danh_gias"
+                        :key="rev.id"
+                        class="py-5 space-y-2"
+                    >
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 font-black text-xs flex items-center justify-center overflow-hidden border border-emerald-200">
+                                    <img v-if="rev.user?.avatar" :src="rev.user.avatar" class="w-full h-full object-cover" />
+                                    <span v-else>{{ rev.user?.name ? rev.user.name.charAt(0).toUpperCase() : 'K' }}</span>
+                                </div>
+                                <div>
+                                    <div class="flex items-center space-x-2">
+                                        <h5 class="text-xs font-bold text-gray-900">{{ rev.user?.name || 'Khách hàng FreshFood' }}</h5>
+                                        <span class="inline-flex items-center text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                                            <UserCheck class="w-3 h-3 mr-1 text-emerald-600" /> Đã mua hàng
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center space-x-2 mt-0.5">
+                                        <div class="flex items-center text-amber-400">
+                                            <Star
+                                                v-for="s in 5"
+                                                :key="s"
+                                                class="w-3 h-3"
+                                                :class="s <= rev.so_sao ? 'fill-amber-400 text-amber-400' : 'text-gray-300'"
+                                            />
+                                        </div>
+                                        <span class="text-[10px] text-gray-400">
+                                            {{ new Date(rev.created_at).toLocaleDateString('vi-VN') }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-gray-700 leading-relaxed pl-12">
+                            {{ rev.noi_dung || 'Khách hàng không để lại nhận xét bằng lời.' }}
+                        </p>
+                    </div>
+                </div>
+
+                <div v-else class="text-center py-8 text-gray-400 space-y-2">
+                    <MessageSquare class="w-8 h-8 mx-auto text-gray-300" />
+                    <p class="text-xs">Chưa có đánh giá nào cho sản phẩm này. Hãy là người đầu tiên trải nghiệm và chia sẻ!</p>
                 </div>
             </div>
 

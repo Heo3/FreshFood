@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import StoreLayout from '@/layouts/StoreLayout.vue';
 import AccountSidebar from '@/components/storefront/AccountSidebar.vue';
-import { Package, ChevronRight, PackageX } from 'lucide-vue-next';
+import { Package, ChevronRight, PackageX, Ban, X, Clock } from 'lucide-vue-next';
 
 const props = defineProps<{
     orders: {
@@ -36,8 +37,43 @@ const statusMap: Record<string, { label: string; class: string }> = {
     dang_chuan_bi: { label: 'Đang chuẩn bị', class: 'bg-blue-100 text-blue-800' },
     dang_giao: { label: 'Đang giao hàng', class: 'bg-indigo-100 text-indigo-800' },
     da_giao: { label: 'Đã hoàn thành', class: 'bg-emerald-100 text-emerald-800' },
+    hoan_thanh: { label: 'Đã hoàn thành', class: 'bg-emerald-100 text-emerald-800' },
     da_huy: { label: 'Đã hủy', class: 'bg-red-100 text-red-800' },
 };
+
+const isCancelModalOpen = ref(false);
+const cancellingOrder = ref<any>(null);
+const cancelReasonSelect = ref('Đổi ý không muốn mua nữa');
+const cancelReasonCustom = ref('');
+const isSubmittingCancel = ref(false);
+
+function openCancelModal(order: any) {
+    cancellingOrder.value = order;
+    cancelReasonSelect.value = 'Đổi ý không muốn mua nữa';
+    cancelReasonCustom.value = '';
+    isCancelModalOpen.value = true;
+}
+
+function submitCancel() {
+    if (!cancellingOrder.value) return;
+
+    const finalReason = cancelReasonSelect.value === 'Khác'
+        ? cancelReasonCustom.value.trim()
+        : (cancelReasonCustom.value.trim() ? `${cancelReasonSelect.value} - ${cancelReasonCustom.value.trim()}` : cancelReasonSelect.value);
+
+    isSubmittingCancel.value = true;
+    router.post(route('account.orders.cancel', cancellingOrder.value.id), {
+        ly_do: finalReason || 'Khách hàng yêu cầu hủy đơn',
+    }, {
+        onSuccess: () => {
+            isCancelModalOpen.value = false;
+            cancellingOrder.value = null;
+        },
+        onFinish: () => {
+            isSubmittingCancel.value = false;
+        },
+    });
+}
 </script>
 
 <template>
@@ -123,11 +159,32 @@ const statusMap: Record<string, { label: string; class: string }> = {
                                 <span class="text-gray-500">
                                     Chi nhánh: <strong class="text-gray-800">{{ order.cua_hang?.ten_cua_hang || 'Fresh Food' }}</strong>
                                 </span>
-                                <div class="flex items-center justify-between sm:justify-end space-x-4">
+                                <div class="flex flex-wrap items-center justify-between sm:justify-end gap-3">
                                     <div class="text-right">
                                         <span class="text-gray-500 text-[11px]">Tổng đơn: </span>
                                         <span class="font-black text-sm text-emerald-700">{{ formatPrice(order.tong_thanhtoan) }}</span>
                                     </div>
+
+                                    <!-- NÚT HỦY KHI CHỜ XÁC NHẬN -->
+                                    <button
+                                        v-if="order.trang_thai_don_hang === 'cho_xac_nhan'"
+                                        @click="openCancelModal(order)"
+                                        class="px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs transition-colors shadow-2xs flex items-center space-x-1"
+                                    >
+                                        <Ban class="w-3.5 h-3.5 text-red-600" />
+                                        <span>Hủy đơn</span>
+                                    </button>
+
+                                    <!-- NHÃN KHI ĐÃ DUYỆT VÀ ĐANG CHUẨN BỊ (KHÔNG THỂ HỦY) -->
+                                    <span
+                                        v-else-if="order.trang_thai_don_hang === 'dang_chuan_bi'"
+                                        class="px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-[11px] font-bold flex items-center space-x-1"
+                                        title="Đơn hàng đã được duyệt và đang chuẩn bị đóng gói, không thể hủy"
+                                    >
+                                        <Clock class="w-3.5 h-3.5 text-blue-600" />
+                                        <span>Đang chuẩn bị (Không thể hủy)</span>
+                                    </span>
+
                                     <Link
                                         :href="route('account.orders.show', { maDonHang: order.ma_don_hang })"
                                         class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-colors shadow-sm"
@@ -161,6 +218,72 @@ const statusMap: Record<string, { label: string; class: string }> = {
                             v-html="link.label"
                         />
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CANCEL ORDER CONFIRMATION MODAL -->
+        <div v-if="isCancelModalOpen && cancellingOrder" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in fade-in duration-200">
+                <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                    <h3 class="font-black text-base text-gray-900 flex items-center">
+                        <Ban class="w-5 h-5 mr-2 text-red-600" /> Xác Nhận Hủy Đơn Hàng
+                    </h3>
+                    <button @click="isCancelModalOpen = false" class="text-gray-400 hover:text-gray-600">
+                        <X class="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div class="p-3.5 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-800 space-y-1">
+                    <p class="font-bold">Mã đơn: <span class="font-mono text-gray-900">{{ cancellingOrder.ma_don_hang }}</span></p>
+                    <p class="text-[11px] leading-relaxed">
+                        Bạn chỉ có thể tự hủy đơn khi đơn hàng đang ở trạng thái <strong>Chờ xác nhận</strong>. Khi chi nhánh đã duyệt và chuyển sang trạng thái <strong>Đang chuẩn bị</strong> đóng gói, đơn hàng sẽ không thể hủy tự động.
+                    </p>
+                </div>
+
+                <!-- Cancellation reason select -->
+                <div class="space-y-1.5 text-xs">
+                    <label class="font-bold text-gray-700 block">Chọn lý do hủy đơn *</label>
+                    <select
+                        v-model="cancelReasonSelect"
+                        class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-red-500 focus:outline-none"
+                    >
+                        <option value="Đổi ý không muốn mua nữa">Đổi ý không muốn mua nữa</option>
+                        <option value="Muốn thay đổi địa chỉ / số điện thoại">Muốn thay đổi địa chỉ / số điện thoại nhận</option>
+                        <option value="Đặt nhầm sản phẩm hoặc số lượng">Đặt nhầm sản phẩm hoặc số lượng</option>
+                        <option value="Tìm thấy nơi khác có giá hoặc thời gian giao tốt hơn">Tìm thấy nơi khác có giá hoặc thời gian giao tốt hơn</option>
+                        <option value="Khác">Lý do khác...</option>
+                    </select>
+                </div>
+
+                <!-- Optional Custom Note -->
+                <div class="space-y-1.5 text-xs">
+                    <label class="font-bold text-gray-700 block">Ghi chú thêm (tùy chọn)</label>
+                    <textarea
+                        v-model="cancelReasonCustom"
+                        rows="2"
+                        placeholder="Nhập thêm chi tiết lý do bạn muốn hủy đơn..."
+                        class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-red-500 focus:outline-none text-xs"
+                    ></textarea>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex space-x-3 pt-2">
+                    <button
+                        type="button"
+                        @click="isCancelModalOpen = false"
+                        class="flex-1 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold transition-colors"
+                    >
+                        Đóng
+                    </button>
+                    <button
+                        type="button"
+                        @click="submitCancel"
+                        :disabled="isSubmittingCancel"
+                        class="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center justify-center space-x-1"
+                    >
+                        <span>{{ isSubmittingCancel ? 'Đang hủy...' : 'Xác nhận hủy đơn' }}</span>
+                    </button>
                 </div>
             </div>
         </div>

@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -31,6 +32,10 @@ return new class extends Migration
             $table->softDeletes();
             $table->index('danh_muc_id');
         });
+
+        if (DB::connection()->getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE `san_pham` ADD CONSTRAINT `chk_san_pham_gia_giam` CHECK (`gia_giam` IS NULL OR (`gia_giam` >= 0 AND `gia_giam` <= `gia_ban`))');
+        }
     }
 
     /**

@@ -24,8 +24,8 @@ defineProps<{
 const typeMap: Record<string, { label: string; isPositive: boolean }> = {
     tich_diem: { label: 'Tích điểm đơn hàng', isPositive: true },
     tieu_diem: { label: 'Tiêu điểm thanh toán', isPositive: false },
-    hoan_diem: { label: 'Hoàn điểm trả hàng', isPositive: true },
-    admin_dieu_chinh: { label: 'Điều chỉnh hệ thống', isPositive: true },
+    hoan_diem: { label: 'Hoàn điểm đơn hàng', isPositive: true },
+    admin_dieu_chinh: { label: 'Thu hồi / Điều chỉnh điểm', isPositive: false },
 };
 </script>
 
@@ -71,7 +71,7 @@ const typeMap: Record<string, { label: string; isPositive: boolean }> = {
                             <div class="bg-white/15 p-4 rounded-2xl border border-white/20 backdrop-blur-md text-xs space-y-1.5 max-w-xs">
                                 <p class="font-bold">Quy tắc tích & tiêu điểm:</p>
                                 <p class="text-amber-100">• 1 Điểm = 1.000đ khi thanh toán đơn hàng.</p>
-                                <p class="text-amber-100">• Tích 5% giá trị mỗi đơn hàng hoàn thành.</p>
+                                <p class="text-amber-100">• Tích 1 điểm cho mỗi 10.000đ tiền thực trả.</p>
                                 <p class="text-amber-100">• Trừ trực tiếp tại bước đặt hàng.</p>
                             </div>
                         </div>

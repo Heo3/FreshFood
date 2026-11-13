@@ -34,10 +34,44 @@ class CheckoutController extends Controller
                 ->get();
         }
 
+        $availableCoupons = MaGiamGia::hieuLuc()->get()->map(function ($c) {
+            return [
+                'id' => $c->id,
+                'ma_khuyen_mai' => $c->ma_khuyen_mai,
+                'ten_chuong_trinh' => $c->ten_chuong_trinh,
+                'loai_giam_gia' => $c->loai_giam_gia,
+                'gia_tri_giam' => (float) $c->gia_tri_giam,
+                'don_hang_toi_thieu' => (float) $c->don_hang_toi_thieu,
+                'giam_toi_da' => $c->giam_toi_da ? (float) $c->giam_toi_da : null,
+                'ngay_ket_thuc' => $c->ngay_ket_thuc?->format('d/m/Y'),
+            ];
+        });
+
+        // Nhận mã giảm giá từ giỏ hàng qua query parameter hoặc session
+        $couponCode = $request->query('coupon') ?? $request->session()->get('applied_coupon_code');
+        $initialAppliedCoupon = null;
+        if ($couponCode) {
+            $couponModel = MaGiamGia::where('ma_khuyen_mai', trim(strtoupper($couponCode)))->first();
+            if ($couponModel && $couponModel->isAvailable()) {
+                $initialAppliedCoupon = [
+                    'id' => $couponModel->id,
+                    'code' => $couponModel->ma_khuyen_mai,
+                    'program' => $couponModel->ten_chuong_trinh,
+                    'type' => $couponModel->loai_giam_gia,
+                    'value' => (float) $couponModel->gia_tri_giam,
+                    'don_hang_toi_thieu' => (float) $couponModel->don_hang_toi_thieu,
+                    'giam_toi_da' => $couponModel->giam_toi_da ? (float) $couponModel->giam_toi_da : null,
+                ];
+                $request->session()->put('applied_coupon_code', $couponModel->ma_khuyen_mai);
+            }
+        }
+
         return Inertia::render('client/Checkout', [
             'stores' => $stores,
             'selectedStoreId' => $storeId,
             'addresses' => $addresses,
+            'availableCoupons' => $availableCoupons,
+            'appliedCoupon' => $initialAppliedCoupon,
             'user' => $user ? [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -65,6 +99,17 @@ class CheckoutController extends Controller
 
         $user = $request->user();
         $cuaHangId = (int) $request->input('cua_hang_id');
+
+        // Kiểm tra an toàn: Nếu khách chọn chi nhánh lệch vùng địa lý nghiêm trọng (ví dụ giao HN nhưng chọn HCM)
+        $cuaHang = CuaHang::find($cuaHangId);
+        if ($cuaHang && $cuaHang->laLechVungDiaLy($request->input('dia_chi_giao'))) {
+            $suggestedStore = CuaHang::timChiNhanhPhuHopTheoDiaChi($request->input('dia_chi_giao'));
+            $suggestMsg = $suggestedStore ? " Hệ thống đề xuất chọn: {$suggestedStore->ten_cua_hang}." : ' Vui lòng chọn chi nhánh gần khu vực nhận hàng!';
+
+            return back()->withErrors([
+                'cua_hang_id' => "Chi nhánh {$cuaHang->ten_cua_hang} không thể giao thực phẩm tươi sống đến địa chỉ của bạn do khoảng cách quá xa.{$suggestMsg}",
+            ]);
+        }
 
         // Bắt đầu transaction
         $donHang = DB::transaction(function () use ($request, $user, $cuaHangId) {
@@ -114,20 +159,16 @@ class CheckoutController extends Controller
                 }
             }
 
-            // Xử lý tiêu điểm (1 điểm = 1.000đ, tối đa 50% tiền hàng)
+            // Xử lý tiêu điểm (1 điểm = 1.000đ)
             $pointsDiscount = 0;
+            $pointsUsed = 0;
             if ($user && $request->boolean('use_points') && $user->loyalty_points > 0) {
-                $maxPointsUsable = min($user->loyalty_points, (int) floor(($totalGoods * 0.5) / 1000));
-                $pointsDiscount = $maxPointsUsable * 1000;
-                $user->decrement('loyalty_points', $maxPointsUsable);
-
-                LichSuTichDiem::create([
-                    'user_id' => $user->id,
-                    'loai_giao_dich' => 'tieu_diem',
-                    'so_diem_thay_doi' => -$maxPointsUsable,
-                    'so_diem_sau_giao_dich' => $user->loyalty_points,
-                    'ghi_chu' => 'Tiêu điểm thanh toán đơn hàng',
-                ]);
+                $maxPointsUsable = min((int) $user->loyalty_points, (int) floor(max(0, $totalGoods - $discountAmount) / 1000));
+                if ($maxPointsUsable > 0) {
+                    $pointsDiscount = $maxPointsUsable * 1000;
+                    $pointsUsed = $maxPointsUsable;
+                    $user->decrement('loyalty_points', $maxPointsUsable);
+                }
             }
 
             $totalDiscount = $discountAmount + $pointsDiscount;
@@ -165,6 +206,34 @@ class CheckoutController extends Controller
                 'ghi_chu' => $request->input('ghi_chu'),
             ]);
 
+            // Ghi nhật ký tiêu điểm
+            if ($user && $pointsUsed > 0) {
+                LichSuTichDiem::create([
+                    'user_id' => $user->id,
+                    'loai_giao_dich' => 'tieu_diem',
+                    'so_diem_thay_doi' => -$pointsUsed,
+                    'so_diem_sau_giao_dich' => (int) $user->loyalty_points,
+                    'don_hang_id' => $order->id,
+                    'ghi_chu' => "Tiêu {$pointsUsed} điểm thanh toán đơn hàng #{$order->ma_don_hang} (1 điểm = 1.000đ)",
+                ]);
+            }
+
+            // Tích điểm: Mỗi 10.000đ tiền hàng thực thanh toán = 1 điểm
+            $tienThucTra = max(0, $totalGoods - $discountAmount - $pointsDiscount);
+            $pointsEarned = (int) floor($tienThucTra / 10000);
+            if ($user && $pointsEarned > 0) {
+                $user->increment('loyalty_points', $pointsEarned);
+
+                LichSuTichDiem::create([
+                    'user_id' => $user->id,
+                    'loai_giao_dich' => 'tich_diem',
+                    'so_diem_thay_doi' => $pointsEarned,
+                    'so_diem_sau_giao_dich' => (int) $user->loyalty_points,
+                    'don_hang_id' => $order->id,
+                    'ghi_chu' => "Tích {$pointsEarned} điểm từ đơn hàng #{$order->ma_don_hang} (10.000đ = 1 điểm)",
+                ]);
+            }
+
             foreach ($itemsData as $itemRow) {
                 $itemRow['don_hang_id'] = $order->id;
                 ChiTietDonHang::create($itemRow);
@@ -189,6 +258,9 @@ class CheckoutController extends Controller
 
             return $order;
         });
+
+        // Xóa mã giảm giá đã dùng khỏi session
+        $request->session()->forget('applied_coupon_code');
 
         return redirect()->route('checkout.success', ['maDonHang' => $donHang->ma_don_hang]);
     }

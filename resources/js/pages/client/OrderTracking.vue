@@ -37,9 +37,10 @@ function formatPrice(val: number): string {
 
 const statusMap: Record<string, { label: string; class: string }> = {
     cho_xac_nhan: { label: 'Chờ xác nhận', class: 'bg-amber-100 text-amber-800' },
-    dang_chuan_bi: { label: 'Đang chuẩn bị hàng', class: 'bg-blue-100 text-blue-800' },
+    dang_chuan_bi: { label: 'Đã duyệt & Đang chuẩn bị (Không thể hủy)', class: 'bg-blue-100 text-blue-800' },
     dang_giao: { label: 'Đang giao hàng', class: 'bg-indigo-100 text-indigo-800' },
     da_giao: { label: 'Giao hàng thành công', class: 'bg-emerald-100 text-emerald-800' },
+    hoan_thanh: { label: 'Giao hàng thành công', class: 'bg-emerald-100 text-emerald-800' },
     da_huy: { label: 'Đã hủy', class: 'bg-red-100 text-red-800' },
 };
 </script>
@@ -117,6 +118,14 @@ const statusMap: Record<string, { label: string; class: string }> = {
                         >
                             {{ statusMap[order.trang_thai_don_hang]?.label || order.trang_thai_don_hang }}
                         </span>
+                    </div>
+                </div>
+
+                <!-- PACKING NOTICE BANNER -->
+                <div v-if="order.trang_thai_don_hang === 'dang_chuan_bi'" class="p-3.5 bg-blue-50/80 border border-blue-200 rounded-2xl flex items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center space-x-2 text-blue-900 font-medium">
+                        <Clock class="w-4 h-4 text-blue-600 shrink-0" />
+                        <span>Đơn hàng đã được duyệt và đang chuẩn bị đóng gói tại chi nhánh. <strong>Khách hàng không thể hủy đơn lúc này.</strong></span>
                     </div>
                 </div>
 

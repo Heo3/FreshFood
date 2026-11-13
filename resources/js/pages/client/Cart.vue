@@ -12,12 +12,23 @@ import {
     ShieldAlert,
     ChevronRight,
     MapPin,
+    TicketPercent,
+    Check,
+    Sparkles,
 } from 'lucide-vue-next';
 
-const props = defineProps<{
-    stores: Array<any>;
-    initialCartItems?: Array<any>;
-}>();
+const props = withDefaults(
+    defineProps<{
+        stores: Array<any>;
+        initialCartItems?: Array<any>;
+        availableCoupons?: Array<any>;
+        appliedCoupon?: any;
+    }>(),
+    {
+        availableCoupons: () => [],
+        appliedCoupon: null,
+    }
+);
 
 const { cartItems, selectedStoreId, subtotal, totalItems, updateQuantity, removeFromCart, clearCart, showToast, refreshCartPrices, syncCartToServer, saveCart, syncWithServer } = useCart();
 
@@ -54,8 +65,8 @@ onMounted(() => {
     }
 });
 
-const couponCode = ref('');
-const appliedCoupon = ref<any>(null);
+const couponCode = ref(props.appliedCoupon?.code || '');
+const appliedCoupon = ref<any>(props.appliedCoupon || null);
 const couponError = ref('');
 const isCheckingCoupon = ref(false);
 
@@ -85,6 +96,7 @@ async function handleApplyCoupon() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
             },
             body: JSON.stringify({
@@ -111,6 +123,24 @@ async function handleApplyCoupon() {
 function removeCoupon() {
     appliedCoupon.value = null;
     couponCode.value = '';
+    fetch(route('cart.remove-coupon'), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
+        },
+    }).catch(() => {});
+}
+
+const showVoucherList = ref(false);
+
+function selectVoucher(c: any) {
+    if (subtotal.value < c.don_hang_toi_thieu) {
+        showToast(`Đơn hàng cần tối thiểu ${formatPrice(c.don_hang_toi_thieu)} để dùng mã ${c.ma_khuyen_mai}.`, 'error');
+        return;
+    }
+    couponCode.value = c.ma_khuyen_mai;
+    handleApplyCoupon();
 }
 
 function formatPrice(val: number): string {
@@ -265,10 +295,22 @@ function formatPrice(val: number): string {
                         </h3>
 
                         <!-- Voucher Code Form -->
-                        <div>
-                            <label class="text-xs font-bold text-gray-700 mb-2 block flex items-center">
-                                <Tag class="w-3.5 h-3.5 mr-1 text-emerald-600" /> Mã Giảm Giá / Voucher
-                            </label>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-gray-700 flex items-center">
+                                    <Tag class="w-3.5 h-3.5 mr-1 text-emerald-600" /> Mã Giảm Giá / Voucher
+                                </label>
+                                <button
+                                    v-if="availableCoupons && availableCoupons.length > 0"
+                                    type="button"
+                                    @click="showVoucherList = !showVoucherList"
+                                    class="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer"
+                                >
+                                    <TicketPercent class="w-3.5 h-3.5" />
+                                    <span>{{ showVoucherList ? 'Thu gọn' : `Xem mã (${availableCoupons.length})` }}</span>
+                                </button>
+                            </div>
+
                             <div class="flex space-x-2">
                                 <input
                                     v-model="couponCode"
@@ -281,14 +323,14 @@ function formatPrice(val: number): string {
                                     v-if="!appliedCoupon"
                                     @click="handleApplyCoupon"
                                     :disabled="isCheckingCoupon"
-                                    class="bg-gray-900 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors disabled:opacity-50"
+                                    class="bg-gray-900 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
                                 >
                                     {{ isCheckingCoupon ? '...' : 'Áp dụng' }}
                                 </button>
                                 <button
                                     v-else
                                     @click="removeCoupon"
-                                    class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold px-3 py-2.5 rounded-xl transition-colors"
+                                    class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold px-3 py-2.5 rounded-xl transition-colors cursor-pointer"
                                 >
                                     Hủy mã
                                 </button>
@@ -296,8 +338,64 @@ function formatPrice(val: number): string {
                             <p v-if="couponError" class="text-[11px] text-red-500 mt-1.5 flex items-center">
                                 <ShieldAlert class="w-3 h-3 mr-1" /> {{ couponError }}
                             </p>
-                            <div v-if="appliedCoupon" class="mt-2 p-2.5 bg-emerald-50 rounded-xl text-xs text-emerald-800 font-medium">
-                                ✓ Đã áp dụng: <strong>{{ appliedCoupon.program }}</strong> (-{{ formatPrice(appliedCoupon.discount_amount) }})
+                            <div v-if="appliedCoupon" class="mt-2 p-2.5 bg-emerald-50 rounded-xl text-xs text-emerald-800 font-medium flex items-center justify-between">
+                                <div>
+                                    ✓ Đã áp dụng: <strong>{{ appliedCoupon.program }}</strong>
+                                </div>
+                                <span class="font-bold text-emerald-700">-{{ formatPrice(appliedCoupon.discount_amount) }}</span>
+                            </div>
+
+                            <!-- AVAILABLE VOUCHERS LIST -->
+                            <div v-if="showVoucherList && availableCoupons && availableCoupons.length > 0" class="pt-2 space-y-2 border-t border-gray-100">
+                                <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                                    <Sparkles class="w-3 h-3 text-amber-500" />
+                                    <span>Voucher khả dụng cho bạn</span>
+                                </p>
+                                <div class="max-h-56 overflow-y-auto space-y-2 pr-1">
+                                    <div
+                                        v-for="c in availableCoupons"
+                                        :key="c.id"
+                                        class="p-2.5 rounded-xl border border-dashed transition-all flex items-center justify-between gap-2"
+                                        :class="subtotal >= c.don_hang_toi_thieu ? 'bg-emerald-50/40 border-emerald-300' : 'bg-gray-50/70 border-gray-200 opacity-75'"
+                                    >
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="font-mono font-extrabold text-xs text-emerald-700 uppercase bg-emerald-100 px-1.5 py-0.5 rounded">
+                                                    {{ c.ma_khuyen_mai }}
+                                                </span>
+                                                <span class="text-[10px] text-gray-400">HSD: {{ c.ngay_ket_thuc }}</span>
+                                            </div>
+                                            <p class="text-xs font-bold text-gray-800 mt-0.5 truncate">{{ c.ten_chuong_trinh }}</p>
+                                            <p class="text-[10px] text-gray-500">
+                                                Đơn tối thiểu: <b>{{ formatPrice(c.don_hang_toi_thieu) }}</b>
+                                                <span v-if="c.giam_toi_da"> &bull; Tối đa {{ formatPrice(c.giam_toi_da) }}</span>
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <button
+                                                v-if="appliedCoupon?.code === c.ma_khuyen_mai"
+                                                type="button"
+                                                class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[11px] flex items-center gap-1"
+                                                disabled
+                                            >
+                                                <Check class="w-3 h-3" />
+                                                <span>Đang dùng</span>
+                                            </button>
+                                            <button
+                                                v-else-if="subtotal >= c.don_hang_toi_thieu"
+                                                type="button"
+                                                @click="selectVoucher(c)"
+                                                class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition cursor-pointer"
+                                            >
+                                                Áp dụng
+                                            </button>
+                                            <span v-else class="text-[10px] text-amber-700 bg-amber-50 px-2 py-1 rounded font-medium whitespace-nowrap block text-center">
+                                                Thiếu {{ formatPrice(c.don_hang_toi_thieu - subtotal) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -324,7 +422,7 @@ function formatPrice(val: number): string {
 
                         <!-- Proceed to Checkout -->
                         <Link
-                            :href="route('checkout.index')"
+                            :href="appliedCoupon ? `${route('checkout.index')}?coupon=${encodeURIComponent(appliedCoupon.code)}` : route('checkout.index')"
                             class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 px-6 rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/30 transition-all hover:scale-102 active:scale-98 text-sm"
                             id="checkout-cta-btn"
                         >
