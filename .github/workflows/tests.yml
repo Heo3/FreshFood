@@ -54,4 +54,12 @@ jobs:
         run: npm run build
 
       - name: Tests
-        run: php artisan test --compact
+        run: |
+          set -o pipefail
+          php artisan test 2>&1 | tee test_log.txt || {
+            echo "## ❌ Test Output" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 80 test_log.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
