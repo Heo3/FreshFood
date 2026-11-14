@@ -1,21 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
-import {
-    ArrowLeft,
-    CheckCircle2,
-    Truck,
-    Clock,
-    ShoppingBag,
-    User,
-    MapPin,
-    Phone,
-    CreditCard,
-    Save,
-    AlertCircle,
-    Store,
-} from 'lucide-vue-next';
+import { Link, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Save, ShoppingBag, User } from 'lucide-vue-next';
 
 const props = defineProps<{
     order: {
@@ -84,68 +70,68 @@ function formatCurrency(val: number): string {
         :breadcrumbs="[
             { name: 'Admin', href: route('admin.dashboard') },
             { name: 'Đơn hàng', href: route('admin.orders.index') },
-            { name: order.ma_don_hang }
+            { name: order.ma_don_hang },
         ]"
     >
-        <div class="max-w-5xl mx-auto space-y-4">
+        <div class="mx-auto max-w-5xl space-y-4">
             <!-- BACK BUTTON -->
             <div>
                 <Link
                     :href="route('admin.orders.index')"
                     class="inline-flex items-center space-x-1.5 text-xs font-semibold text-gray-600 hover:text-[#007bff]"
                 >
-                    <ArrowLeft class="w-3.5 h-3.5" />
+                    <ArrowLeft class="h-3.5 w-3.5" />
                     <span>Quay lại danh sách đơn hàng</span>
                 </Link>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
                 <!-- LEFT COLUMN: ITEMS & FINANCIALS -->
-                <div class="lg:col-span-2 space-y-4">
+                <div class="space-y-4 lg:col-span-2">
                     <!-- ITEMS TABLE CARD -->
-                    <div class="bg-white rounded-sm border-t-3 border-[#007bff] border-x border-b border-gray-200 shadow-xs">
+                    <div class="border-t-3 shadow-xs rounded-sm border-x border-b border-[#007bff] border-gray-200 bg-white">
                         <!-- Card Header -->
-                        <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-                            <h3 class="text-sm font-bold text-[#343a40] flex items-center space-x-2">
-                                <ShoppingBag class="w-4 h-4 text-[#007bff]" />
+                        <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+                            <h3 class="flex items-center space-x-2 text-sm font-bold text-[#343a40]">
+                                <ShoppingBag class="h-4 w-4 text-[#007bff]" />
                                 <span>Danh Sách Mặt Hàng Đặt Mua</span>
                             </h3>
-                            <span class="text-xs font-mono text-gray-400">#{{ order.ma_don_hang }}</span>
+                            <span class="font-mono text-xs text-gray-400">#{{ order.ma_don_hang }}</span>
                         </div>
 
                         <!-- Card Body -->
                         <div class="p-0">
-                            <table class="w-full text-left text-xs border-collapse">
+                            <table class="w-full border-collapse text-left text-xs">
                                 <thead>
-                                    <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold uppercase text-[10px]">
-                                        <th class="py-2 px-4">Sản Phẩm</th>
-                                        <th class="py-2 px-3 text-center">Đơn Giá</th>
-                                        <th class="py-2 px-3 text-center">Số Lượng</th>
-                                        <th class="py-2 px-4 text-right">Thành Tiền</th>
+                                    <tr class="border-b border-gray-200 bg-gray-50 text-[10px] font-bold uppercase text-gray-600">
+                                        <th class="px-4 py-2">Sản Phẩm</th>
+                                        <th class="px-3 py-2 text-center">Đơn Giá</th>
+                                        <th class="px-3 py-2 text-center">Số Lượng</th>
+                                        <th class="px-4 py-2 text-right">Thành Tiền</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100">
                                     <tr v-for="item in order.chi_tiet_don_hangs" :key="item.id" class="hover:bg-gray-50">
-                                        <td class="py-2.5 px-4 font-bold text-gray-800">
+                                        <td class="px-4 py-2.5 font-bold text-gray-800">
                                             <div class="flex items-center space-x-2">
-                                                <div class="w-8 h-8 rounded-sm bg-gray-100 border border-gray-200 overflow-hidden shrink-0">
+                                                <div class="h-8 w-8 shrink-0 overflow-hidden rounded-sm border border-gray-200 bg-gray-100">
                                                     <img
                                                         v-if="item.san_pham?.hinh_anh_chinh"
                                                         :src="item.san_pham.hinh_anh_chinh"
                                                         alt="Thumb"
-                                                        class="w-full h-full object-cover"
+                                                        class="h-full w-full object-cover"
                                                     />
                                                 </div>
                                                 <span class="truncate">{{ item.ten_san_pham }}</span>
                                             </div>
                                         </td>
-                                        <td class="py-2.5 px-3 text-center text-gray-600">
+                                        <td class="px-3 py-2.5 text-center text-gray-600">
                                             {{ formatCurrency(item.don_gia) }}
                                         </td>
-                                        <td class="py-2.5 px-3 text-center font-bold text-gray-800">
+                                        <td class="px-3 py-2.5 text-center font-bold text-gray-800">
                                             {{ Number(item.so_luong).toFixed(1) }} {{ item.san_pham?.don_vi_tinh || 'Kg' }}
                                         </td>
-                                        <td class="py-2.5 px-4 text-right font-extrabold text-gray-900">
+                                        <td class="px-4 py-2.5 text-right font-extrabold text-gray-900">
                                             {{ formatCurrency(item.thanh_tien) }}
                                         </td>
                                     </tr>
@@ -153,7 +139,7 @@ function formatCurrency(val: number): string {
                             </table>
 
                             <!-- FINANCIAL BREAKDOWN -->
-                            <div class="p-4 bg-gray-50 border-t border-gray-200 space-y-1.5 text-xs text-gray-600">
+                            <div class="space-y-1.5 border-t border-gray-200 bg-gray-50 p-4 text-xs text-gray-600">
                                 <div class="flex justify-between">
                                     <span>Tổng tiền hàng:</span>
                                     <span class="font-bold text-gray-800">{{ formatCurrency(order.tong_tien_hang) }}</span>
@@ -166,7 +152,7 @@ function formatCurrency(val: number): string {
                                     <span>Giảm giá voucher ({{ order.ma_giam_gia?.ma_khuyen_mai }}):</span>
                                     <span>- {{ formatCurrency(order.tien_giam_gia) }}</span>
                                 </div>
-                                <div class="flex justify-between text-sm font-extrabold text-[#28a745] pt-2 border-t border-gray-200">
+                                <div class="flex justify-between border-t border-gray-200 pt-2 text-sm font-extrabold text-[#28a745]">
                                     <span>Tổng cộng thanh toán:</span>
                                     <span>{{ formatCurrency(order.tong_thanhtoan) }}</span>
                                 </div>
@@ -175,26 +161,26 @@ function formatCurrency(val: number): string {
                     </div>
 
                     <!-- CUSTOMER & DELIVERY INFO CARD -->
-                    <div class="bg-white rounded-sm border border-gray-200 shadow-xs p-4 text-xs space-y-3">
-                        <span class="font-bold text-sm text-[#343a40] block border-b border-gray-100 pb-2 flex items-center space-x-2">
-                            <User class="w-4 h-4 text-[#007bff]" />
+                    <div class="shadow-xs space-y-3 rounded-sm border border-gray-200 bg-white p-4 text-xs">
+                        <span class="block flex items-center space-x-2 border-b border-gray-100 pb-2 text-sm font-bold text-[#343a40]">
+                            <User class="h-4 w-4 text-[#007bff]" />
                             <span>Thông Tin Người Nhận & Giao Hàng</span>
                         </span>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <div>
-                                <span class="text-gray-400 block text-[11px]">Người nhận hàng:</span>
+                                <span class="block text-[11px] text-gray-400">Người nhận hàng:</span>
                                 <b class="text-gray-900">{{ order.ten_nguoi_nhan }}</b>
                             </div>
                             <div>
-                                <span class="text-gray-400 block text-[11px]">Số điện thoại:</span>
-                                <b class="text-gray-900 font-mono">{{ order.so_dien_thoai_nhan }}</b>
+                                <span class="block text-[11px] text-gray-400">Số điện thoại:</span>
+                                <b class="font-mono text-gray-900">{{ order.so_dien_thoai_nhan }}</b>
                             </div>
                             <div class="sm:col-span-2">
-                                <span class="text-gray-400 block text-[11px]">Địa chỉ giao:</span>
+                                <span class="block text-[11px] text-gray-400">Địa chỉ giao:</span>
                                 <span class="text-gray-800">{{ order.dia_chi_giao }}</span>
                             </div>
-                            <div v-if="order.ghi_chu" class="sm:col-span-2 p-2 bg-amber-50 border border-amber-200 text-amber-900 rounded-sm">
+                            <div v-if="order.ghi_chu" class="rounded-sm border border-amber-200 bg-amber-50 p-2 text-amber-900 sm:col-span-2">
                                 <b>Ghi chú:</b> {{ order.ghi_chu }}
                             </div>
                         </div>
@@ -204,17 +190,15 @@ function formatCurrency(val: number): string {
                 <!-- RIGHT COLUMN: STATUS UPDATE & STORE -->
                 <div class="space-y-4">
                     <!-- UPDATE FORM CARD -->
-                    <div class="bg-white rounded-sm border-t-3 border-[#28a745] border-x border-b border-gray-200 shadow-xs p-4 text-xs space-y-3">
-                        <h4 class="font-bold text-sm text-[#343a40] border-b border-gray-100 pb-2">
-                            Cập Nhật Trạng Thái
-                        </h4>
+                    <div class="border-t-3 shadow-xs space-y-3 rounded-sm border-x border-b border-[#28a745] border-gray-200 bg-white p-4 text-xs">
+                        <h4 class="border-b border-gray-100 pb-2 text-sm font-bold text-[#343a40]">Cập Nhật Trạng Thái</h4>
 
                         <form class="space-y-3" @submit.prevent="submitStatus">
                             <div>
-                                <label class="block font-bold text-gray-700 mb-1">Trạng Thái Đơn</label>
+                                <label class="mb-1 block font-bold text-gray-700">Trạng Thái Đơn</label>
                                 <select
                                     v-model="form.trang_thai_don_hang"
-                                    class="w-full px-2.5 py-1.5 border border-gray-300 rounded-sm bg-white font-semibold focus:outline-hidden focus:border-[#28a745]"
+                                    class="focus:outline-hidden w-full rounded-sm border border-gray-300 bg-white px-2.5 py-1.5 font-semibold focus:border-[#28a745]"
                                 >
                                     <option value="cho_xac_nhan">Chờ Duyệt</option>
                                     <option value="dang_chuan_bi">Đang Đóng Gói (Xuất FEFO)</option>
@@ -225,10 +209,10 @@ function formatCurrency(val: number): string {
                             </div>
 
                             <div>
-                                <label class="block font-bold text-gray-700 mb-1">Trạng Thái Thanh Toán</label>
+                                <label class="mb-1 block font-bold text-gray-700">Trạng Thái Thanh Toán</label>
                                 <select
                                     v-model="form.trang_thai_thanh_toan"
-                                    class="w-full px-2.5 py-1.5 border border-gray-300 rounded-sm bg-white focus:outline-hidden focus:border-[#28a745]"
+                                    class="focus:outline-hidden w-full rounded-sm border border-gray-300 bg-white px-2.5 py-1.5 focus:border-[#28a745]"
                                 >
                                     <option value="chua_thanh_toan">Chưa thanh toán</option>
                                     <option value="da_thanh_toan">Đã thanh toán</option>
@@ -237,11 +221,11 @@ function formatCurrency(val: number): string {
                             </div>
 
                             <div>
-                                <label class="block font-bold text-gray-700 mb-1">Ghi Chú Điều Phối</label>
+                                <label class="mb-1 block font-bold text-gray-700">Ghi Chú Điều Phối</label>
                                 <textarea
                                     v-model="form.ghi_chu"
                                     rows="2"
-                                    class="w-full px-2.5 py-1.5 border border-gray-300 rounded-sm focus:outline-hidden focus:border-[#28a745]"
+                                    class="focus:outline-hidden w-full rounded-sm border border-gray-300 px-2.5 py-1.5 focus:border-[#28a745]"
                                     placeholder="Lý do hoặc chỉ đạo..."
                                 />
                             </div>
@@ -249,18 +233,18 @@ function formatCurrency(val: number): string {
                             <button
                                 type="submit"
                                 :disabled="form.processing"
-                                class="w-full py-1.5 bg-[#28a745] hover:bg-[#218838] text-white rounded-sm font-semibold shadow-2xs transition-colors flex items-center justify-center space-x-1"
+                                class="shadow-2xs flex w-full items-center justify-center space-x-1 rounded-sm bg-[#28a745] py-1.5 font-semibold text-white transition-colors hover:bg-[#218838]"
                             >
-                                <Save class="w-3.5 h-3.5" />
+                                <Save class="h-3.5 w-3.5" />
                                 <span>{{ form.processing ? 'Đang lưu...' : 'Lưu Trạng Thái' }}</span>
                             </button>
                         </form>
                     </div>
 
                     <!-- STORE ASSIGNMENT -->
-                    <div class="bg-white rounded-sm border border-gray-200 shadow-xs p-4 text-xs space-y-1">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Chi Nhánh Xuất Hàng</span>
-                        <div class="font-bold text-gray-900 text-sm">{{ order.cua_hang?.ten_cua_hang }}</div>
+                    <div class="shadow-xs space-y-1 rounded-sm border border-gray-200 bg-white p-4 text-xs">
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-gray-400">Chi Nhánh Xuất Hàng</span>
+                        <div class="text-sm font-bold text-gray-900">{{ order.cua_hang?.ten_cua_hang }}</div>
                         <div class="text-gray-500">{{ order.cua_hang?.dia_chi }}</div>
                     </div>
                 </div>

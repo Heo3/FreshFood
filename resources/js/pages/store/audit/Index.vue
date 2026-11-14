@@ -1,15 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 import StoreOpsLayout from '@/layouts/StoreOpsLayout.vue';
-import {
-    Plus,
-    Search,
-    ClipboardCheck,
-    Calendar,
-    User,
-    CheckCircle2,
-} from 'lucide-vue-next';
 import { Link } from '@inertiajs/vue3';
+import { ClipboardCheck, Plus, Search } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 interface PhieuKiemKeItem {
     id: number;
@@ -46,75 +39,79 @@ function formatDate(dateStr: string): string {
     <StoreOpsLayout title="Kiểm Kê Kho & Cân Bằng Tồn Kho" :stores="stores" :currentStore="currentStore">
         <div class="space-y-6">
             <!-- TOP BAR -->
-            <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div
+                class="flex flex-col items-start justify-between gap-4 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:flex-row sm:items-center"
+            >
                 <div>
-                    <h2 class="text-base font-black text-slate-900 flex items-center space-x-2">
-                        <ClipboardCheck class="w-5 h-5 text-emerald-600" />
+                    <h2 class="flex items-center space-x-2 text-base font-black text-slate-900">
+                        <ClipboardCheck class="h-5 w-5 text-emerald-600" />
                         <span>Biên Bản Kiểm Kê Kho & Ghi Nhận Hao Hụt Thực Phẩm</span>
                     </h2>
-                    <p class="text-xs text-slate-400 mt-0.5">So sánh số lượng sổ sách vs kiểm đếm thực tế, ghi nhận hao hụt dập nát và cân bằng kho.</p>
+                    <p class="mt-0.5 text-xs text-slate-400">
+                        So sánh số lượng sổ sách vs kiểm đếm thực tế, ghi nhận hao hụt dập nát và cân bằng kho.
+                    </p>
                 </div>
 
                 <Link
                     :href="route('store.audit.create')"
-                    class="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-emerald-700/20 transition"
+                    class="flex items-center space-x-1.5 rounded-2xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-700/20 transition hover:bg-emerald-700"
                 >
-                    <Plus class="w-4 h-4" />
+                    <Plus class="h-4 w-4" />
                     <span>Tạo Biên Bản Kiểm Kê Mới</span>
                 </Link>
             </div>
 
             <!-- TABLE CONTAINER -->
-            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-                <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+            <div class="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm">
+                <div class="flex items-center justify-between border-b border-slate-100 p-4">
                     <div class="relative w-full sm:w-80">
-                        <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <Search class="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                         <input
                             v-model="searchQuery"
                             type="text"
                             placeholder="Tìm kiếm mã phiếu kiểm kê..."
-                            class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-xs outline-none focus:ring-2 focus:ring-emerald-500"
                         />
                     </div>
-                    <span class="text-xs text-slate-400 font-medium">Tổng: {{ filteredPhieuKiemKes.length }} biên bản</span>
+                    <span class="text-xs font-medium text-slate-400">Tổng: {{ filteredPhieuKiemKes.length }} biên bản</span>
                 </div>
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
+                        <thead class="border-b border-slate-100 bg-slate-50 font-bold uppercase tracking-wider text-slate-500">
                             <tr>
-                                <th class="py-3 px-4">Mã Phiếu</th>
-                                <th class="py-3 px-4">Ngày Kiểm Kê</th>
-                                <th class="py-3 px-4">Người Kiểm Kê</th>
-                                <th class="py-3 px-4 text-center">Số Mặt Hàng</th>
-                                <th class="py-3 px-4">Ghi Chú</th>
-                                <th class="py-3 px-4 text-center">Trạng Thái</th>
+                                <th class="px-4 py-3">Mã Phiếu</th>
+                                <th class="px-4 py-3">Ngày Kiểm Kê</th>
+                                <th class="px-4 py-3">Người Kiểm Kê</th>
+                                <th class="px-4 py-3 text-center">Số Mặt Hàng</th>
+                                <th class="px-4 py-3">Ghi Chú</th>
+                                <th class="px-4 py-3 text-center">Trạng Thái</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             <tr v-if="filteredPhieuKiemKes.length === 0">
-                                <td colspan="6" class="text-center py-10 text-slate-400">
-                                    Chưa có biên bản kiểm kê nào.
-                                </td>
+                                <td colspan="6" class="py-10 text-center text-slate-400">Chưa có biên bản kiểm kê nào.</td>
                             </tr>
-                            <tr v-for="pk in filteredPhieuKiemKes" :key="pk.id" class="hover:bg-slate-50 transition">
-                                <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+                            <tr v-for="pk in filteredPhieuKiemKes" :key="pk.id" class="transition hover:bg-slate-50">
+                                <td class="px-4 py-3.5 font-mono font-bold text-slate-900">
                                     {{ pk.ma_phieu }}
                                 </td>
-                                <td class="py-3.5 px-4 text-slate-600">
+                                <td class="px-4 py-3.5 text-slate-600">
                                     {{ formatDate(pk.ngay_kiem_ke) }}
                                 </td>
-                                <td class="py-3.5 px-4 text-slate-600 font-medium">
+                                <td class="px-4 py-3.5 font-medium text-slate-600">
                                     {{ pk.nguoi_tao?.name }}
                                 </td>
-                                <td class="py-3.5 px-4 text-center font-bold text-slate-700">
-                                    <span class="bg-slate-100 px-2 py-0.5 rounded-lg">{{ pk.chi_tiets?.length ?? 0 }} SP</span>
+                                <td class="px-4 py-3.5 text-center font-bold text-slate-700">
+                                    <span class="rounded-lg bg-slate-100 px-2 py-0.5">{{ pk.chi_tiets?.length ?? 0 }} SP</span>
                                 </td>
-                                <td class="py-3.5 px-4 text-slate-500 line-clamp-1">
+                                <td class="line-clamp-1 px-4 py-3.5 text-slate-500">
                                     {{ pk.ghi_chu || 'Kiểm kê định kỳ' }}
                                 </td>
-                                <td class="py-3.5 px-4 text-center">
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800">
+                                <td class="px-4 py-3.5 text-center">
+                                    <span
+                                        class="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-800"
+                                    >
                                         Đã cân bằng tồn
                                     </span>
                                 </td>
@@ -126,4 +123,3 @@ function formatDate(dateStr: string): string {
         </div>
     </StoreOpsLayout>
 </template>
-

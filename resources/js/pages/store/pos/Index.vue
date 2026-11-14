@@ -1,29 +1,26 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
+import { useToast } from '@/composables/useToast';
 import StoreOpsLayout from '@/layouts/StoreOpsLayout.vue';
 import {
-    Search,
-    Barcode,
-    ShoppingCart,
-    Trash2,
-    Plus,
-    Minus,
-    CheckCircle2,
-    Printer,
-    CreditCard,
     Banknote,
-    X,
-    QrCode,
-    Coins,
-    UserCheck,
-    UserPlus,
-    Sparkles,
-    Maximize2,
-    Copy,
+    Barcode,
     Check,
+    CheckCircle2,
+    Coins,
+    Copy,
+    Maximize2,
+    Minus,
+    Plus,
+    Printer,
+    QrCode,
+    Search,
+    ShoppingCart,
+    Sparkles,
+    Trash2,
+    UserCheck,
+    X,
 } from 'lucide-vue-next';
-import { router } from '@inertiajs/vue3';
-import { useToast } from '@/composables/useToast';
+import { computed, ref } from 'vue';
 
 interface ProductItem {
     id: number;
@@ -209,7 +206,7 @@ const totalQuantity = computed(() => {
 });
 
 const subtotal = computed(() => {
-    return cart.value.reduce((sum, item) => sum + (item.don_gia * item.so_luong), 0);
+    return cart.value.reduce((sum, item) => sum + item.don_gia * item.so_luong, 0);
 });
 
 const pointsDiscount = computed(() => {
@@ -294,7 +291,7 @@ async function handleCheckout() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
             },
             body: JSON.stringify({
@@ -347,31 +344,31 @@ function printReceipt() {
 
 <template>
     <StoreOpsLayout title="Thu Ngân POS Bán Lẻ" :stores="stores" :currentStore="currentStore">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <!-- LEFT: PRODUCT CATALOG & BARCODE SCANNER (8 COLS) -->
-            <div class="lg:col-span-7 xl:col-span-8 space-y-4">
+            <div class="space-y-4 lg:col-span-7 xl:col-span-8">
                 <!-- TOP CONTROLS: BARCODE + SEARCH -->
-                <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-3">
+                <div class="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm sm:flex-row">
                     <!-- BARCODE SCANNER INPUT -->
                     <div class="relative flex-1">
-                        <Barcode class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <Barcode class="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                         <input
                             v-model="barcodeInput"
                             @keydown.enter.prevent="handleBarcodeScan"
                             type="text"
                             placeholder="Quét hoặc nhập mã vạch (Enter)..."
-                            class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-mono font-bold focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition"
+                            class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2.5 pl-11 pr-4 font-mono text-xs font-bold outline-none transition focus:bg-white focus:ring-2 focus:ring-emerald-500"
                         />
                     </div>
 
                     <!-- NAME SEARCH INPUT -->
                     <div class="relative flex-1">
-                        <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <Search class="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                         <input
                             v-model="searchQuery"
                             type="text"
                             placeholder="Tìm tên sản phẩm..."
-                            class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition"
+                            class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-xs outline-none transition focus:bg-white focus:ring-2 focus:ring-emerald-500"
                         />
                     </div>
                 </div>
@@ -380,8 +377,12 @@ function printReceipt() {
                 <div class="flex items-center space-x-2 overflow-x-auto pb-1 text-xs">
                     <button
                         @click="selectedCategory = 'all'"
-                        :class="selectedCategory === 'all' ? 'bg-slate-900 text-white font-bold' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'"
-                        class="px-3.5 py-1.5 rounded-xl whitespace-nowrap transition"
+                        :class="
+                            selectedCategory === 'all'
+                                ? 'bg-slate-900 font-bold text-white'
+                                : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-100'
+                        "
+                        class="whitespace-nowrap rounded-xl px-3.5 py-1.5 transition"
                     >
                         Tất cả ({{ products.length }})
                     </button>
@@ -389,45 +390,59 @@ function printReceipt() {
                         v-for="cat in categories"
                         :key="cat"
                         @click="selectedCategory = cat"
-                        :class="selectedCategory === cat ? 'bg-slate-900 text-white font-bold' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'"
-                        class="px-3.5 py-1.5 rounded-xl whitespace-nowrap transition"
+                        :class="
+                            selectedCategory === cat
+                                ? 'bg-slate-900 font-bold text-white'
+                                : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-100'
+                        "
+                        class="whitespace-nowrap rounded-xl px-3.5 py-1.5 transition"
                     >
                         {{ cat }}
                     </button>
                 </div>
 
                 <!-- PRODUCT GRID -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3.5">
+                <div class="grid grid-cols-2 gap-3.5 sm:grid-cols-3 xl:grid-cols-4">
                     <div
                         v-for="product in filteredProducts"
                         :key="product.id"
                         @click="addToCart(product)"
-                        :class="product.ton_kho <= 0 ? 'opacity-50 cursor-not-allowed bg-slate-100' : 'cursor-pointer hover:border-emerald-500 hover:shadow-md active:scale-[0.98] bg-white'"
-                        class="p-3 rounded-2xl border border-slate-200/80 transition flex flex-col justify-between group relative overflow-hidden"
+                        :class="
+                            product.ton_kho <= 0
+                                ? 'cursor-not-allowed bg-slate-100 opacity-50'
+                                : 'cursor-pointer bg-white hover:border-emerald-500 hover:shadow-md active:scale-[0.98]'
+                        "
+                        class="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/80 p-3 transition"
                     >
                         <div>
-                            <div class="relative w-full aspect-square rounded-xl overflow-hidden bg-slate-50 mb-2">
-                                <img :src="product.hinh_anh_chinh" :alt="product.ten_san_pham" class="w-full h-full object-cover group-hover:scale-105 transition duration-200" />
+                            <div class="relative mb-2 aspect-square w-full overflow-hidden rounded-xl bg-slate-50">
+                                <img
+                                    :src="product.hinh_anh_chinh"
+                                    :alt="product.ten_san_pham"
+                                    class="h-full w-full object-cover transition duration-200 group-hover:scale-105"
+                                />
                                 <span
                                     :class="product.ton_kho > 0 ? 'bg-emerald-600 text-white' : 'bg-red-500 text-white'"
-                                    class="absolute top-1.5 right-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider"
+                                    class="absolute right-1.5 top-1.5 rounded-md px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider"
                                 >
                                     {{ product.ton_kho > 0 ? `Còn ${product.ton_kho} ${product.don_vi_tinh}` : 'Hết hàng' }}
                                 </span>
                             </div>
-                            <h4 class="text-xs font-bold text-slate-800 line-clamp-2 leading-snug">{{ product.ten_san_pham }}</h4>
-                            <p class="text-[10px] text-slate-400 font-mono mt-0.5">{{ product.ma_va_vach }}</p>
+                            <h4 class="line-clamp-2 text-xs font-bold leading-snug text-slate-800">{{ product.ten_san_pham }}</h4>
+                            <p class="mt-0.5 font-mono text-[10px] text-slate-400">{{ product.ma_va_vach }}</p>
                         </div>
 
-                        <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between">
+                        <div class="mt-2 flex items-center justify-between border-t border-slate-100 pt-2">
                             <div>
                                 <span class="text-xs font-black text-emerald-600">
                                     {{ formatPrice(product.gia_giam ?? product.gia_ban) }}
                                 </span>
                                 <span class="text-[10px] text-slate-400">/{{ product.don_vi_tinh }}</span>
                             </div>
-                            <div class="w-7 h-7 rounded-lg bg-emerald-50 group-hover:bg-emerald-600 text-emerald-700 group-hover:text-white flex items-center justify-center transition">
-                                <Plus class="w-4 h-4" />
+                            <div
+                                class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 transition group-hover:bg-emerald-600 group-hover:text-white"
+                            >
+                                <Plus class="h-4 w-4" />
                             </div>
                         </div>
                     </div>
@@ -435,14 +450,16 @@ function printReceipt() {
             </div>
 
             <!-- RIGHT: POS CART & BILLING PANEL (4 COLS) -->
-            <div class="lg:col-span-5 xl:col-span-4 space-y-4">
-                <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-10rem)] sticky top-28">
+            <div class="space-y-4 lg:col-span-5 xl:col-span-4">
+                <div
+                    class="sticky top-28 flex h-[calc(100vh-10rem)] flex-col overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm"
+                >
                     <!-- CART HEADER -->
-                    <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+                    <div class="flex items-center justify-between bg-slate-900 p-4 text-white">
                         <div class="flex items-center space-x-2">
-                            <ShoppingCart class="w-5 h-5 text-emerald-400" />
-                            <h3 class="font-bold text-sm">Hóa Đơn Bán Hàng</h3>
-                            <span class="text-xs bg-slate-800 text-emerald-400 px-2 py-0.5 rounded-full font-bold">
+                            <ShoppingCart class="h-5 w-5 text-emerald-400" />
+                            <h3 class="text-sm font-bold">Hóa Đơn Bán Hàng</h3>
+                            <span class="rounded-full bg-slate-800 px-2 py-0.5 text-xs font-bold text-emerald-400">
                                 {{ totalQuantity.toFixed(1) }} SP
                             </span>
                         </div>
@@ -450,73 +467,73 @@ function printReceipt() {
                             <button
                                 @click="showQrModal = true"
                                 type="button"
-                                class="text-xs bg-slate-800 hover:bg-slate-700 text-blue-400 hover:text-blue-300 font-bold px-2.5 py-1 rounded-xl flex items-center space-x-1 transition border border-slate-700"
+                                class="flex items-center space-x-1 rounded-xl border border-slate-700 bg-slate-800 px-2.5 py-1 text-xs font-bold text-blue-400 transition hover:bg-slate-700 hover:text-blue-300"
                                 title="Mở mã QR quầy thanh toán"
                             >
-                                <QrCode class="w-3.5 h-3.5" />
+                                <QrCode class="h-3.5 w-3.5" />
                                 <span>QR Quầy</span>
                             </button>
-                            <button
-                                v-if="cart.length > 0"
-                                @click="clearCart"
-                                class="text-xs text-red-400 hover:text-red-300 font-medium"
-                            >
+                            <button v-if="cart.length > 0" @click="clearCart" class="text-xs font-medium text-red-400 hover:text-red-300">
                                 Xóa hết
                             </button>
                         </div>
                     </div>
 
                     <!-- CART ITEMS LIST -->
-                    <div class="flex-1 overflow-y-auto p-4 space-y-3 divide-y divide-slate-100">
-                        <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-slate-400 text-center py-12">
-                            <ShoppingCart class="w-12 h-12 text-slate-200 mb-2 stroke-1" />
+                    <div class="flex-1 space-y-3 divide-y divide-slate-100 overflow-y-auto p-4">
+                        <div v-if="cart.length === 0" class="flex h-full flex-col items-center justify-center py-12 text-center text-slate-400">
+                            <ShoppingCart class="mb-2 h-12 w-12 stroke-1 text-slate-200" />
                             <p class="text-xs font-medium">Chưa có sản phẩm nào trong hóa đơn</p>
-                            <p class="text-[11px] text-slate-400 mt-1">Quét mã vạch hoặc bấm chọn sản phẩm để thêm</p>
+                            <p class="mt-1 text-[11px] text-slate-400">Quét mã vạch hoặc bấm chọn sản phẩm để thêm</p>
                         </div>
 
-                        <div v-for="item in cart" :key="item.san_pham_id" class="pt-3 first:pt-0 flex items-center justify-between gap-3">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs font-bold text-slate-800 truncate">{{ item.ten_san_pham }}</p>
-                                <p class="text-[11px] text-slate-500 font-medium">
-                                    {{ formatPrice(item.don_gia) }} / {{ item.don_vi_tinh }}
-                                </p>
+                        <div v-for="item in cart" :key="item.san_pham_id" class="flex items-center justify-between gap-3 pt-3 first:pt-0">
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-xs font-bold text-slate-800">{{ item.ten_san_pham }}</p>
+                                <p class="text-[11px] font-medium text-slate-500">{{ formatPrice(item.don_gia) }} / {{ item.don_vi_tinh }}</p>
                             </div>
 
                             <!-- QUANTITY CONTROLLER -->
-                            <div class="flex items-center space-x-1.5 bg-slate-100 px-2 py-1 rounded-xl">
-                                <button @click="updateQuantity(item, -1)" class="w-5 h-5 rounded hover:bg-white text-slate-700 flex items-center justify-center transition">
-                                    <Minus class="w-3 h-3" />
+                            <div class="flex items-center space-x-1.5 rounded-xl bg-slate-100 px-2 py-1">
+                                <button
+                                    @click="updateQuantity(item, -1)"
+                                    class="flex h-5 w-5 items-center justify-center rounded text-slate-700 transition hover:bg-white"
+                                >
+                                    <Minus class="h-3 w-3" />
                                 </button>
-                                <span class="text-xs font-black text-slate-900 w-8 text-center">{{ item.so_luong }}</span>
-                                <button @click="updateQuantity(item, 1)" class="w-5 h-5 rounded hover:bg-white text-slate-700 flex items-center justify-center transition">
-                                    <Plus class="w-3 h-3" />
+                                <span class="w-8 text-center text-xs font-black text-slate-900">{{ item.so_luong }}</span>
+                                <button
+                                    @click="updateQuantity(item, 1)"
+                                    class="flex h-5 w-5 items-center justify-center rounded text-slate-700 transition hover:bg-white"
+                                >
+                                    <Plus class="h-3 w-3" />
                                 </button>
                             </div>
 
-                            <div class="text-right min-w-[70px]">
+                            <div class="min-w-[70px] text-right">
                                 <p class="text-xs font-black text-slate-900">{{ formatPrice(item.don_gia * item.so_luong) }}</p>
                             </div>
 
-                            <button @click="removeFromCart(item.san_pham_id)" class="text-slate-300 hover:text-red-500 transition">
-                                <Trash2 class="w-4 h-4" />
+                            <button @click="removeFromCart(item.san_pham_id)" class="text-slate-300 transition hover:text-red-500">
+                                <Trash2 class="h-4 w-4" />
                             </button>
                         </div>
                     </div>
 
                     <!-- BILLING & PAYMENT FORM -->
-                    <div class="p-4 bg-slate-50/80 border-t border-slate-200/80 space-y-3">
+                    <div class="space-y-3 border-t border-slate-200/80 bg-slate-50/80 p-4">
                         <!-- CUSTOMER & LOYALTY POINTS SECTION -->
-                        <div class="bg-white p-3 rounded-2xl border border-slate-200 space-y-2.5">
+                        <div class="space-y-2.5 rounded-2xl border border-slate-200 bg-white p-3">
                             <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
-                                    <Coins class="w-4 h-4 text-amber-500" />
+                                <span class="flex items-center space-x-1.5 text-xs font-bold text-slate-800">
+                                    <Coins class="h-4 w-4 text-amber-500" />
                                     <span>Tích & Trừ Điểm Khách Hàng</span>
                                 </span>
                                 <button
                                     v-if="customerData || customerPhone"
                                     @click="clearCustomer"
                                     type="button"
-                                    class="text-[11px] text-slate-400 hover:text-red-500 transition"
+                                    class="text-[11px] text-slate-400 transition hover:text-red-500"
                                 >
                                     Đổi khách
                                 </button>
@@ -529,27 +546,28 @@ function printReceipt() {
                                     @keydown.enter.prevent="handleCheckCustomer"
                                     type="text"
                                     placeholder="Nhập SĐT khách hàng..."
-                                    class="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none"
+                                    class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 font-mono text-xs outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500"
                                 />
                                 <button
                                     @click="handleCheckCustomer"
                                     :disabled="isSearchingCustomer || !customerPhone.trim()"
                                     type="button"
-                                    class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold disabled:opacity-50 transition"
+                                    class="rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-slate-800 disabled:opacity-50"
                                 >
                                     {{ isSearchingCustomer ? 'Đang kiểm tra...' : 'Tra cứu' }}
                                 </button>
                             </div>
 
                             <!-- CUSTOMER DETAILS / LOYALTY INFO -->
-                            <div v-if="customerData" class="pt-2 border-t border-slate-100 space-y-2">
+                            <div v-if="customerData" class="space-y-2 border-t border-slate-100 pt-2">
                                 <div class="flex items-center justify-between text-xs">
                                     <div class="flex items-center space-x-1.5">
-                                        <UserCheck class="w-3.5 h-3.5 text-emerald-600" />
+                                        <UserCheck class="h-3.5 w-3.5 text-emerald-600" />
                                         <span class="font-bold text-slate-800">{{ customerData.name }}</span>
                                     </div>
-                                    <span class="text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                                        {{ customerData.loyalty_points }} điểm (= {{ formatPrice(customerData.points_value || customerData.loyalty_points * 1000) }})
+                                    <span class="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-600">
+                                        {{ customerData.loyalty_points }} điểm (=
+                                        {{ formatPrice(customerData.points_value || customerData.loyalty_points * 1000) }})
                                     </span>
                                 </div>
 
@@ -559,19 +577,15 @@ function printReceipt() {
                                         v-model="customerName"
                                         type="text"
                                         placeholder="Nhập họ tên khách hàng (tùy chọn)..."
-                                        class="w-full px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-emerald-500"
+                                        class="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs outline-none focus:ring-1 focus:ring-emerald-500"
                                     />
                                     <p class="text-[10px] text-slate-400">Khách mới sẽ tự động tích điểm sau khi thanh toán.</p>
                                 </div>
 
                                 <!-- REDEEM POINTS CHECKBOX & INPUT -->
-                                <div v-if="customerData.loyalty_points > 0" class="bg-amber-50/60 p-2.5 rounded-xl border border-amber-100 space-y-2">
-                                    <label class="flex items-center space-x-2 cursor-pointer select-none">
-                                        <input
-                                            type="checkbox"
-                                            v-model="usePoints"
-                                            class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
-                                        />
+                                <div v-if="customerData.loyalty_points > 0" class="space-y-2 rounded-xl border border-amber-100 bg-amber-50/60 p-2.5">
+                                    <label class="flex cursor-pointer select-none items-center space-x-2">
+                                        <input type="checkbox" v-model="usePoints" class="h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500" />
                                         <span class="text-xs font-bold text-slate-800">Dùng điểm trừ vào đơn này</span>
                                     </label>
 
@@ -581,18 +595,16 @@ function printReceipt() {
                                             type="number"
                                             min="0"
                                             :max="Math.min(customerData.loyalty_points, Math.floor(subtotal / 1000))"
-                                            class="w-24 px-2 py-1 bg-white border border-amber-300 rounded-lg text-xs font-black text-slate-900 focus:ring-2 focus:ring-amber-500 outline-none"
+                                            class="w-24 rounded-lg border border-amber-300 bg-white px-2 py-1 text-xs font-black text-slate-900 outline-none focus:ring-2 focus:ring-amber-500"
                                         />
                                         <button
                                             @click="pointsToUse = Math.min(customerData.loyalty_points, Math.floor(subtotal / 1000))"
                                             type="button"
-                                            class="text-[11px] font-bold text-amber-700 bg-amber-100 hover:bg-amber-200 px-2 py-1 rounded-md transition"
+                                            class="rounded-md bg-amber-100 px-2 py-1 text-[11px] font-bold text-amber-700 transition hover:bg-amber-200"
                                         >
                                             Dùng tối đa
                                         </button>
-                                        <span class="text-xs font-bold text-emerald-600 ml-auto">
-                                            -{{ formatPrice(pointsDiscount) }}
-                                        </span>
+                                        <span class="ml-auto text-xs font-bold text-emerald-600"> -{{ formatPrice(pointsDiscount) }} </span>
                                     </div>
                                     <p v-if="usePoints" class="text-[10px] text-slate-500">
                                         Quy đổi: 1 điểm = 1.000đ. Đã giảm {{ formatPrice(pointsDiscount) }}.
@@ -600,13 +612,18 @@ function printReceipt() {
                                 </div>
 
                                 <!-- WILL EARN NOTIFICATION -->
-                                <div v-if="pointsWillEarn > 0" class="flex items-center space-x-1.5 text-[11px] text-emerald-700 font-medium bg-emerald-50 px-2 py-1 rounded-lg">
-                                    <Sparkles class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                                    <span>Đơn này tích được <strong>+{{ pointsWillEarn }} điểm</strong> (10.000đ = 1 điểm)</span>
+                                <div
+                                    v-if="pointsWillEarn > 0"
+                                    class="flex items-center space-x-1.5 rounded-lg bg-emerald-50 px-2 py-1 text-[11px] font-medium text-emerald-700"
+                                >
+                                    <Sparkles class="h-3.5 w-3.5 flex-shrink-0 text-emerald-600" />
+                                    <span
+                                        >Đơn này tích được <strong>+{{ pointsWillEarn }} điểm</strong> (10.000đ = 1 điểm)</span
+                                    >
                                 </div>
                             </div>
 
-                            <p v-else-if="customerSearchMsg" class="text-[11px] text-slate-500 italic">
+                            <p v-else-if="customerSearchMsg" class="text-[11px] italic text-slate-500">
                                 {{ customerSearchMsg }}
                             </p>
                         </div>
@@ -615,18 +632,26 @@ function printReceipt() {
                         <div class="grid grid-cols-2 gap-2 text-xs font-bold">
                             <button
                                 @click="paymentMethod = 'tien_mat'"
-                                :class="paymentMethod === 'tien_mat' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-white text-slate-700 border border-slate-200'"
-                                class="py-2 rounded-xl flex items-center justify-center space-x-1.5 transition"
+                                :class="
+                                    paymentMethod === 'tien_mat'
+                                        ? 'bg-emerald-600 text-white shadow-sm'
+                                        : 'border border-slate-200 bg-white text-slate-700'
+                                "
+                                class="flex items-center justify-center space-x-1.5 rounded-xl py-2 transition"
                             >
-                                <Banknote class="w-4 h-4" />
+                                <Banknote class="h-4 w-4" />
                                 <span>Tiền Mặt</span>
                             </button>
                             <button
                                 @click="paymentMethod = 'chuyen_khoan'"
-                                :class="paymentMethod === 'chuyen_khoan' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-white text-slate-700 border border-slate-200'"
-                                class="py-2 rounded-xl flex items-center justify-center space-x-1.5 transition"
+                                :class="
+                                    paymentMethod === 'chuyen_khoan'
+                                        ? 'bg-emerald-600 text-white shadow-sm'
+                                        : 'border border-slate-200 bg-white text-slate-700'
+                                "
+                                class="flex items-center justify-center space-x-1.5 rounded-xl py-2 transition"
                             >
-                                <QrCode class="w-4 h-4" />
+                                <QrCode class="h-4 w-4" />
                                 <span>Chuyển Khoản / QR</span>
                             </button>
                         </div>
@@ -634,63 +659,63 @@ function printReceipt() {
                         <!-- DYNAMIC QR PAYMENT CARD FOR POS (VPBANK) -->
                         <div
                             v-if="paymentMethod === 'chuyen_khoan'"
-                            class="p-3 bg-gradient-to-br from-blue-50/80 via-white to-blue-50/40 rounded-2xl border-2 border-blue-200 space-y-2.5 shadow-sm animate-in fade-in duration-200"
+                            class="space-y-2.5 rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50/80 via-white to-blue-50/40 p-3 shadow-sm duration-200 animate-in fade-in"
                         >
-                            <div class="flex items-center justify-between pb-2 border-b border-blue-100">
+                            <div class="flex items-center justify-between border-b border-blue-100 pb-2">
                                 <div class="flex items-center space-x-1.5">
-                                    <div class="w-5 h-5 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-[10px]">
+                                    <div class="flex h-5 w-5 items-center justify-center rounded-lg bg-blue-600 text-[10px] font-black text-white">
                                         QR
                                     </div>
-                                    <span class="text-xs font-black text-blue-950 uppercase tracking-tight">Quét Mã Chuyển Khoản / VNPAY</span>
+                                    <span class="text-xs font-black uppercase tracking-tight text-blue-950">Quét Mã Chuyển Khoản / VNPAY</span>
                                 </div>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800">
-                                    VPBank
-                                </span>
+                                <span class="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-black text-blue-800"> VPBank </span>
                             </div>
 
                             <div class="flex items-center gap-3">
                                 <!-- QR Thumbnail (Click to enlarge) -->
                                 <div
                                     @click="showQrModal = true"
-                                    class="relative group cursor-pointer bg-white p-1 rounded-xl border border-blue-200 shadow-sm flex-shrink-0"
+                                    class="group relative flex-shrink-0 cursor-pointer rounded-xl border border-blue-200 bg-white p-1 shadow-sm"
                                     title="Bấm để phóng to cho khách quét"
                                 >
                                     <img
                                         :src="posQrUrl"
                                         alt="Mã QR POS"
-                                        class="w-20 h-20 object-contain rounded-lg group-hover:opacity-90 transition"
+                                        class="h-20 w-20 rounded-lg object-contain transition group-hover:opacity-90"
                                     />
-                                    <div class="absolute inset-0 bg-black/30 rounded-lg opacity-0 group-hover:opacity-100 flex items-center justify-center transition text-white">
-                                        <Maximize2 class="w-4 h-4" />
+                                    <div
+                                        class="absolute inset-0 flex items-center justify-center rounded-lg bg-black/30 text-white opacity-0 transition group-hover:opacity-100"
+                                    >
+                                        <Maximize2 class="h-4 w-4" />
                                     </div>
                                 </div>
 
                                 <!-- Bank Account Info -->
-                                <div class="flex-1 min-w-0 space-y-1 text-xs">
+                                <div class="min-w-0 flex-1 space-y-1 text-xs">
                                     <div>
-                                        <p class="text-[10px] text-slate-400 font-medium leading-none">Chủ tài khoản</p>
-                                        <p class="font-bold text-slate-800 truncate text-[11px]">{{ BANK_INFO.accountName }}</p>
+                                        <p class="text-[10px] font-medium leading-none text-slate-400">Chủ tài khoản</p>
+                                        <p class="truncate text-[11px] font-bold text-slate-800">{{ BANK_INFO.accountName }}</p>
                                     </div>
 
                                     <div>
-                                        <p class="text-[10px] text-slate-400 font-medium leading-none">Số tài khoản VPBank</p>
-                                        <div class="flex items-center space-x-1 mt-0.5">
-                                            <span class="font-mono font-black text-blue-700 text-xs">{{ BANK_INFO.accountNumber }}</span>
+                                        <p class="text-[10px] font-medium leading-none text-slate-400">Số tài khoản VPBank</p>
+                                        <div class="mt-0.5 flex items-center space-x-1">
+                                            <span class="font-mono text-xs font-black text-blue-700">{{ BANK_INFO.accountNumber }}</span>
                                             <button
                                                 @click="copyAccountNumber"
                                                 type="button"
-                                                class="text-slate-400 hover:text-blue-600 transition p-0.5"
+                                                class="p-0.5 text-slate-400 transition hover:text-blue-600"
                                                 title="Sao chép số tài khoản"
                                             >
-                                                <Check v-if="copiedAccount" class="w-3.5 h-3.5 text-emerald-600" />
-                                                <Copy v-else class="w-3.5 h-3.5" />
+                                                <Check v-if="copiedAccount" class="h-3.5 w-3.5 text-emerald-600" />
+                                                <Copy v-else class="h-3.5 w-3.5" />
                                             </button>
                                         </div>
                                     </div>
 
                                     <div>
-                                        <p class="text-[10px] text-slate-400 font-medium leading-none">Nội dung chuyển khoản</p>
-                                        <p class="font-mono font-bold text-slate-700 text-[10px] truncate">{{ posTransferContent }}</p>
+                                        <p class="text-[10px] font-medium leading-none text-slate-400">Nội dung chuyển khoản</p>
+                                        <p class="truncate font-mono text-[10px] font-bold text-slate-700">{{ posTransferContent }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -699,43 +724,43 @@ function printReceipt() {
                             <button
                                 @click="showQrModal = true"
                                 type="button"
-                                class="w-full py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 transition shadow-sm"
+                                class="flex w-full items-center justify-center space-x-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700"
                             >
-                                <Maximize2 class="w-3.5 h-3.5" />
+                                <Maximize2 class="h-3.5 w-3.5" />
                                 <span>Mở To Mã QR Cho Khách Quét</span>
                             </button>
                         </div>
 
                         <!-- TOTALS -->
-                        <div class="space-y-1.5 text-xs pt-1">
-                            <div class="flex justify-between items-center text-slate-500">
+                        <div class="space-y-1.5 pt-1 text-xs">
+                            <div class="flex items-center justify-between text-slate-500">
                                 <span>Tổng tiền hàng:</span>
                                 <span class="font-bold text-slate-800">{{ formatPrice(subtotal) }}</span>
                             </div>
 
-                            <div v-if="pointsDiscount > 0" class="flex justify-between items-center text-emerald-600 font-bold">
+                            <div v-if="pointsDiscount > 0" class="flex items-center justify-between font-bold text-emerald-600">
                                 <span>Trừ điểm tích lũy ({{ pointsToUse }} điểm):</span>
                                 <span>-{{ formatPrice(pointsDiscount) }}</span>
                             </div>
 
-                            <div v-if="paymentMethod === 'tien_mat'" class="flex justify-between items-center text-slate-700">
+                            <div v-if="paymentMethod === 'tien_mat'" class="flex items-center justify-between text-slate-700">
                                 <span class="font-medium">Tiền khách đưa:</span>
                                 <input
                                     v-model.number="cashGiven"
                                     type="number"
                                     :placeholder="finalTotal.toString()"
-                                    class="w-32 text-right px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-black text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"
+                                    class="w-32 rounded-lg border border-slate-300 bg-white px-2 py-1 text-right text-xs font-black text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500"
                                 />
                             </div>
 
-                            <div v-if="paymentMethod === 'tien_mat' && cashGiven" class="flex justify-between items-center text-slate-700">
+                            <div v-if="paymentMethod === 'tien_mat' && cashGiven" class="flex items-center justify-between text-slate-700">
                                 <span class="font-medium">Tiền thừa trả khách:</span>
-                                <span class="font-black text-emerald-700 text-sm">{{ formatPrice(changeToReturn) }}</span>
+                                <span class="text-sm font-black text-emerald-700">{{ formatPrice(changeToReturn) }}</span>
                             </div>
 
-                            <div class="flex justify-between items-center pt-2 border-t border-slate-200 text-sm">
+                            <div class="flex items-center justify-between border-t border-slate-200 pt-2 text-sm">
                                 <span class="font-black text-slate-900">KHÁCH PHẢI TRẢ:</span>
-                                <span class="font-black text-lg text-emerald-600">{{ formatPrice(finalTotal) }}</span>
+                                <span class="text-lg font-black text-emerald-600">{{ formatPrice(finalTotal) }}</span>
                             </div>
                         </div>
 
@@ -743,8 +768,12 @@ function printReceipt() {
                         <button
                             @click="handleCheckout"
                             :disabled="cart.length === 0 || isSubmitting"
-                            :class="cart.length === 0 || isSubmitting ? 'bg-slate-300 cursor-not-allowed text-slate-500' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-700/20 active:scale-[0.99]'"
-                            class="w-full py-3 rounded-2xl font-black text-sm tracking-wide transition flex items-center justify-center space-x-2"
+                            :class="
+                                cart.length === 0 || isSubmitting
+                                    ? 'cursor-not-allowed bg-slate-300 text-slate-500'
+                                    : 'bg-emerald-600 text-white shadow-lg shadow-emerald-700/20 hover:bg-emerald-700 active:scale-[0.99]'
+                            "
+                            class="flex w-full items-center justify-center space-x-2 rounded-2xl py-3 text-sm font-black tracking-wide transition"
                         >
                             <span v-if="isSubmitting">Đang xử lý xuất kho FEFO...</span>
                             <span v-else>XÁC NHẬN THANH TOÁN ({{ formatPrice(finalTotal) }})</span>
@@ -755,28 +784,31 @@ function printReceipt() {
         </div>
 
         <!-- PAYMENT SUCCESS MODAL & INVOICE PREVIEW -->
-        <div v-if="showSuccessModal && completedOrder" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div
+            v-if="showSuccessModal && completedOrder"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm"
+        >
+            <div class="w-full max-w-md space-y-4 rounded-3xl border border-slate-100 bg-white p-6 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div class="flex items-center space-x-2">
-                        <CheckCircle2 class="w-6 h-6 text-emerald-600" />
-                        <h3 class="font-black text-slate-900 text-base">Thanh Toán Thành Công</h3>
+                        <CheckCircle2 class="h-6 w-6 text-emerald-600" />
+                        <h3 class="text-base font-black text-slate-900">Thanh Toán Thành Công</h3>
                     </div>
                     <button @click="showSuccessModal = false" class="text-slate-400 hover:text-slate-600">
-                        <X class="w-5 h-5" />
+                        <X class="h-5 w-5" />
                     </button>
                 </div>
 
                 <!-- INVOICE CONTENT -->
-                <div id="pos-receipt" class="bg-slate-50 p-4 rounded-2xl font-mono text-xs space-y-2 border border-slate-200">
-                    <div class="text-center pb-2 border-b border-dashed border-slate-300">
-                        <p class="font-black text-sm text-slate-900">FRESH FOOD SUPERMARKET</p>
+                <div id="pos-receipt" class="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 font-mono text-xs">
+                    <div class="border-b border-dashed border-slate-300 pb-2 text-center">
+                        <p class="text-sm font-black text-slate-900">FRESH FOOD SUPERMARKET</p>
                         <p class="text-[10px] text-slate-500">{{ currentStore?.dia_chi }}</p>
                         <p class="text-[10px] text-slate-500">Mã Đơn: {{ completedOrder.ma_don_hang }}</p>
                         <p class="text-[10px] text-slate-400">{{ new Date().toLocaleString('vi-VN') }}</p>
                     </div>
 
-                    <div class="space-y-1.5 py-1 divide-y divide-slate-100">
+                    <div class="space-y-1.5 divide-y divide-slate-100 py-1">
                         <div v-for="item in completedOrder.chi_tiets" :key="item.id" class="flex justify-between pt-1">
                             <div>
                                 <p class="font-bold text-slate-800">{{ item.ten_san_pham }}</p>
@@ -786,64 +818,70 @@ function printReceipt() {
                         </div>
                     </div>
 
-                    <div class="pt-2 border-t border-dashed border-slate-300 space-y-1">
+                    <div class="space-y-1 border-t border-dashed border-slate-300 pt-2">
                         <div v-if="completedOrder.tien_giam_gia > 0" class="flex justify-between text-[11px] text-slate-600">
                             <span>Tiền hàng:</span>
                             <span>{{ formatPrice(completedOrder.tong_tien_hang) }}</span>
                         </div>
-                        <div v-if="completedOrder.tien_giam_gia > 0" class="flex justify-between text-[11px] text-emerald-600 font-bold">
+                        <div v-if="completedOrder.tien_giam_gia > 0" class="flex justify-between text-[11px] font-bold text-emerald-600">
                             <span>Trừ điểm tích lũy:</span>
                             <span>-{{ formatPrice(completedOrder.tien_giam_gia) }}</span>
                         </div>
-                        <div class="flex justify-between font-bold text-slate-900 text-sm">
+                        <div class="flex justify-between text-sm font-bold text-slate-900">
                             <span>TỔNG THANH TOÁN:</span>
                             <span class="text-emerald-700">{{ formatPrice(completedOrder.tong_thanhtoan) }}</span>
                         </div>
                         <div class="flex justify-between text-[11px] text-slate-500">
                             <span>Phương thức:</span>
-                            <span class="uppercase font-bold" :class="completedOrder.phuong_thuc_thanh_toan === 'tien_mat' ? 'text-slate-700' : 'text-blue-700'">
+                            <span
+                                class="font-bold uppercase"
+                                :class="completedOrder.phuong_thuc_thanh_toan === 'tien_mat' ? 'text-slate-700' : 'text-blue-700'"
+                            >
                                 {{ completedOrder.phuong_thuc_thanh_toan === 'tien_mat' ? 'Tiền mặt' : 'Chuyển khoản (VPBank - 0329643444)' }}
                             </span>
                         </div>
 
                         <!-- CUSTOMER LOYALTY SUMMARY IN RECEIPT -->
-                        <div v-if="completedOrder.customer_info" class="pt-2 mt-2 border-t border-dotted border-slate-300 text-[11px] text-slate-600 space-y-0.5">
+                        <div
+                            v-if="completedOrder.customer_info"
+                            class="mt-2 space-y-0.5 border-t border-dotted border-slate-300 pt-2 text-[11px] text-slate-600"
+                        >
                             <div class="flex justify-between">
                                 <span>Khách hàng:</span>
-                                <span class="font-bold text-slate-800">{{ completedOrder.customer_info.name }} ({{ completedOrder.customer_info.phone }})</span>
+                                <span class="font-bold text-slate-800"
+                                    >{{ completedOrder.customer_info.name }} ({{ completedOrder.customer_info.phone }})</span
+                                >
                             </div>
                             <div v-if="completedOrder.customer_info.points_used > 0" class="flex justify-between text-amber-700">
                                 <span>Điểm đã tiêu:</span>
                                 <span>-{{ completedOrder.customer_info.points_used }} điểm</span>
                             </div>
-                            <div v-if="completedOrder.customer_info.points_earned > 0" class="flex justify-between text-emerald-700 font-bold">
+                            <div v-if="completedOrder.customer_info.points_earned > 0" class="flex justify-between font-bold text-emerald-700">
                                 <span>Điểm tích lũy mới:</span>
                                 <span>+{{ completedOrder.customer_info.points_earned }} điểm</span>
                             </div>
-                            <div class="flex justify-between font-bold text-slate-800 pt-0.5">
+                            <div class="flex justify-between pt-0.5 font-bold text-slate-800">
                                 <span>Điểm hiện có:</span>
                                 <span>{{ completedOrder.customer_info.current_points }} điểm</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="text-center pt-2 text-[10px] text-slate-400 italic">
-                        Cảm ơn quý khách! Hàng tươi sạch mỗi ngày.
-                    </div>
+                    <div class="pt-2 text-center text-[10px] italic text-slate-400">Cảm ơn quý khách! Hàng tươi sạch mỗi ngày.</div>
                 </div>
 
                 <!-- ACTION BUTTONS -->
                 <div class="flex items-center space-x-2 pt-2">
                     <button
                         @click="printReceipt"
-                        class="flex-1 py-2.5 rounded-xl border border-slate-200 font-bold text-xs text-slate-700 hover:bg-slate-50 flex items-center justify-center space-x-2 transition"
+                        class="flex flex-1 items-center justify-center space-x-2 rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50"
                     >
-                        <Printer class="w-4 h-4" />
+                        <Printer class="h-4 w-4" />
                         <span>In Hóa Đơn</span>
                     </button>
                     <button
                         @click="showSuccessModal = false"
-                        class="flex-1 py-2.5 rounded-xl bg-emerald-600 font-bold text-xs text-white hover:bg-emerald-700 transition"
+                        class="flex-1 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-700"
                     >
                         Tạo Đơn Tiếp Theo
                     </button>
@@ -852,72 +890,61 @@ function printReceipt() {
         </div>
 
         <!-- LARGE CUSTOMER-FACING QR CODE MODAL FOR POS COUNTER -->
-        <div
-            v-if="showQrModal"
-            class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4"
-        >
-            <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div v-if="showQrModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm">
+            <div
+                class="w-full max-w-sm space-y-4 rounded-3xl border border-slate-100 bg-white p-6 text-center shadow-2xl duration-200 animate-in fade-in zoom-in-95"
+            >
                 <!-- MODAL HEADER -->
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div class="flex items-center space-x-2 text-left">
-                        <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-xs">
-                            QR
-                        </div>
+                        <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600 text-xs font-black text-white">QR</div>
                         <div>
-                            <h3 class="font-black text-slate-900 text-sm">QUÉT MÃ THANH TOÁN POS</h3>
+                            <h3 class="text-sm font-black text-slate-900">QUÉT MÃ THANH TOÁN POS</h3>
                             <p class="text-[11px] text-slate-500">VPBank / Ví VNPAY / Mọi App Ngân Hàng</p>
                         </div>
                     </div>
                     <button
                         @click="showQrModal = false"
-                        class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition"
+                        class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition hover:bg-slate-200"
                     >
-                        <X class="w-4 h-4" />
+                        <X class="h-4 w-4" />
                     </button>
                 </div>
 
                 <!-- AMOUNT DISPLAY -->
-                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
-                    <p class="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Số tiền cần thanh toán</p>
-                    <p class="text-2xl font-black text-emerald-600 font-mono mt-0.5">
+                <div class="rounded-2xl border border-slate-200/80 bg-slate-50 p-3">
+                    <p class="text-[11px] font-medium uppercase tracking-wider text-slate-500">Số tiền cần thanh toán</p>
+                    <p class="mt-0.5 font-mono text-2xl font-black text-emerald-600">
                         {{ formatPrice(finalTotal) }}
                     </p>
                 </div>
 
                 <!-- QR IMAGE -->
-                <div class="bg-white p-3 rounded-2xl border-2 border-blue-100 shadow-md inline-block">
-                    <img
-                        :src="posQrLargeUrl"
-                        alt="Mã QR Chuyển Khoản POS"
-                        class="w-64 h-64 object-contain mx-auto rounded-lg"
-                    />
+                <div class="inline-block rounded-2xl border-2 border-blue-100 bg-white p-3 shadow-md">
+                    <img :src="posQrLargeUrl" alt="Mã QR Chuyển Khoản POS" class="mx-auto h-64 w-64 rounded-lg object-contain" />
                 </div>
 
                 <!-- BANK INFO SUMMARY -->
-                <div class="bg-blue-50/60 p-3 rounded-2xl border border-blue-100 text-xs text-left space-y-1">
-                    <div class="flex justify-between items-center">
+                <div class="space-y-1 rounded-2xl border border-blue-100 bg-blue-50/60 p-3 text-left text-xs">
+                    <div class="flex items-center justify-between">
                         <span class="text-slate-500">Ngân hàng:</span>
                         <span class="font-bold text-slate-800">VPBank</span>
                     </div>
-                    <div class="flex justify-between items-center">
+                    <div class="flex items-center justify-between">
                         <span class="text-slate-500">Số tài khoản:</span>
                         <div class="flex items-center space-x-1">
                             <span class="font-mono font-black text-blue-700">{{ BANK_INFO.accountNumber }}</span>
-                            <button
-                                @click="copyAccountNumber"
-                                type="button"
-                                class="text-slate-400 hover:text-blue-600 transition"
-                            >
-                                <Check v-if="copiedAccount" class="w-3.5 h-3.5 text-emerald-600" />
-                                <Copy v-else class="w-3.5 h-3.5" />
+                            <button @click="copyAccountNumber" type="button" class="text-slate-400 transition hover:text-blue-600">
+                                <Check v-if="copiedAccount" class="h-3.5 w-3.5 text-emerald-600" />
+                                <Copy v-else class="h-3.5 w-3.5" />
                             </button>
                         </div>
                     </div>
-                    <div class="flex justify-between items-center">
+                    <div class="flex items-center justify-between">
                         <span class="text-slate-500">Chủ tài khoản:</span>
                         <span class="font-bold text-slate-800">{{ BANK_INFO.accountName }}</span>
                     </div>
-                    <div class="flex justify-between items-center">
+                    <div class="flex items-center justify-between">
                         <span class="text-slate-500">Nội dung:</span>
                         <span class="font-mono font-bold text-slate-800">{{ posTransferContent }}</span>
                     </div>
@@ -927,16 +954,20 @@ function printReceipt() {
                 <div class="space-y-2 pt-1">
                     <button
                         v-if="cart.length > 0"
-                        @click="paymentMethod = 'chuyen_khoan'; showQrModal = false; handleCheckout();"
+                        @click="
+                            paymentMethod = 'chuyen_khoan';
+                            showQrModal = false;
+                            handleCheckout();
+                        "
                         :disabled="isSubmitting"
-                        class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs transition shadow-lg shadow-emerald-700/20 flex items-center justify-center space-x-1.5"
+                        class="flex w-full items-center justify-center space-x-1.5 rounded-xl bg-emerald-600 py-3 text-xs font-black text-white shadow-lg shadow-emerald-700/20 transition hover:bg-emerald-700"
                     >
-                        <CheckCircle2 class="w-4 h-4" />
+                        <CheckCircle2 class="h-4 w-4" />
                         <span>Khách Đã Chuyển Xong - Xác Nhận Bán</span>
                     </button>
                     <button
                         @click="showQrModal = false"
-                        class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition"
+                        class="w-full rounded-xl bg-slate-100 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-200"
                     >
                         Đóng Lại
                     </button>
@@ -945,4 +976,3 @@ function printReceipt() {
         </div>
     </StoreOpsLayout>
 </template>
-

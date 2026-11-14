@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 
 export interface CartItem {
     san_pham_id: number;
@@ -68,7 +68,7 @@ async function addToCartServer(productId: number, quantity: number, storeId: num
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'X-CSRF-TOKEN': token,
                 'X-XSRF-TOKEN': token,
             },
@@ -103,7 +103,7 @@ async function updateQuantityServer(productId: number, quantity: number, storeId
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'X-CSRF-TOKEN': token,
                 'X-XSRF-TOKEN': token,
             },
@@ -127,7 +127,7 @@ async function removeFromCartServer(productId: number, storeId: number) {
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'X-CSRF-TOKEN': token,
                 'X-XSRF-TOKEN': token,
             },
@@ -150,7 +150,7 @@ async function clearCartServer() {
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'X-CSRF-TOKEN': token,
                 'X-XSRF-TOKEN': token,
             },
@@ -169,7 +169,7 @@ async function syncCartToServer() {
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'X-CSRF-TOKEN': token,
                 'X-XSRF-TOKEN': token,
             },
@@ -223,7 +223,7 @@ export function useCart() {
     const subtotal = computed(() => {
         return cartItems.value.reduce((sum, item) => {
             const price = item.gia_giam ?? item.gia_ban;
-            return sum + (price * item.so_luong);
+            return sum + price * item.so_luong;
         }, 0);
     });
 
@@ -241,7 +241,7 @@ export function useCart() {
         // Nếu sản phẩm được thêm từ chi nhánh khác với chi nhánh đang có trong giỏ hàng
         if (cartItems.value.length > 0 && selectedStoreId.value !== targetStoreId) {
             const confirmed = window.confirm(
-                'Giỏ hàng hiện tại đang có sản phẩm của chi nhánh khác. Thêm sản phẩm này sẽ làm mới (xóa) giỏ hàng cũ để bạn mua tại chi nhánh mới. Bạn có đồng ý không?'
+                'Giỏ hàng hiện tại đang có sản phẩm của chi nhánh khác. Thêm sản phẩm này sẽ làm mới (xóa) giỏ hàng cũ để bạn mua tại chi nhánh mới. Bạn có đồng ý không?',
             );
             if (!confirmed) {
                 return false;
@@ -259,13 +259,15 @@ export function useCart() {
         const existing = cartItems.value.find((item) => item.san_pham_id === product.id);
 
         // Ưu tiên lấy giá cấu hình theo chi nhánh (table gia_san_pham_cua_hang)
-        const storeGia = product.gia_theo_cua_hang?.find(
-            (g: any) => Number(g.cua_hang_id) === Number(targetStoreId)
-        );
+        const storeGia = product.gia_theo_cua_hang?.find((g: any) => Number(g.cua_hang_id) === Number(targetStoreId));
         const effectiveGiaBan = storeGia ? Number(storeGia.gia_ban) : Number(product.gia_ban);
         const effectiveGiaGiam = storeGia
-            ? (storeGia.gia_giam !== null && storeGia.gia_giam !== undefined ? Number(storeGia.gia_giam) : null)
-            : (product.gia_giam ? Number(product.gia_giam) : null);
+            ? storeGia.gia_giam !== null && storeGia.gia_giam !== undefined
+                ? Number(storeGia.gia_giam)
+                : null
+            : product.gia_giam
+              ? Number(product.gia_giam)
+              : null;
 
         if (existing) {
             existing.so_luong += qtyToAdd;
@@ -304,7 +306,7 @@ export function useCart() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                     'X-CSRF-TOKEN': token,
                 },
                 body: JSON.stringify({

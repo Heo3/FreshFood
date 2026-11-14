@@ -1,16 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 import StoreOpsLayout from '@/layouts/StoreOpsLayout.vue';
-import {
-    Plus,
-    Search,
-    FileInput,
-    Calendar,
-    Building2,
-    User,
-    CheckCircle2,
-} from 'lucide-vue-next';
 import { Link } from '@inertiajs/vue3';
+import { FileInput, Plus, Search } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 interface PhieuNhapItem {
     id: number;
@@ -53,79 +45,81 @@ function formatDate(dateStr: string): string {
     <StoreOpsLayout title="Quản Lý Nhập Kho" :stores="stores" :currentStore="currentStore">
         <div class="space-y-6">
             <!-- TOP BAR -->
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm">
+            <div
+                class="flex flex-col items-start justify-between gap-4 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:flex-row sm:items-center"
+            >
                 <div>
-                    <h2 class="text-base font-black text-slate-900 flex items-center space-x-2">
-                        <FileInput class="w-5 h-5 text-emerald-600" />
+                    <h2 class="flex items-center space-x-2 text-base font-black text-slate-900">
+                        <FileInput class="h-5 w-5 text-emerald-600" />
                         <span>Danh Sách Phiếu Nhập Kho Từ Nhà Cung Cấp</span>
                     </h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Theo dõi các đợt nhập hàng, số lô và hạn sử dụng của thực phẩm.</p>
+                    <p class="mt-0.5 text-xs text-slate-400">Theo dõi các đợt nhập hàng, số lô và hạn sử dụng của thực phẩm.</p>
                 </div>
 
                 <Link
                     :href="route('store.inbound.create')"
-                    class="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-emerald-700/20 transition"
+                    class="flex items-center space-x-1.5 rounded-2xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-700/20 transition hover:bg-emerald-700"
                 >
-                    <Plus class="w-4 h-4" />
+                    <Plus class="h-4 w-4" />
                     <span>Lập Phiếu Nhập Mới</span>
                 </Link>
             </div>
 
             <!-- TABLE CONTAINER -->
-            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-                <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+            <div class="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm">
+                <div class="flex items-center justify-between border-b border-slate-100 p-4">
                     <div class="relative w-full sm:w-80">
-                        <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <Search class="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                         <input
                             v-model="searchQuery"
                             type="text"
                             placeholder="Tìm kiếm mã phiếu, nhà cung cấp..."
-                            class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-xs outline-none focus:ring-2 focus:ring-emerald-500"
                         />
                     </div>
-                    <span class="text-xs text-slate-400 font-medium">Tổng: {{ filteredPhieuNhaps.length }} phiếu</span>
+                    <span class="text-xs font-medium text-slate-400">Tổng: {{ filteredPhieuNhaps.length }} phiếu</span>
                 </div>
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
+                        <thead class="border-b border-slate-100 bg-slate-50 font-bold uppercase tracking-wider text-slate-500">
                             <tr>
-                                <th class="py-3 px-4">Mã Phiếu</th>
-                                <th class="py-3 px-4">Nhà Cung Cấp</th>
-                                <th class="py-3 px-4">Thời Gian Nhập</th>
-                                <th class="py-3 px-4">Người Nhập</th>
-                                <th class="py-3 px-4 text-center">Số Mặt Hàng</th>
-                                <th class="py-3 px-4 text-right">Tổng Tiền</th>
-                                <th class="py-3 px-4 text-center">Trạng Thái</th>
+                                <th class="px-4 py-3">Mã Phiếu</th>
+                                <th class="px-4 py-3">Nhà Cung Cấp</th>
+                                <th class="px-4 py-3">Thời Gian Nhập</th>
+                                <th class="px-4 py-3">Người Nhập</th>
+                                <th class="px-4 py-3 text-center">Số Mặt Hàng</th>
+                                <th class="px-4 py-3 text-right">Tổng Tiền</th>
+                                <th class="px-4 py-3 text-center">Trạng Thái</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             <tr v-if="filteredPhieuNhaps.length === 0">
-                                <td colspan="7" class="text-center py-10 text-slate-400">
-                                    Chưa có phiếu nhập kho nào.
-                                </td>
+                                <td colspan="7" class="py-10 text-center text-slate-400">Chưa có phiếu nhập kho nào.</td>
                             </tr>
-                            <tr v-for="pn in filteredPhieuNhaps" :key="pn.id" class="hover:bg-slate-50 transition">
-                                <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+                            <tr v-for="pn in filteredPhieuNhaps" :key="pn.id" class="transition hover:bg-slate-50">
+                                <td class="px-4 py-3.5 font-mono font-bold text-slate-900">
                                     {{ pn.ma_phieu }}
                                 </td>
-                                <td class="py-3.5 px-4 font-bold text-slate-700">
+                                <td class="px-4 py-3.5 font-bold text-slate-700">
                                     {{ pn.nha_cung_cap?.ten_nha_cung_cap }}
                                 </td>
-                                <td class="py-3.5 px-4 text-slate-500">
+                                <td class="px-4 py-3.5 text-slate-500">
                                     {{ formatDate(pn.ngay_nhap) }}
                                 </td>
-                                <td class="py-3.5 px-4 text-slate-600">
+                                <td class="px-4 py-3.5 text-slate-600">
                                     {{ pn.nguoi_tao?.name }}
                                 </td>
-                                <td class="py-3.5 px-4 text-center font-bold text-slate-700">
-                                    <span class="bg-slate-100 px-2 py-0.5 rounded-lg">{{ pn.chi_tiets?.length ?? 0 }} SP</span>
+                                <td class="px-4 py-3.5 text-center font-bold text-slate-700">
+                                    <span class="rounded-lg bg-slate-100 px-2 py-0.5">{{ pn.chi_tiets?.length ?? 0 }} SP</span>
                                 </td>
-                                <td class="py-3.5 px-4 text-right font-black text-emerald-700">
+                                <td class="px-4 py-3.5 text-right font-black text-emerald-700">
                                     {{ formatPrice(pn.tong_tien) }}
                                 </td>
-                                <td class="py-3.5 px-4 text-center">
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800">
+                                <td class="px-4 py-3.5 text-center">
+                                    <span
+                                        class="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-800"
+                                    >
                                         Đã nhập kho
                                     </span>
                                 </td>
@@ -137,4 +131,3 @@ function formatDate(dateStr: string): string {
         </div>
     </StoreOpsLayout>
 </template>
-

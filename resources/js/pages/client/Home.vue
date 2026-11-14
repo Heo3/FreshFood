@@ -1,21 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { Link } from '@inertiajs/vue3';
-import StoreLayout from '@/layouts/StoreLayout.vue';
 import ProductCard from '@/components/storefront/ProductCard.vue';
 import { useCart } from '@/composables/useCart';
-import {
-    Sparkles,
-    Flame,
-    ArrowRight,
-    ShieldCheck,
-    Truck,
-    Clock,
-    Tag,
-    Copy,
-    Check,
-    HeartHandshake,
-} from 'lucide-vue-next';
+import StoreLayout from '@/layouts/StoreLayout.vue';
+import { Link } from '@inertiajs/vue3';
+import { ArrowRight, Check, Clock, Copy, Flame, HeartHandshake, ShieldCheck, Sparkles, Tag, Truck } from 'lucide-vue-next';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 const props = defineProps<{
     stores: Array<any>;
@@ -95,61 +84,65 @@ function copyCoupon(code: string) {
 <template>
     <StoreLayout title="Trang Chủ" :stores="stores">
         <!-- 1. HERO BANNER SECTION (DYNAMIC CAROUSEL) -->
-        <section class="max-w-7xl mx-auto px-4 py-6">
-            <div class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-950 text-white min-h-[380px] sm:min-h-[420px] flex items-center shadow-2xl">
+        <section class="mx-auto max-w-7xl px-4 py-6">
+            <div
+                class="relative flex min-h-[380px] items-center overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-950 text-white shadow-2xl sm:min-h-[420px]"
+            >
                 <!-- Background Banner Image with Gradient Overlay -->
                 <div
                     class="absolute inset-0 bg-cover bg-center transition-all duration-700"
                     :style="{
-                        backgroundImage: `url(${activeBanner.hinh_anh})`
+                        backgroundImage: `url(${activeBanner.hinh_anh})`,
                     }"
                 >
                     <div class="absolute inset-0 bg-gradient-to-r from-emerald-950/95 via-emerald-900/80 to-transparent"></div>
                 </div>
 
                 <!-- Background decorative blur circles -->
-                <div class="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-400/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-emerald-500/20 blur-3xl"></div>
+                <div class="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-teal-400/20 blur-3xl"></div>
 
                 <div class="relative z-10 max-w-2xl p-8 md:p-14">
-                    <span class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-black bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 mb-4 backdrop-blur-md">
-                        <Sparkles class="w-3.5 h-3.5 mr-1.5 text-amber-300" />
+                    <span
+                        class="mb-4 inline-flex items-center rounded-full border border-emerald-400/30 bg-emerald-500/30 px-3.5 py-1.5 text-xs font-black text-emerald-300 backdrop-blur-md"
+                    >
+                        <Sparkles class="mr-1.5 h-3.5 w-3.5 text-amber-300" />
                         100% NÔNG SẢN VIETGAP & HỮU CƠ TƯƠI SẠCH
                     </span>
 
-                    <h1 class="text-3xl sm:text-5xl font-black tracking-tight leading-tight text-white mb-4">
+                    <h1 class="mb-4 text-3xl font-black leading-tight tracking-tight text-white sm:text-5xl">
                         {{ activeBanner.tieu_de }}
                     </h1>
 
-                    <p class="text-sm sm:text-base text-emerald-100/90 leading-relaxed mb-8 max-w-xl">
+                    <p class="mb-8 max-w-xl text-sm leading-relaxed text-emerald-100/90 sm:text-base">
                         {{ activeBanner.phu_de || 'Rau củ hái sớm từ Đà Lạt, thịt mát công nghệ Oxy-Fresh, cá hồi Nauy phi lê tươi sống mỗi ngày.' }}
                     </p>
 
                     <div class="flex flex-wrap items-center gap-3">
                         <Link
                             :href="activeBanner.duong_dan || route('products.index')"
-                            class="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black px-6 py-3.5 rounded-2xl shadow-lg shadow-emerald-500/30 flex items-center space-x-2 transition-all hover:scale-105 active:scale-95 text-sm"
+                            class="flex items-center space-x-2 rounded-2xl bg-emerald-500 px-6 py-3.5 text-sm font-black text-gray-950 shadow-lg shadow-emerald-500/30 transition-all hover:scale-105 hover:bg-emerald-400 active:scale-95"
                         >
                             <span>{{ activeBanner.nhan_nut || 'Khám phá thực phẩm ngay' }}</span>
-                            <ArrowRight class="w-4 h-4" />
+                            <ArrowRight class="h-4 w-4" />
                         </Link>
 
                         <Link
                             :href="route('products.index', { is_fresh: true })"
-                            class="bg-white/10 hover:bg-white/20 text-white font-bold px-5 py-3.5 rounded-2xl backdrop-blur-md border border-white/20 text-sm transition-all"
+                            class="rounded-2xl border border-white/20 bg-white/10 px-5 py-3.5 text-sm font-bold text-white backdrop-blur-md transition-all hover:bg-white/20"
                         >
                             Hàng tươi sáng nay
                         </Link>
                     </div>
 
                     <!-- BANNER DOTS -->
-                    <div v-if="banners && banners.length > 1" class="flex items-center space-x-2 mt-8">
+                    <div v-if="banners && banners.length > 1" class="mt-8 flex items-center space-x-2">
                         <button
                             v-for="(b, idx) in banners"
                             :key="b.id"
                             @click="currentBannerIndex = idx"
                             :class="currentBannerIndex === idx ? 'w-8 bg-emerald-400' : 'w-2 bg-white/40 hover:bg-white/70'"
-                            class="h-2 rounded-full transition-all duration-300 cursor-pointer"
+                            class="h-2 cursor-pointer rounded-full transition-all duration-300"
                         ></button>
                     </div>
                 </div>
@@ -157,56 +150,56 @@ function copyCoupon(code: string) {
         </section>
 
         <!-- 2. CATEGORY ICON TILES -->
-        <section class="max-w-7xl mx-auto px-4 py-6">
-            <div class="flex items-center justify-between mb-5">
+        <section class="mx-auto max-w-7xl px-4 py-6">
+            <div class="mb-5 flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-black text-gray-900 tracking-tight">Danh Mục Nổi Bật</h2>
-                    <p class="text-xs text-gray-500 mt-0.5">Lựa chọn thực phẩm tươi sống theo nhóm nhu cầu</p>
+                    <h2 class="text-xl font-black tracking-tight text-gray-900">Danh Mục Nổi Bật</h2>
+                    <p class="mt-0.5 text-xs text-gray-500">Lựa chọn thực phẩm tươi sống theo nhóm nhu cầu</p>
                 </div>
-                <Link :href="route('products.index')" class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center">
-                    Xem tất cả <ArrowRight class="w-3.5 h-3.5 ml-1" />
+                <Link :href="route('products.index')" class="flex items-center text-xs font-bold text-emerald-600 hover:text-emerald-700">
+                    Xem tất cả <ArrowRight class="ml-1 h-3.5 w-3.5" />
                 </Link>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
+            <div class="grid grid-cols-2 gap-3.5 sm:grid-cols-3 md:grid-cols-6">
                 <Link
                     v-for="cat in categories"
                     :key="cat.id"
                     :href="'/danh-muc/' + cat.duong_dan_seo"
-                    class="group bg-white p-4 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-emerald-200 text-center transition-all duration-300 flex flex-col items-center"
+                    class="group flex flex-col items-center rounded-3xl border border-gray-100 bg-white p-4 text-center shadow-sm transition-all duration-300 hover:border-emerald-200 hover:shadow-xl"
                 >
-                    <div class="w-16 h-16 rounded-2xl overflow-hidden mb-3 bg-gray-50 group-hover:scale-110 transition-transform duration-300 shadow-inner">
+                    <div
+                        class="mb-3 h-16 w-16 overflow-hidden rounded-2xl bg-gray-50 shadow-inner transition-transform duration-300 group-hover:scale-110"
+                    >
                         <img
                             :src="cat.hinh_anh || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=300'"
                             :alt="cat.ten_danh_muc"
-                            class="w-full h-full object-cover"
+                            class="h-full w-full object-cover"
                         />
                     </div>
-                    <span class="text-xs font-bold text-gray-800 group-hover:text-emerald-700 transition-colors line-clamp-1">
+                    <span class="line-clamp-1 text-xs font-bold text-gray-800 transition-colors group-hover:text-emerald-700">
                         {{ cat.ten_danh_muc }}
                     </span>
-                    <span class="text-[10px] text-gray-400 mt-0.5">
-                        {{ cat.danh_muc_con?.length || 0 }} danh mục con
-                    </span>
+                    <span class="mt-0.5 text-[10px] text-gray-400"> {{ cat.danh_muc_con?.length || 0 }} danh mục con </span>
                 </Link>
             </div>
         </section>
 
         <!-- 3. FLASH SALE COUNTDOWN SECTION -->
-        <section v-if="flashSales?.length > 0" class="max-w-7xl mx-auto px-4 py-8">
-            <div class="bg-gradient-to-br from-rose-50 via-red-50/50 to-orange-50 rounded-3xl p-6 md:p-8 border border-red-100 shadow-sm">
+        <section v-if="flashSales?.length > 0" class="mx-auto max-w-7xl px-4 py-8">
+            <div class="rounded-3xl border border-red-100 bg-gradient-to-br from-rose-50 via-red-50/50 to-orange-50 p-6 shadow-sm md:p-8">
                 <!-- Header with Countdown -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-red-100">
+                <div class="mb-6 flex flex-col justify-between gap-4 border-b border-red-100 pb-4 sm:flex-row sm:items-center">
                     <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-2xl bg-red-600 text-white flex items-center justify-center shadow-lg shadow-red-600/30 animate-bounce">
-                            <Flame class="w-6 h-6" />
+                        <div
+                            class="flex h-10 w-10 animate-bounce items-center justify-center rounded-2xl bg-red-600 text-white shadow-lg shadow-red-600/30"
+                        >
+                            <Flame class="h-6 w-6" />
                         </div>
                         <div>
                             <div class="flex items-center space-x-2">
-                                <h2 class="text-xl sm:text-2xl font-black text-red-900 tracking-tight">
-                                    GIÁ SỐC HÔM NAY
-                                </h2>
-                                <span class="bg-red-600 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                <h2 class="text-xl font-black tracking-tight text-red-900 sm:text-2xl">GIÁ SỐC HÔM NAY</h2>
+                                <span class="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white">
                                     Flash Sale
                                 </span>
                             </div>
@@ -215,151 +208,141 @@ function copyCoupon(code: string) {
                     </div>
 
                     <!-- Countdown Digits -->
-                    <div class="flex items-center space-x-2 text-white font-black text-sm">
-                        <div class="bg-gray-900 px-3 py-1.5 rounded-xl shadow-md min-w-[36px] text-center">
+                    <div class="flex items-center space-x-2 text-sm font-black text-white">
+                        <div class="min-w-[36px] rounded-xl bg-gray-900 px-3 py-1.5 text-center shadow-md">
                             {{ String(timeLeft.hours).padStart(2, '0') }}
                         </div>
-                        <span class="text-gray-900 font-extrabold text-lg">:</span>
-                        <div class="bg-gray-900 px-3 py-1.5 rounded-xl shadow-md min-w-[36px] text-center">
+                        <span class="text-lg font-extrabold text-gray-900">:</span>
+                        <div class="min-w-[36px] rounded-xl bg-gray-900 px-3 py-1.5 text-center shadow-md">
                             {{ String(timeLeft.minutes).padStart(2, '0') }}
                         </div>
-                        <span class="text-gray-900 font-extrabold text-lg">:</span>
-                        <div class="bg-red-600 px-3 py-1.5 rounded-xl shadow-md min-w-[36px] text-center animate-pulse">
+                        <span class="text-lg font-extrabold text-gray-900">:</span>
+                        <div class="min-w-[36px] animate-pulse rounded-xl bg-red-600 px-3 py-1.5 text-center shadow-md">
                             {{ String(timeLeft.seconds).padStart(2, '0') }}
                         </div>
                     </div>
                 </div>
 
                 <!-- Product Grid -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <ProductCard
-                        v-for="p in flashSales"
-                        :key="p.id"
-                        :product="p"
-                    />
+                <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                    <ProductCard v-for="p in flashSales" :key="p.id" :product="p" />
                 </div>
             </div>
         </section>
 
         <!-- 4. ACTIVE VOUCHERS CAROUSEL -->
-        <section v-if="coupons?.length > 0" class="max-w-7xl mx-auto px-4 py-4">
-            <div class="flex items-center space-x-2 mb-3">
-                <Tag class="w-4 h-4 text-emerald-600" />
-                <h3 class="text-sm font-black text-gray-900 uppercase tracking-wider">Mã Giảm Giá Hôm Nay</h3>
+        <section v-if="coupons?.length > 0" class="mx-auto max-w-7xl px-4 py-4">
+            <div class="mb-3 flex items-center space-x-2">
+                <Tag class="h-4 w-4 text-emerald-600" />
+                <h3 class="text-sm font-black uppercase tracking-wider text-gray-900">Mã Giảm Giá Hôm Nay</h3>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div
                     v-for="c in coupons"
                     :key="c.id"
-                    class="bg-white p-3.5 rounded-2xl border border-emerald-100 shadow-sm flex items-center justify-between space-x-3 group hover:border-emerald-300 transition-colors"
+                    class="group flex items-center justify-between space-x-3 rounded-2xl border border-emerald-100 bg-white p-3.5 shadow-sm transition-colors hover:border-emerald-300"
                 >
                     <div class="min-w-0">
-                        <span class="text-xs font-black text-emerald-700 font-mono tracking-wider bg-emerald-50 px-2 py-0.5 rounded-md">
+                        <span class="rounded-md bg-emerald-50 px-2 py-0.5 font-mono text-xs font-black tracking-wider text-emerald-700">
                             {{ c.ma_khuyen_mai }}
                         </span>
-                        <p class="text-xs font-bold text-gray-800 line-clamp-1 mt-1">{{ c.ten_chuong_trinh }}</p>
+                        <p class="mt-1 line-clamp-1 text-xs font-bold text-gray-800">{{ c.ten_chuong_trinh }}</p>
                         <p class="text-[10px] text-gray-400">Đơn từ {{ new Intl.NumberFormat('vi-VN').format(c.don_hang_toi_thieu) }}đ</p>
                     </div>
 
                     <button
                         @click="copyCoupon(c.ma_khuyen_mai)"
-                        class="p-2 rounded-xl bg-gray-50 hover:bg-emerald-600 hover:text-white text-gray-600 transition-colors shrink-0"
+                        class="shrink-0 rounded-xl bg-gray-50 p-2 text-gray-600 transition-colors hover:bg-emerald-600 hover:text-white"
                         title="Sao chép mã"
                     >
-                        <Check v-if="copiedCode === c.ma_khuyen_mai" class="w-4 h-4 text-emerald-600" />
-                        <Copy v-else class="w-4 h-4" />
+                        <Check v-if="copiedCode === c.ma_khuyen_mai" class="h-4 w-4 text-emerald-600" />
+                        <Copy v-else class="h-4 w-4" />
                     </button>
                 </div>
             </div>
         </section>
 
         <!-- 5. SẢN PHẨM TƯƠI MỚI VỀ SÁNG NAY -->
-        <section class="max-w-7xl mx-auto px-4 py-8">
-            <div class="flex items-center justify-between mb-5">
+        <section class="mx-auto max-w-7xl px-4 py-8">
+            <div class="mb-5 flex items-center justify-between">
                 <div>
                     <div class="flex items-center space-x-2">
-                        <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
-                        <h2 class="text-xl font-black text-gray-900 tracking-tight">Hàng Tươi Mới Về Sáng Nay</h2>
+                        <span class="h-3 w-3 animate-ping rounded-full bg-emerald-500"></span>
+                        <h2 class="text-xl font-black tracking-tight text-gray-900">Hàng Tươi Mới Về Sáng Nay</h2>
                     </div>
-                    <p class="text-xs text-gray-500 mt-0.5">Thu hoạch tại vườn lúc 04h sáng, nhập kho và kiểm định theo lô chuẩn FEFO</p>
+                    <p class="mt-0.5 text-xs text-gray-500">Thu hoạch tại vườn lúc 04h sáng, nhập kho và kiểm định theo lô chuẩn FEFO</p>
                 </div>
 
-                <Link :href="route('products.index', { is_fresh: true })" class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center">
-                    Xem tất cả hàng tươi <ArrowRight class="w-3.5 h-3.5 ml-1" />
+                <Link
+                    :href="route('products.index', { is_fresh: true })"
+                    class="flex items-center text-xs font-bold text-emerald-600 hover:text-emerald-700"
+                >
+                    Xem tất cả hàng tươi <ArrowRight class="ml-1 h-3.5 w-3.5" />
                 </Link>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                <ProductCard
-                    v-for="p in freshToday"
-                    :key="p.id"
-                    :product="p"
-                />
+            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                <ProductCard v-for="p in freshToday" :key="p.id" :product="p" />
             </div>
         </section>
 
         <!-- 6. THỊT & THỦY HẢI SẢN TƯƠI SỐNG -->
-        <section class="max-w-7xl mx-auto px-4 py-8">
-            <div class="flex items-center justify-between mb-5">
+        <section class="mx-auto max-w-7xl px-4 py-8">
+            <div class="mb-5 flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-black text-gray-900 tracking-tight">Thịt Sạch & Thủy Hải Sản Tươi</h2>
-                    <p class="text-xs text-gray-500 mt-0.5">Cá hồi Nauy sashimi, tôm sú Cà Mau, thịt bò Úc Black Angus chuẩn kiểm dịch</p>
+                    <h2 class="text-xl font-black tracking-tight text-gray-900">Thịt Sạch & Thủy Hải Sản Tươi</h2>
+                    <p class="mt-0.5 text-xs text-gray-500">Cá hồi Nauy sashimi, tôm sú Cà Mau, thịt bò Úc Black Angus chuẩn kiểm dịch</p>
                 </div>
-                <Link :href="'/danh-muc/thit-tuoi-trung-sach'" class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center">
-                    Xem thêm <ArrowRight class="w-3.5 h-3.5 ml-1" />
+                <Link :href="'/danh-muc/thit-tuoi-trung-sach'" class="flex items-center text-xs font-bold text-emerald-600 hover:text-emerald-700">
+                    Xem thêm <ArrowRight class="ml-1 h-3.5 w-3.5" />
                 </Link>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                <ProductCard
-                    v-for="p in meatsAndSeafood"
-                    :key="p.id"
-                    :product="p"
-                />
+            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                <ProductCard v-for="p in meatsAndSeafood" :key="p.id" :product="p" />
             </div>
         </section>
 
         <!-- 7. TRÁI CÂY & RAU CỦ HỮU CƠ -->
-        <section class="max-w-7xl mx-auto px-4 py-8">
-            <div class="flex items-center justify-between mb-5">
+        <section class="mx-auto max-w-7xl px-4 py-8">
+            <div class="mb-5 flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-black text-gray-900 tracking-tight">Rau Củ & Trái Cây Tươi Ngon</h2>
-                    <p class="text-xs text-gray-500 mt-0.5">Xoài Cát Hòa Lộc, Táo Envy New Zealand, Bơ 034 dẻo béo</p>
+                    <h2 class="text-xl font-black tracking-tight text-gray-900">Rau Củ & Trái Cây Tươi Ngon</h2>
+                    <p class="mt-0.5 text-xs text-gray-500">Xoài Cát Hòa Lộc, Táo Envy New Zealand, Bơ 034 dẻo béo</p>
                 </div>
-                <Link :href="'/danh-muc/trai-cay-tuoi-ngon'" class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center">
-                    Xem thêm <ArrowRight class="w-3.5 h-3.5 ml-1" />
+                <Link :href="'/danh-muc/trai-cay-tuoi-ngon'" class="flex items-center text-xs font-bold text-emerald-600 hover:text-emerald-700">
+                    Xem thêm <ArrowRight class="ml-1 h-3.5 w-3.5" />
                 </Link>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                <ProductCard
-                    v-for="p in fruitsAndVeggies"
-                    :key="p.id"
-                    :product="p"
-                />
+            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                <ProductCard v-for="p in fruitsAndVeggies" :key="p.id" :product="p" />
             </div>
         </section>
 
         <!-- 8. QUALITY ASSURANCE BANNER -->
-        <section class="max-w-7xl mx-auto px-4 py-10">
-            <div class="rounded-3xl bg-emerald-50 border border-emerald-100 p-8 sm:p-12 text-center">
-                <div class="w-16 h-16 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-600/20">
-                    <HeartHandshake class="w-8 h-8" />
+        <section class="mx-auto max-w-7xl px-4 py-10">
+            <div class="rounded-3xl border border-emerald-100 bg-emerald-50 p-8 text-center sm:p-12">
+                <div
+                    class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/20"
+                >
+                    <HeartHandshake class="h-8 w-8" />
                 </div>
-                <h3 class="text-2xl font-black text-emerald-950 mb-3">Cam Kết Chất Lượng Vàng Tại Fresh Food</h3>
-                <p class="text-sm text-emerald-800 max-w-2xl mx-auto leading-relaxed mb-6">
-                    Mỗi sản phẩm đưa đến tay bạn đều được chọn lọc khắt khe từ nông trại có chứng nhận VietGAP / GlobalGAP. Nếu sản phẩm bị dập nát hay hư hỏng trong quá trình vận chuyển, Fresh Food cam kết đổi mới hoặc hoàn tiền 100% trong vòng 24 giờ.
+                <h3 class="mb-3 text-2xl font-black text-emerald-950">Cam Kết Chất Lượng Vàng Tại Fresh Food</h3>
+                <p class="mx-auto mb-6 max-w-2xl text-sm leading-relaxed text-emerald-800">
+                    Mỗi sản phẩm đưa đến tay bạn đều được chọn lọc khắt khe từ nông trại có chứng nhận VietGAP / GlobalGAP. Nếu sản phẩm bị dập nát
+                    hay hư hỏng trong quá trình vận chuyển, Fresh Food cam kết đổi mới hoặc hoàn tiền 100% trong vòng 24 giờ.
                 </p>
                 <div class="flex flex-wrap justify-center gap-4 text-xs font-bold text-emerald-900">
-                    <span class="flex items-center bg-white px-4 py-2 rounded-xl shadow-sm border border-emerald-200">
-                        <ShieldCheck class="w-4 h-4 mr-1.5 text-emerald-600" /> 100% Nguồn gốc rõ ràng
+                    <span class="flex items-center rounded-xl border border-emerald-200 bg-white px-4 py-2 shadow-sm">
+                        <ShieldCheck class="mr-1.5 h-4 w-4 text-emerald-600" /> 100% Nguồn gốc rõ ràng
                     </span>
-                    <span class="flex items-center bg-white px-4 py-2 rounded-xl shadow-sm border border-emerald-200">
-                        <Truck class="w-4 h-4 mr-1.5 text-emerald-600" /> Thùng lạnh bảo quản 0-4°C
+                    <span class="flex items-center rounded-xl border border-emerald-200 bg-white px-4 py-2 shadow-sm">
+                        <Truck class="mr-1.5 h-4 w-4 text-emerald-600" /> Thùng lạnh bảo quản 0-4°C
                     </span>
-                    <span class="flex items-center bg-white px-4 py-2 rounded-xl shadow-sm border border-emerald-200">
-                        <Clock class="w-4 h-4 mr-1.5 text-emerald-600" /> Giao hàng siêu tốc 2h
+                    <span class="flex items-center rounded-xl border border-emerald-200 bg-white px-4 py-2 shadow-sm">
+                        <Clock class="mr-1.5 h-4 w-4 text-emerald-600" /> Giao hàng siêu tốc 2h
                     </span>
                 </div>
             </div>

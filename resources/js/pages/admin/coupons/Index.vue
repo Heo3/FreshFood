@@ -1,16 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Head, useForm, router } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
-import {
-    Plus,
-    Search,
-    TicketPercent,
-    Edit2,
-    Trash2,
-    X,
-    Save,
-} from 'lucide-vue-next';
+import { router, useForm } from '@inertiajs/vue3';
+import { Edit2, Plus, Save, Search, TicketPercent, Trash2, X } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 const props = defineProps<{
     coupons: {
@@ -102,11 +94,7 @@ function deleteCoupon(coupon: any) {
 }
 
 function handleFilter() {
-    router.get(
-        route('admin.coupons.index'),
-        { search: search.value, trang_thai: status.value },
-        { preserveState: true }
-    );
+    router.get(route('admin.coupons.index'), { search: search.value, trang_thai: status.value }, { preserveState: true });
 }
 
 function formatCurrency(val: number): string {
@@ -115,17 +103,14 @@ function formatCurrency(val: number): string {
 </script>
 
 <template>
-    <AdminLayout
-        title="Khuyến Mãi & Voucher"
-        :breadcrumbs="[{ name: 'Admin', href: route('admin.dashboard') }, { name: 'Khuyến mãi' }]"
-    >
+    <AdminLayout title="Khuyến Mãi & Voucher" :breadcrumbs="[{ name: 'Admin', href: route('admin.dashboard') }, { name: 'Khuyến mãi' }]">
         <div class="space-y-4">
             <!-- ADMINLTE CARD -->
-            <div class="bg-white rounded-sm border-t-3 border-[#007bff] border-x border-b border-gray-200 shadow-xs">
+            <div class="border-t-3 shadow-xs rounded-sm border-x border-b border-[#007bff] border-gray-200 bg-white">
                 <!-- CARD HEADER & TOOLS -->
-                <div class="px-4 py-3 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <h3 class="text-sm font-bold text-[#343a40] flex items-center space-x-2">
-                        <TicketPercent class="w-4 h-4 text-[#007bff]" />
+                <div class="flex flex-col justify-between gap-3 border-b border-gray-200 px-4 py-3 sm:flex-row sm:items-center">
+                    <h3 class="flex items-center space-x-2 text-sm font-bold text-[#343a40]">
+                        <TicketPercent class="h-4 w-4 text-[#007bff]" />
                         <span>Danh Sách Mã Giảm Giá & Voucher</span>
                     </h3>
 
@@ -136,18 +121,15 @@ function formatCurrency(val: number): string {
                                 v-model="search"
                                 type="text"
                                 placeholder="Mã code hoặc tên..."
-                                class="w-full pl-3 pr-8 py-1.5 bg-gray-50 border border-gray-300 rounded-sm text-xs focus:outline-hidden focus:border-[#007bff]"
+                                class="focus:outline-hidden w-full rounded-sm border border-gray-300 bg-gray-50 py-1.5 pl-3 pr-8 text-xs focus:border-[#007bff]"
                                 @keyup.enter="handleFilter"
                             />
-                            <Search
-                                class="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-2.5 cursor-pointer"
-                                @click="handleFilter"
-                            />
+                            <Search class="absolute right-2.5 top-2.5 h-3.5 w-3.5 cursor-pointer text-gray-400" @click="handleFilter" />
                         </div>
 
                         <select
                             v-model="status"
-                            class="px-2.5 py-1.5 bg-gray-50 border border-gray-300 rounded-sm text-xs focus:outline-hidden focus:border-[#007bff]"
+                            class="focus:outline-hidden rounded-sm border border-gray-300 bg-gray-50 px-2.5 py-1.5 text-xs focus:border-[#007bff]"
                             @change="handleFilter"
                         >
                             <option value="">-- Trạng thái --</option>
@@ -156,10 +138,10 @@ function formatCurrency(val: number): string {
                         </select>
 
                         <button
-                            class="inline-flex items-center space-x-1 px-3 py-1.5 bg-[#007bff] hover:bg-[#0069d9] text-white rounded-sm text-xs font-semibold shadow-2xs transition-colors shrink-0"
+                            class="shadow-2xs inline-flex shrink-0 items-center space-x-1 rounded-sm bg-[#007bff] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#0069d9]"
                             @click="openCreateModal"
                         >
-                            <Plus class="w-3.5 h-3.5" />
+                            <Plus class="h-3.5 w-3.5" />
                             <span>Tạo Voucher</span>
                         </button>
                     </div>
@@ -167,77 +149,75 @@ function formatCurrency(val: number): string {
 
                 <!-- CARD BODY TABLE -->
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs border-collapse">
+                    <table class="w-full border-collapse text-left text-xs">
                         <thead>
-                            <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold uppercase text-[10px]">
-                                <th class="py-2.5 px-4">Mã Code</th>
-                                <th class="py-2.5 px-4">Tên Chương Trình</th>
-                                <th class="py-2.5 px-4">Mức Giảm</th>
-                                <th class="py-2.5 px-4">Đơn Tối Thiểu</th>
-                                <th class="py-2.5 px-4 text-center">Lượt Dùng</th>
-                                <th class="py-2.5 px-4">Thời Hạn</th>
-                                <th class="py-2.5 px-4 text-center">Trạng Thái</th>
-                                <th class="py-2.5 px-4 text-right">Thao Tác</th>
+                            <tr class="border-b border-gray-200 bg-gray-50 text-[10px] font-bold uppercase text-gray-600">
+                                <th class="px-4 py-2.5">Mã Code</th>
+                                <th class="px-4 py-2.5">Tên Chương Trình</th>
+                                <th class="px-4 py-2.5">Mức Giảm</th>
+                                <th class="px-4 py-2.5">Đơn Tối Thiểu</th>
+                                <th class="px-4 py-2.5 text-center">Lượt Dùng</th>
+                                <th class="px-4 py-2.5">Thời Hạn</th>
+                                <th class="px-4 py-2.5 text-center">Trạng Thái</th>
+                                <th class="px-4 py-2.5 text-right">Thao Tác</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            <tr v-for="cp in coupons.data" :key="cp.id" class="hover:bg-gray-50 transition-colors">
-                                <td class="py-2.5 px-4 font-mono font-bold text-[#007bff]">
+                            <tr v-for="cp in coupons.data" :key="cp.id" class="transition-colors hover:bg-gray-50">
+                                <td class="px-4 py-2.5 font-mono font-bold text-[#007bff]">
                                     {{ cp.ma_khuyen_mai }}
                                 </td>
-                                <td class="py-2.5 px-4 font-bold text-gray-800">{{ cp.ten_chuong_trinh }}</td>
-                                <td class="py-2.5 px-4 font-bold text-gray-900">
+                                <td class="px-4 py-2.5 font-bold text-gray-800">{{ cp.ten_chuong_trinh }}</td>
+                                <td class="px-4 py-2.5 font-bold text-gray-900">
                                     <span v-if="cp.loai_giam_gia === 'phan_tram'">{{ cp.gia_tri_giam }}%</span>
                                     <span v-else>{{ formatCurrency(cp.gia_tri_giam) }}</span>
-                                    <span v-if="cp.giam_toi_da" class="text-[10px] text-gray-400 block font-normal">
+                                    <span v-if="cp.giam_toi_da" class="block text-[10px] font-normal text-gray-400">
                                         Tối đa {{ formatCurrency(cp.giam_toi_da) }}
                                     </span>
                                 </td>
-                                <td class="py-2.5 px-4 text-gray-600">
+                                <td class="px-4 py-2.5 text-gray-600">
                                     {{ cp.don_hang_toi_thieu ? formatCurrency(cp.don_hang_toi_thieu) : 'Không giới hạn' }}
                                 </td>
-                                <td class="py-2.5 px-4 text-center">
-                                    <span class="inline-block px-2 py-0.5 rounded-sm text-[10px] font-bold bg-gray-100 text-gray-700">
+                                <td class="px-4 py-2.5 text-center">
+                                    <span class="inline-block rounded-sm bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-700">
                                         {{ cp.da_su_dung }} / {{ cp.so_luong }}
                                     </span>
                                 </td>
-                                <td class="py-2.5 px-4 text-gray-500 text-[11px]">
+                                <td class="px-4 py-2.5 text-[11px] text-gray-500">
                                     <div>Từ: {{ cp.ngay_bat_dau?.slice(0, 10) }}</div>
                                     <div>Đến: {{ cp.ngay_ket_thuc?.slice(0, 10) }}</div>
                                 </td>
-                                <td class="py-2.5 px-4 text-center">
+                                <td class="px-4 py-2.5 text-center">
                                     <span
                                         :class="[
-                                            'inline-block px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase shadow-2xs',
-                                            cp.trang_thai === 1 ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'
+                                            'shadow-2xs inline-block rounded-sm px-2 py-0.5 text-[10px] font-bold uppercase',
+                                            cp.trang_thai === 1 ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600',
                                         ]"
                                     >
                                         {{ cp.trang_thai === 1 ? 'Đang chạy' : 'Tạm dừng' }}
                                     </span>
                                 </td>
-                                <td class="py-2.5 px-4 text-right space-x-1">
+                                <td class="space-x-1 px-4 py-2.5 text-right">
                                     <button
-                                        class="px-2 py-1 bg-gray-100 hover:bg-[#007bff] hover:text-white text-gray-700 rounded-sm font-semibold transition-colors"
+                                        class="rounded-sm bg-gray-100 px-2 py-1 font-semibold text-gray-700 transition-colors hover:bg-[#007bff] hover:text-white"
                                         title="Chỉnh sửa"
                                         @click="openEditModal(cp)"
                                     >
-                                        <Edit2 class="w-3.5 h-3.5 inline mr-1" />
+                                        <Edit2 class="mr-1 inline h-3.5 w-3.5" />
                                         <span>Sửa</span>
                                     </button>
                                     <button
-                                        class="px-2 py-1 bg-red-50 hover:bg-[#dc3545] hover:text-white text-red-600 rounded-sm font-semibold transition-colors"
+                                        class="rounded-sm bg-red-50 px-2 py-1 font-semibold text-red-600 transition-colors hover:bg-[#dc3545] hover:text-white"
                                         title="Xóa voucher"
                                         @click="deleteCoupon(cp)"
                                     >
-                                        <Trash2 class="w-3.5 h-3.5 inline mr-1" />
+                                        <Trash2 class="mr-1 inline h-3.5 w-3.5" />
                                         <span>Xóa</span>
                                     </button>
                                 </td>
                             </tr>
                             <tr v-if="coupons.data.length === 0">
-                                <td colspan="8" class="py-8 text-center text-gray-400 italic">
-                                    Không có chương trình voucher nào.
-                                </td>
+                                <td colspan="8" class="py-8 text-center italic text-gray-400">Không có chương trình voucher nào.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -245,42 +225,35 @@ function formatCurrency(val: number): string {
             </div>
 
             <!-- ADMINLTE MODAL -->
-            <div
-                v-if="showModal"
-                class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-            >
-                <div class="bg-white rounded-sm max-w-lg w-full shadow-xl border border-gray-300 overflow-hidden text-xs">
-                    <div class="px-4 py-3 bg-[#007bff] text-white flex items-center justify-between">
-                        <h4 class="font-bold text-sm">
+            <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div class="w-full max-w-lg overflow-hidden rounded-sm border border-gray-300 bg-white text-xs shadow-xl">
+                    <div class="flex items-center justify-between bg-[#007bff] px-4 py-3 text-white">
+                        <h4 class="text-sm font-bold">
                             {{ editingCoupon ? 'Chỉnh Sửa Mã Khuyến Mãi' : 'Tạo Voucher Mới' }}
                         </h4>
-                        <button class="text-white hover:text-gray-200 p-1" @click="showModal = false">
-                            <X class="w-4 h-4" />
+                        <button class="p-1 text-white hover:text-gray-200" @click="showModal = false">
+                            <X class="h-4 w-4" />
                         </button>
                     </div>
 
-                    <form class="p-4 space-y-3" @submit.prevent="submitForm">
+                    <form class="space-y-3 p-4" @submit.prevent="submitForm">
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block font-bold text-gray-700 mb-1">
-                                    Mã Voucher <span class="text-red-500">*</span>
-                                </label>
+                                <label class="mb-1 block font-bold text-gray-700"> Mã Voucher <span class="text-red-500">*</span> </label>
                                 <input
                                     v-model="form.ma_khuyen_mai"
                                     type="text"
                                     required
                                     placeholder="FRESH20"
-                                    class="w-full px-2.5 py-1.5 border border-gray-300 rounded-sm font-mono uppercase focus:outline-hidden focus:border-[#007bff]"
+                                    class="focus:outline-hidden w-full rounded-sm border border-gray-300 px-2.5 py-1.5 font-mono uppercase focus:border-[#007bff]"
                                 />
                             </div>
 
                             <div>
-                                <label class="block font-bold text-gray-700 mb-1">
-                                    Loại Giảm Giá
-                                </label>
+                                <label class="mb-1 block font-bold text-gray-700"> Loại Giảm Giá </label>
                                 <select
                                     v-model="form.loai_giam_gia"
-                                    class="w-full px-2.5 py-1.5 border border-gray-300 rounded-sm bg-white focus:outline-hidden focus:border-[#007bff]"
+                                    class="focus:outline-hidden w-full rounded-sm border border-gray-300 bg-white px-2.5 py-1.5 focus:border-[#007bff]"
                                 >
                                     <option value="phan_tram">Phần trăm (%)</option>
                                     <option value="so_tien">Số tiền trực tiếp (VNĐ)</option>
@@ -289,94 +262,90 @@ function formatCurrency(val: number): string {
                         </div>
 
                         <div>
-                            <label class="block font-bold text-gray-700 mb-1">
-                                Tên Chương Trình <span class="text-red-500">*</span>
-                            </label>
+                            <label class="mb-1 block font-bold text-gray-700"> Tên Chương Trình <span class="text-red-500">*</span> </label>
                             <input
                                 v-model="form.ten_chuong_trinh"
                                 type="text"
                                 required
                                 placeholder="Ưu đãi mừng khách hàng..."
-                                class="w-full px-2.5 py-1.5 border border-gray-300 rounded-sm focus:outline-hidden focus:border-[#007bff]"
+                                class="focus:outline-hidden w-full rounded-sm border border-gray-300 px-2.5 py-1.5 focus:border-[#007bff]"
                             />
                         </div>
 
                         <div class="grid grid-cols-3 gap-3">
                             <div>
-                                <label class="block font-bold text-gray-700 mb-1">
-                                    Mức Giảm <span class="text-red-500">*</span>
-                                </label>
+                                <label class="mb-1 block font-bold text-gray-700"> Mức Giảm <span class="text-red-500">*</span> </label>
                                 <input
                                     v-model="form.gia_tri_giam"
                                     type="number"
                                     required
                                     min="0"
-                                    class="w-full px-2.5 py-1.5 border border-gray-300 rounded-sm font-bold focus:outline-hidden focus:border-[#007bff]"
+                                    class="focus:outline-hidden w-full rounded-sm border border-gray-300 px-2.5 py-1.5 font-bold focus:border-[#007bff]"
                                 />
                             </div>
 
                             <div>
-                                <label class="block font-bold text-gray-700 mb-1">Đơn Tối Thiểu</label>
+                                <label class="mb-1 block font-bold text-gray-700">Đơn Tối Thiểu</label>
                                 <input
                                     v-model="form.don_hang_toi_thieu"
                                     type="number"
                                     min="0"
                                     placeholder="150000"
-                                    class="w-full px-2.5 py-1.5 border border-gray-300 rounded-sm focus:outline-hidden focus:border-[#007bff]"
+                                    class="focus:outline-hidden w-full rounded-sm border border-gray-300 px-2.5 py-1.5 focus:border-[#007bff]"
                                 />
                             </div>
 
                             <div>
-                                <label class="block font-bold text-gray-700 mb-1">Giảm Tối Đa</label>
+                                <label class="mb-1 block font-bold text-gray-700">Giảm Tối Đa</label>
                                 <input
                                     v-model="form.giam_toi_da"
                                     type="number"
                                     min="0"
                                     placeholder="50000"
-                                    class="w-full px-2.5 py-1.5 border border-gray-300 rounded-sm focus:outline-hidden focus:border-[#007bff]"
+                                    class="focus:outline-hidden w-full rounded-sm border border-gray-300 px-2.5 py-1.5 focus:border-[#007bff]"
                                 />
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block font-bold text-gray-700 mb-1">Ngày Bắt Đầu</label>
+                                <label class="mb-1 block font-bold text-gray-700">Ngày Bắt Đầu</label>
                                 <input
                                     v-model="form.ngay_bat_dau"
                                     type="date"
                                     required
-                                    class="w-full px-2.5 py-1.5 border border-gray-300 rounded-sm focus:outline-hidden focus:border-[#007bff]"
+                                    class="focus:outline-hidden w-full rounded-sm border border-gray-300 px-2.5 py-1.5 focus:border-[#007bff]"
                                 />
                             </div>
 
                             <div>
-                                <label class="block font-bold text-gray-700 mb-1">Ngày Hết Hạn</label>
+                                <label class="mb-1 block font-bold text-gray-700">Ngày Hết Hạn</label>
                                 <input
                                     v-model="form.ngay_ket_thuc"
                                     type="date"
                                     required
-                                    class="w-full px-2.5 py-1.5 border border-gray-300 rounded-sm focus:outline-hidden focus:border-[#007bff]"
+                                    class="focus:outline-hidden w-full rounded-sm border border-gray-300 px-2.5 py-1.5 focus:border-[#007bff]"
                                 />
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block font-bold text-gray-700 mb-1">Số Lượng Lượt Dùng</label>
+                                <label class="mb-1 block font-bold text-gray-700">Số Lượng Lượt Dùng</label>
                                 <input
                                     v-model="form.so_luong"
                                     type="number"
                                     required
                                     min="1"
-                                    class="w-full px-2.5 py-1.5 border border-gray-300 rounded-sm focus:outline-hidden focus:border-[#007bff]"
+                                    class="focus:outline-hidden w-full rounded-sm border border-gray-300 px-2.5 py-1.5 focus:border-[#007bff]"
                                 />
                             </div>
 
                             <div>
-                                <label class="block font-bold text-gray-700 mb-1">Trạng Thái</label>
+                                <label class="mb-1 block font-bold text-gray-700">Trạng Thái</label>
                                 <select
                                     v-model="form.trang_thai"
-                                    class="w-full px-2.5 py-1.5 border border-gray-300 rounded-sm bg-white focus:outline-hidden focus:border-[#007bff]"
+                                    class="focus:outline-hidden w-full rounded-sm border border-gray-300 bg-white px-2.5 py-1.5 focus:border-[#007bff]"
                                 >
                                     <option :value="1">Kích hoạt ngay</option>
                                     <option :value="0">Tạm dừng</option>
@@ -384,10 +353,10 @@ function formatCurrency(val: number): string {
                             </div>
                         </div>
 
-                        <div class="pt-3 border-t border-gray-200 flex items-center justify-end space-x-2">
+                        <div class="flex items-center justify-end space-x-2 border-t border-gray-200 pt-3">
                             <button
                                 type="button"
-                                class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-sm font-semibold transition-colors"
+                                class="rounded-sm bg-gray-200 px-3 py-1.5 font-semibold text-gray-700 transition-colors hover:bg-gray-300"
                                 @click="showModal = false"
                             >
                                 Hủy Bỏ
@@ -395,10 +364,10 @@ function formatCurrency(val: number): string {
                             <button
                                 type="submit"
                                 :disabled="form.processing"
-                                class="px-4 py-1.5 bg-[#007bff] hover:bg-[#0069d9] text-white rounded-sm font-semibold shadow-2xs transition-colors flex items-center space-x-1"
+                                class="shadow-2xs flex items-center space-x-1 rounded-sm bg-[#007bff] px-4 py-1.5 font-semibold text-white transition-colors hover:bg-[#0069d9]"
                             >
-                                <Save class="w-3.5 h-3.5" />
-                                <span>{{ form.processing ? 'Đang lưu...' : (editingCoupon ? 'Lưu Thay Đổi' : 'Tạo Voucher') }}</span>
+                                <Save class="h-3.5 w-3.5" />
+                                <span>{{ form.processing ? 'Đang lưu...' : editingCoupon ? 'Lưu Thay Đổi' : 'Tạo Voucher' }}</span>
                             </button>
                         </div>
                     </form>

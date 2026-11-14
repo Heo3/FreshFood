@@ -1,14 +1,8 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3';
-import StoreLayout from '@/layouts/StoreLayout.vue';
 import AccountSidebar from '@/components/storefront/AccountSidebar.vue';
-import {
-    ShoppingBag,
-    Coins,
-    Package,
-    ArrowRight,
-    ChevronRight,
-} from 'lucide-vue-next';
+import StoreLayout from '@/layouts/StoreLayout.vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { ArrowRight, ChevronRight, Coins, Package, ShoppingBag } from 'lucide-vue-next';
 
 defineProps<{
     recentOrders: Array<any>;
@@ -38,72 +32,72 @@ const statusMap: Record<string, { label: string; class: string }> = {
 <template>
     <StoreLayout title="Tổng Quan Tài Khoản">
         <!-- BREADCRUMBS -->
-        <div class="bg-white border-b border-gray-100 py-3">
-            <div class="max-w-7xl mx-auto px-4 flex items-center space-x-2 text-xs text-gray-500">
-                <Link :href="route('home')" class="hover:text-emerald-600 transition-colors">Trang chủ</Link>
-                <ChevronRight class="w-3.5 h-3.5 text-gray-400" />
-                <span class="text-gray-900 font-semibold">Tài khoản cá nhân</span>
+        <div class="border-b border-gray-100 bg-white py-3">
+            <div class="mx-auto flex max-w-7xl items-center space-x-2 px-4 text-xs text-gray-500">
+                <Link :href="route('home')" class="transition-colors hover:text-emerald-600">Trang chủ</Link>
+                <ChevronRight class="h-3.5 w-3.5 text-gray-400" />
+                <span class="font-semibold text-gray-900">Tài khoản cá nhân</span>
             </div>
         </div>
 
-        <div class="max-w-7xl mx-auto px-4 py-8">
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div class="mx-auto max-w-7xl px-4 py-8">
+            <div class="grid grid-cols-1 gap-8 lg:grid-cols-4">
                 <!-- SIDEBAR -->
                 <div class="lg:col-span-1">
                     <AccountSidebar activeTab="index" />
                 </div>
 
                 <!-- MAIN OVERVIEW CONTENT -->
-                <div class="lg:col-span-3 space-y-6">
+                <div class="space-y-6 lg:col-span-3">
                     <!-- WELCOME BANNER -->
-                    <div class="bg-gradient-to-r from-emerald-800 to-teal-800 text-white p-6 rounded-3xl shadow-md flex justify-between items-center">
+                    <div class="flex items-center justify-between rounded-3xl bg-gradient-to-r from-emerald-800 to-teal-800 p-6 text-white shadow-md">
                         <div>
                             <h2 class="text-xl font-black">Xin chào, {{ user?.name }}!</h2>
-                            <p class="text-xs text-emerald-100/90 mt-1">
+                            <p class="mt-1 text-xs text-emerald-100/90">
                                 Cảm ơn bạn đã luôn tin chọn thực phẩm sạch, an toàn cho gia đình tại Fresh Food.
                             </p>
                         </div>
                     </div>
 
                     <!-- STATS CARDS -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center space-x-4">
-                            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                                <Package class="w-6 h-6" />
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div class="flex items-center space-x-4 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                                <Package class="h-6 w-6" />
                             </div>
                             <div>
-                                <span class="text-xs text-gray-400 font-medium">Tổng đơn hàng</span>
-                                <p class="text-xl font-black text-gray-900 mt-0.5">{{ stats.totalOrders }}</p>
+                                <span class="text-xs font-medium text-gray-400">Tổng đơn hàng</span>
+                                <p class="mt-0.5 text-xl font-black text-gray-900">{{ stats.totalOrders }}</p>
                             </div>
                         </div>
 
-                        <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center space-x-4">
-                            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                                <Coins class="w-6 h-6" />
+                        <div class="flex items-center space-x-4 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+                                <Coins class="h-6 w-6" />
                             </div>
                             <div>
-                                <span class="text-xs text-gray-400 font-medium">Điểm tích lũy</span>
-                                <p class="text-xl font-black text-amber-600 mt-0.5">{{ stats.points }} điểm</p>
+                                <span class="text-xs font-medium text-gray-400">Điểm tích lũy</span>
+                                <p class="mt-0.5 text-xl font-black text-amber-600">{{ stats.points }} điểm</p>
                             </div>
                         </div>
 
-                        <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center space-x-4">
-                            <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center">
-                                <ShoppingBag class="w-6 h-6" />
+                        <div class="flex items-center space-x-4 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-50 text-teal-600">
+                                <ShoppingBag class="h-6 w-6" />
                             </div>
                             <div>
-                                <span class="text-xs text-gray-400 font-medium">Tổng chi tiêu</span>
-                                <p class="text-lg font-black text-emerald-700 mt-0.5">{{ formatPrice(stats.totalSpent) }}</p>
+                                <span class="text-xs font-medium text-gray-400">Tổng chi tiêu</span>
+                                <p class="mt-0.5 text-lg font-black text-emerald-700">{{ formatPrice(stats.totalSpent) }}</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- RECENT ORDERS -->
-                    <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-4">
-                        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
-                            <h3 class="font-black text-sm text-gray-900">Đơn Hàng Gần Đây</h3>
-                            <Link :href="route('account.orders')" class="text-xs font-bold text-emerald-600 hover:underline flex items-center">
-                                Xem tất cả <ArrowRight class="w-3.5 h-3.5 ml-1" />
+                    <div class="space-y-4 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                            <h3 class="text-sm font-black text-gray-900">Đơn Hàng Gần Đây</h3>
+                            <Link :href="route('account.orders')" class="flex items-center text-xs font-bold text-emerald-600 hover:underline">
+                                Xem tất cả <ArrowRight class="ml-1 h-3.5 w-3.5" />
                             </Link>
                         </div>
 
@@ -111,28 +105,29 @@ const statusMap: Record<string, { label: string; class: string }> = {
                             <div
                                 v-for="order in recentOrders"
                                 :key="order.id"
-                                class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                                class="flex flex-col justify-between gap-3 py-4 text-xs sm:flex-row sm:items-center"
                             >
                                 <div>
                                     <div class="flex items-center space-x-2">
                                         <strong class="font-mono text-sm text-gray-900">{{ order.ma_don_hang }}</strong>
                                         <span
-                                            class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                                            class="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
                                             :class="statusMap[order.trang_thai_don_hang]?.class || 'bg-gray-100 text-gray-700'"
                                         >
                                             {{ statusMap[order.trang_thai_don_hang]?.label || order.trang_thai_don_hang }}
                                         </span>
                                     </div>
-                                    <p class="text-gray-400 text-[11px] mt-1">
-                                        {{ order.chi_tiets?.length || 0 }} sản phẩm • Ngày đặt: {{ new Date(order.created_at).toLocaleDateString('vi-VN') }}
+                                    <p class="mt-1 text-[11px] text-gray-400">
+                                        {{ order.chi_tiets?.length || 0 }} sản phẩm • Ngày đặt:
+                                        {{ new Date(order.created_at).toLocaleDateString('vi-VN') }}
                                     </p>
                                 </div>
 
                                 <div class="flex items-center space-x-4">
-                                    <span class="font-black text-sm text-emerald-700">{{ formatPrice(order.tong_thanhtoan) }}</span>
+                                    <span class="text-sm font-black text-emerald-700">{{ formatPrice(order.tong_thanhtoan) }}</span>
                                     <Link
                                         :href="route('account.orders.show', { maDonHang: order.ma_don_hang })"
-                                        class="px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-emerald-50 text-emerald-700 font-bold transition-colors"
+                                        class="rounded-xl bg-gray-50 px-3 py-1.5 font-bold text-emerald-700 transition-colors hover:bg-emerald-50"
                                     >
                                         Chi tiết
                                     </Link>
@@ -140,9 +135,7 @@ const statusMap: Record<string, { label: string; class: string }> = {
                             </div>
                         </div>
 
-                        <div v-else class="text-center py-8 text-xs text-gray-400">
-                            Bạn chưa có đơn hàng nào gần đây.
-                        </div>
+                        <div v-else class="py-8 text-center text-xs text-gray-400">Bạn chưa có đơn hàng nào gần đây.</div>
                     </div>
                 </div>
             </div>

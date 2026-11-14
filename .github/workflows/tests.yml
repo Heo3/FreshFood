@@ -21,9 +21,9 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.4
+          php-version: '8.2'
           tools: composer:v2
-          coverage: xdebug
+          coverage: none
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -37,11 +37,11 @@ jobs:
       - name: Create SQLite Database
         run: touch database/database.sqlite
 
-      - name: Install Dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
-
       - name: Copy Environment File
         run: cp .env.example .env
+
+      - name: Install Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Generate Application Key
         run: php artisan key:generate
@@ -53,4 +53,4 @@ jobs:
         run: npm run build
 
       - name: Tests
-        run: ./vendor/bin/pest
+        run: php vendor/bin/pest

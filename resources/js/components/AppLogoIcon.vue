@@ -13,10 +13,5 @@ defineProps<Props>();
 </script>
 
 <template>
-    <img
-        src="/logo.png"
-        alt="Fresh Food Logo"
-        :class="['object-contain rounded-lg', className]"
-        v-bind="$attrs"
-    />
+    <img src="/logo.png" alt="Fresh Food Logo" :class="['rounded-lg object-contain', className]" v-bind="$attrs" />
 </template>

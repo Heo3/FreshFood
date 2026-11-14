@@ -1,13 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
-import {
-    Search,
-    ShoppingBag,
-    Eye,
-    Filter,
-} from 'lucide-vue-next';
+import { Link, router } from '@inertiajs/vue3';
+import { Eye, Filter, Search } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 const props = defineProps<{
     orders: {
@@ -55,7 +50,7 @@ function handleFilter() {
             cua_hang_id: storeId.value,
             trang_thai_thanh_toan: paymentStatus.value,
         },
-        { preserveState: true }
+        { preserveState: true },
     );
 }
 
@@ -82,31 +77,25 @@ function getStatusBadge(st: string) {
 </script>
 
 <template>
-    <AdminLayout
-        title="Quản Lý Đơn Hàng"
-        :breadcrumbs="[{ name: 'Admin', href: route('admin.dashboard') }, { name: 'Đơn hàng' }]"
-    >
+    <AdminLayout title="Quản Lý Đơn Hàng" :breadcrumbs="[{ name: 'Admin', href: route('admin.dashboard') }, { name: 'Đơn hàng' }]">
         <div class="space-y-4">
             <!-- ADMINLTE FILTER CARD -->
-            <div class="bg-white rounded-sm border-t-3 border-[#007bff] border-x border-b border-gray-200 shadow-xs p-3.5">
+            <div class="border-t-3 shadow-xs rounded-sm border-x border-b border-[#007bff] border-gray-200 bg-white p-3.5">
                 <div class="flex flex-wrap items-center gap-2">
                     <div class="relative w-full sm:w-60">
                         <input
                             v-model="search"
                             type="text"
                             placeholder="Mã đơn, người nhận, SĐT..."
-                            class="w-full pl-3 pr-8 py-1.5 bg-gray-50 border border-gray-300 rounded-sm text-xs focus:outline-hidden focus:border-[#007bff]"
+                            class="focus:outline-hidden w-full rounded-sm border border-gray-300 bg-gray-50 py-1.5 pl-3 pr-8 text-xs focus:border-[#007bff]"
                             @keyup.enter="handleFilter"
                         />
-                        <Search
-                            class="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-2.5 cursor-pointer"
-                            @click="handleFilter"
-                        />
+                        <Search class="absolute right-2.5 top-2.5 h-3.5 w-3.5 cursor-pointer text-gray-400" @click="handleFilter" />
                     </div>
 
                     <select
                         v-model="status"
-                        class="px-2.5 py-1.5 bg-gray-50 border border-gray-300 rounded-sm text-xs focus:outline-hidden focus:border-[#007bff]"
+                        class="focus:outline-hidden rounded-sm border border-gray-300 bg-gray-50 px-2.5 py-1.5 text-xs focus:border-[#007bff]"
                         @change="handleFilter"
                     >
                         <option value="">-- Tất cả trạng thái đơn --</option>
@@ -119,7 +108,7 @@ function getStatusBadge(st: string) {
 
                     <select
                         v-model="storeId"
-                        class="px-2.5 py-1.5 bg-gray-50 border border-gray-300 rounded-sm text-xs focus:outline-hidden focus:border-[#007bff]"
+                        class="focus:outline-hidden rounded-sm border border-gray-300 bg-gray-50 px-2.5 py-1.5 text-xs focus:border-[#007bff]"
                         @change="handleFilter"
                     >
                         <option value="">-- Tất cả chi nhánh --</option>
@@ -128,7 +117,7 @@ function getStatusBadge(st: string) {
 
                     <select
                         v-model="paymentStatus"
-                        class="px-2.5 py-1.5 bg-gray-50 border border-gray-300 rounded-sm text-xs focus:outline-hidden focus:border-[#007bff]"
+                        class="focus:outline-hidden rounded-sm border border-gray-300 bg-gray-50 px-2.5 py-1.5 text-xs focus:border-[#007bff]"
                         @change="handleFilter"
                     >
                         <option value="">-- Trạng thái thanh toán --</option>
@@ -137,38 +126,38 @@ function getStatusBadge(st: string) {
                     </select>
 
                     <button
-                        class="px-3.5 py-1.5 bg-[#007bff] hover:bg-[#0069d9] text-white rounded-sm text-xs font-semibold transition-colors flex items-center space-x-1"
+                        class="flex items-center space-x-1 rounded-sm bg-[#007bff] px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#0069d9]"
                         @click="handleFilter"
                     >
-                        <Filter class="w-3 h-3" />
+                        <Filter class="h-3 w-3" />
                         <span>Lọc Đơn Hàng</span>
                     </button>
                 </div>
             </div>
 
             <!-- ORDERS TABLE CARD -->
-            <div class="bg-white rounded-sm border border-gray-200 shadow-xs overflow-hidden">
-                <div class="px-4 py-2.5 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+            <div class="shadow-xs overflow-hidden rounded-sm border border-gray-200 bg-white">
+                <div class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-2.5">
                     <span class="text-xs font-bold text-[#343a40]">Danh Sách Đơn Hàng Chuỗi</span>
                     <span class="text-[11px] text-gray-500">{{ orders.data.length }} đơn hàng</span>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs border-collapse">
+                    <table class="w-full border-collapse text-left text-xs">
                         <thead>
-                            <tr class="bg-gray-100 border-b border-gray-200 text-gray-700 font-bold uppercase text-[10px]">
-                                <th class="py-2.5 px-3">Mã Đơn / Thời Gian</th>
-                                <th class="py-2.5 px-3">Khách Hàng / SĐT</th>
-                                <th class="py-2.5 px-3">Chi Nhánh Xử Lý</th>
-                                <th class="py-2.5 px-3">Tổng Thanh Toán</th>
-                                <th class="py-2.5 px-3 text-center">Thanh Toán</th>
-                                <th class="py-2.5 px-3 text-center">Trạng Thái Đơn</th>
-                                <th class="py-2.5 px-3 text-right">Chi Tiết</th>
+                            <tr class="border-b border-gray-200 bg-gray-100 text-[10px] font-bold uppercase text-gray-700">
+                                <th class="px-3 py-2.5">Mã Đơn / Thời Gian</th>
+                                <th class="px-3 py-2.5">Khách Hàng / SĐT</th>
+                                <th class="px-3 py-2.5">Chi Nhánh Xử Lý</th>
+                                <th class="px-3 py-2.5">Tổng Thanh Toán</th>
+                                <th class="px-3 py-2.5 text-center">Thanh Toán</th>
+                                <th class="px-3 py-2.5 text-center">Trạng Thái Đơn</th>
+                                <th class="px-3 py-2.5 text-right">Chi Tiết</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            <tr v-for="order in orders.data" :key="order.id" class="hover:bg-gray-50 transition-colors">
-                                <td class="py-2.5 px-3">
+                            <tr v-for="order in orders.data" :key="order.id" class="transition-colors hover:bg-gray-50">
+                                <td class="px-3 py-2.5">
                                     <div class="font-bold text-[#007bff]">
                                         <Link :href="route('admin.orders.show', order.id)" class="hover:underline">
                                             {{ order.ma_don_hang }}
@@ -176,52 +165,50 @@ function getStatusBadge(st: string) {
                                     </div>
                                     <div class="text-[10px] text-gray-400">{{ order.created_at }}</div>
                                 </td>
-                                <td class="py-2.5 px-3">
+                                <td class="px-3 py-2.5">
                                     <div class="font-bold text-gray-900">{{ order.ten_nguoi_nhan }}</div>
                                     <div class="text-[11px] text-gray-500">{{ order.so_dien_thoai_nhan }}</div>
                                 </td>
-                                <td class="py-2.5 px-3 text-gray-600">
+                                <td class="px-3 py-2.5 text-gray-600">
                                     {{ order.cua_hang?.ten_cua_hang || 'N/A' }}
                                 </td>
-                                <td class="py-2.5 px-3 font-bold text-gray-900">
+                                <td class="px-3 py-2.5 font-bold text-gray-900">
                                     {{ formatCurrency(order.tong_thanhtoan) }}
                                 </td>
-                                <td class="py-2.5 px-3 text-center">
+                                <td class="px-3 py-2.5 text-center">
                                     <span
                                         :class="[
-                                            'inline-block px-1.5 py-0.2 rounded-2xs text-[10px] font-bold uppercase',
+                                            'py-0.2 rounded-2xs inline-block px-1.5 text-[10px] font-bold uppercase',
                                             order.trang_thai_thanh_toan === 'da_thanh_toan'
                                                 ? 'bg-green-100 text-green-800'
-                                                : 'bg-amber-100 text-amber-800'
+                                                : 'bg-amber-100 text-amber-800',
                                         ]"
                                     >
                                         {{ order.trang_thai_thanh_toan === 'da_thanh_toan' ? 'Đã thu tiền' : 'Chưa thu' }}
                                     </span>
                                 </td>
-                                <td class="py-2.5 px-3 text-center">
+                                <td class="px-3 py-2.5 text-center">
                                     <span
                                         :class="[
-                                            'inline-block px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase shadow-2xs',
-                                            getStatusBadge(order.trang_thai_don_hang).class
+                                            'shadow-2xs inline-block rounded-sm px-2 py-0.5 text-[10px] font-bold uppercase',
+                                            getStatusBadge(order.trang_thai_don_hang).class,
                                         ]"
                                     >
                                         {{ getStatusBadge(order.trang_thai_don_hang).label }}
                                     </span>
                                 </td>
-                                <td class="py-2.5 px-3 text-right">
+                                <td class="px-3 py-2.5 text-right">
                                     <Link
                                         :href="route('admin.orders.show', order.id)"
-                                        class="inline-flex items-center space-x-1 px-2 py-1 rounded-sm bg-gray-100 hover:bg-[#007bff] hover:text-white text-gray-700 font-semibold transition-colors"
+                                        class="inline-flex items-center space-x-1 rounded-sm bg-gray-100 px-2 py-1 font-semibold text-gray-700 transition-colors hover:bg-[#007bff] hover:text-white"
                                     >
-                                        <Eye class="w-3 h-3" />
+                                        <Eye class="h-3 w-3" />
                                         <span>Xem Đơn</span>
                                     </Link>
                                 </td>
                             </tr>
                             <tr v-if="orders.data.length === 0">
-                                <td colspan="7" class="py-8 text-center text-gray-400 italic">
-                                    Không tìm thấy đơn hàng nào.
-                                </td>
+                                <td colspan="7" class="py-8 text-center italic text-gray-400">Không tìm thấy đơn hàng nào.</td>
                             </tr>
                         </tbody>
                     </table>

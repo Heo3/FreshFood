@@ -1,35 +1,32 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import ToastContainer from '@/components/ui/ToastContainer.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import {
-    LayoutDashboard,
-    Boxes,
-    FolderTree,
-    ShoppingBag,
-    TicketPercent,
-    Truck,
     BarChart3,
-    Store,
-    Users,
-    LogOut,
-    ExternalLink,
-    Store as StoreIcon,
+    Boxes,
     CheckCircle2,
-    XCircle,
-    Menu,
-    X,
     ChevronRight,
-    Shield,
+    ExternalLink,
+    FolderTree,
+    Home,
+    Image,
+    LayoutDashboard,
+    LogOut,
     Maximize,
+    Menu,
+    MessageSquare,
     Minimize,
     Search,
-    Home,
-    Bell,
-    Sparkles,
-    Image,
-    MessageSquare,
+    ShoppingBag,
+    Store,
+    Store as StoreIcon,
+    TicketPercent,
+    Truck,
+    Users,
+    X,
+    XCircle,
 } from 'lucide-vue-next';
-import ToastContainer from '@/components/ui/ToastContainer.vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
     title?: string;
@@ -85,24 +82,24 @@ function isRouteActive(pattern: string): boolean {
 const filteredMainNav = computed(() => {
     if (!sidebarSearch.value.trim()) return mainNav;
     const q = sidebarSearch.value.toLowerCase();
-    return mainNav.filter(item => item.name.toLowerCase().includes(q));
+    return mainNav.filter((item) => item.name.toLowerCase().includes(q));
 });
 
 const filteredAdminNav = computed(() => {
     if (!sidebarSearch.value.trim()) return adminOnlyNav;
     const q = sidebarSearch.value.toLowerCase();
-    return adminOnlyNav.filter(item => item.name.toLowerCase().includes(q));
+    return adminOnlyNav.filter((item) => item.name.toLowerCase().includes(q));
 });
 </script>
 
 <template>
-    <div class="min-h-screen bg-slate-50/70 flex flex-col font-sans text-slate-800 antialiased selection:bg-emerald-500 selection:text-white">
+    <div class="flex min-h-screen flex-col bg-slate-50/70 font-sans text-slate-800 antialiased selection:bg-emerald-500 selection:text-white">
         <Head :title="title ? `${title} | FreshFood Admin` : 'FreshFood Quản Trị Hệ Thống'" />
 
         <!-- MOBILE BACKDROP -->
         <div
             v-if="isMobileSidebarOpen"
-            class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs transition-opacity lg:hidden"
+            class="backdrop-blur-xs fixed inset-0 z-40 bg-slate-900/60 transition-opacity lg:hidden"
             @click="isMobileSidebarOpen = false"
         />
 
@@ -111,38 +108,47 @@ const filteredAdminNav = computed(() => {
         <!-- ============================================== -->
         <header
             :class="[
-                'bg-white/90 backdrop-blur-md border-b border-slate-200/80 h-16 flex items-center justify-between px-4 sm:px-6 z-30 sticky top-0 transition-all duration-300',
-                isDesktopSidebarCollapsed ? 'lg:pl-[84px]' : 'lg:pl-[276px]'
+                'sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur-md transition-all duration-300 sm:px-6',
+                isDesktopSidebarCollapsed ? 'lg:pl-[84px]' : 'lg:pl-[276px]',
             ]"
         >
             <!-- LEFT NAVBAR LINKS -->
             <div class="flex items-center space-x-2 sm:space-x-3">
                 <!-- Push Menu / Hamburger toggle -->
                 <button
-                    class="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors focus:outline-hidden"
+                    class="focus:outline-hidden rounded-xl p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
                     title="Thu gọn menu"
-                    @click="isMobileSidebarOpen ? isMobileSidebarOpen = false : (window.innerWidth < 1024 ? isMobileSidebarOpen = true : toggleDesktopSidebar())"
+                    @click="
+                        isMobileSidebarOpen
+                            ? (isMobileSidebarOpen = false)
+                            : window.innerWidth < 1024
+                              ? (isMobileSidebarOpen = true)
+                              : toggleDesktopSidebar()
+                    "
                 >
-                    <Menu class="w-5 h-5" />
+                    <Menu class="h-5 w-5" />
                 </button>
 
                 <!-- BREADCRUMBS -->
-                <nav class="hidden md:flex items-center space-x-1.5 text-xs text-slate-500 pl-1">
-                    <Link :href="route('admin.dashboard')" class="text-slate-600 hover:text-emerald-600 transition-colors flex items-center gap-1 font-medium">
-                        <Home class="w-3.5 h-3.5" />
+                <nav class="hidden items-center space-x-1.5 pl-1 text-xs text-slate-500 md:flex">
+                    <Link
+                        :href="route('admin.dashboard')"
+                        class="flex items-center gap-1 font-medium text-slate-600 transition-colors hover:text-emerald-600"
+                    >
+                        <Home class="h-3.5 w-3.5" />
                         <span>Trang chủ</span>
                     </Link>
-                    <ChevronRight class="w-3.5 h-3.5 text-slate-300" />
+                    <ChevronRight class="h-3.5 w-3.5 text-slate-300" />
                     <template v-if="breadcrumbs && breadcrumbs.length > 0">
                         <template v-for="(bc, index) in breadcrumbs" :key="bc.name">
-                            <Link v-if="bc.href" :href="bc.href" class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">
+                            <Link v-if="bc.href" :href="bc.href" class="font-medium text-slate-600 transition-colors hover:text-emerald-600">
                                 {{ bc.name }}
                             </Link>
-                            <span v-else class="text-slate-900 font-semibold">{{ bc.name }}</span>
-                            <ChevronRight v-if="index < breadcrumbs.length - 1" class="w-3.5 h-3.5 text-slate-300" />
+                            <span v-else class="font-semibold text-slate-900">{{ bc.name }}</span>
+                            <ChevronRight v-if="index < breadcrumbs.length - 1" class="h-3.5 w-3.5 text-slate-300" />
                         </template>
                     </template>
-                    <span v-else class="text-slate-900 font-semibold truncate max-w-[200px]">{{ title || 'Dashboard' }}</span>
+                    <span v-else class="max-w-[200px] truncate font-semibold text-slate-900">{{ title || 'Dashboard' }}</span>
                 </nav>
             </div>
 
@@ -151,9 +157,9 @@ const filteredAdminNav = computed(() => {
                 <!-- SHORTCUT: POS RETAIL -->
                 <Link
                     :href="route('store.pos.index')"
-                    class="hidden sm:inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 hover:border-emerald-300 transition-all shadow-2xs"
+                    class="shadow-2xs hidden items-center rounded-xl border border-emerald-200/80 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-all hover:border-emerald-300 hover:bg-emerald-100 sm:inline-flex"
                 >
-                    <StoreIcon class="w-3.5 h-3.5 mr-1.5 text-emerald-600" />
+                    <StoreIcon class="mr-1.5 h-3.5 w-3.5 text-emerald-600" />
                     <span>Thu Ngân POS</span>
                 </Link>
 
@@ -161,34 +167,40 @@ const filteredAdminNav = computed(() => {
                 <a
                     href="/"
                     target="_blank"
-                    class="hidden lg:inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 transition-all shadow-2xs"
+                    class="shadow-2xs hidden items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-100 lg:inline-flex"
                 >
-                    <ExternalLink class="w-3.5 h-3.5 mr-1.5 text-slate-500" />
+                    <ExternalLink class="mr-1.5 h-3.5 w-3.5 text-slate-500" />
                     <span>Xem Website</span>
                 </a>
 
                 <!-- FULLSCREEN TOGGLE -->
                 <button
-                    class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
+                    class="rounded-xl p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
                     title="Toàn màn hình"
                     @click="toggleFullscreen"
                 >
-                    <Maximize v-if="!isFullscreen" class="w-4 h-4" />
-                    <Minimize v-else class="w-4 h-4" />
+                    <Maximize v-if="!isFullscreen" class="h-4 w-4" />
+                    <Minimize v-else class="h-4 w-4" />
                 </button>
 
                 <!-- USER PILL & PROFILE -->
-                <div class="flex items-center space-x-2.5 pl-2 sm:pl-3 border-l border-slate-200">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                <div class="flex items-center space-x-2.5 border-l border-slate-200 pl-2 sm:pl-3">
+                    <div
+                        class="shadow-xs flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-xs font-bold text-white"
+                    >
                         {{ authUser?.name?.charAt(0) || 'A' }}
                     </div>
-                    <div class="hidden sm:block text-left text-xs leading-tight">
-                        <div class="font-bold text-slate-800 truncate max-w-[140px]">{{ authUser?.name }}</div>
-                        <div class="flex items-center gap-1.5 mt-0.5">
-                            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-md">
+                    <div class="hidden text-left text-xs leading-tight sm:block">
+                        <div class="max-w-[140px] truncate font-bold text-slate-800">{{ authUser?.name }}</div>
+                        <div class="mt-0.5 flex items-center gap-1.5">
+                            <span class="py-0.2 rounded-md bg-emerald-50 px-1.5 text-[10px] font-semibold text-emerald-700">
                                 {{ authUser?.role === 'admin' ? 'Quản trị viên' : 'Quản lý' }}
                             </span>
-                            <span v-if="authUser?.cua_hang?.ten_cua_hang" class="text-[10px] bg-slate-100 text-slate-600 font-medium px-1.5 py-0.2 rounded-md truncate max-w-[110px]" :title="authUser?.cua_hang?.ten_cua_hang">
+                            <span
+                                v-if="authUser?.cua_hang?.ten_cua_hang"
+                                class="py-0.2 max-w-[110px] truncate rounded-md bg-slate-100 px-1.5 text-[10px] font-medium text-slate-600"
+                                :title="authUser?.cua_hang?.ten_cua_hang"
+                            >
                                 {{ authUser?.cua_hang?.ten_cua_hang }}
                             </span>
                         </div>
@@ -200,10 +212,10 @@ const filteredAdminNav = computed(() => {
                     :href="route('logout')"
                     method="post"
                     as="button"
-                    class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors ml-1"
+                    class="ml-1 rounded-xl p-2 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
                     title="Đăng xuất khỏi hệ thống"
                 >
-                    <LogOut class="w-4 h-4" />
+                    <LogOut class="h-4 w-4" />
                 </Link>
             </div>
         </header>
@@ -213,46 +225,53 @@ const filteredAdminNav = computed(() => {
         <!-- ============================================== -->
         <aside
             :class="[
-                'fixed top-0 bottom-0 left-0 z-50 bg-slate-900 text-slate-300 flex flex-col transition-all duration-300 ease-in-out border-r border-slate-800/80 shadow-xl select-none',
+                'fixed bottom-0 left-0 top-0 z-50 flex select-none flex-col border-r border-slate-800/80 bg-slate-900 text-slate-300 shadow-xl transition-all duration-300 ease-in-out',
                 // Mobile
-                isMobileSidebarOpen ? 'translate-x-0 w-[260px]' : '-translate-x-full lg:translate-x-0',
+                isMobileSidebarOpen ? 'w-[260px] translate-x-0' : '-translate-x-full lg:translate-x-0',
                 // Desktop collapse
-                isDesktopSidebarCollapsed ? 'lg:w-[68px]' : 'lg:w-[260px]'
+                isDesktopSidebarCollapsed ? 'lg:w-[68px]' : 'lg:w-[260px]',
             ]"
         >
             <!-- BRAND LOGO -->
-            <div class="h-16 border-b border-slate-800/80 flex items-center justify-between px-4">
+            <div class="flex h-16 items-center justify-between border-b border-slate-800/80 px-4">
                 <Link :href="route('admin.dashboard')" class="flex items-center space-x-3 overflow-hidden">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white font-extrabold text-sm shadow-md shadow-emerald-500/20 shrink-0">
+                    <div
+                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-sm font-extrabold text-white shadow-md shadow-emerald-500/20"
+                    >
                         FF
                     </div>
                     <div v-show="!isDesktopSidebarCollapsed" class="whitespace-nowrap transition-opacity duration-200">
-                        <span class="text-white font-bold text-base tracking-tight">FreshFood</span>
-                        <span class="text-emerald-400 font-medium text-xs ml-1.5 px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">Admin</span>
+                        <span class="text-base font-bold tracking-tight text-white">FreshFood</span>
+                        <span
+                            class="ml-1.5 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0.5 text-xs font-medium text-emerald-400"
+                            >Admin</span
+                        >
                     </div>
                 </Link>
 
                 <button
-                    class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                    class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white lg:hidden"
                     @click="isMobileSidebarOpen = false"
                 >
-                    <X class="w-5 h-5" />
+                    <X class="h-5 w-5" />
                 </button>
             </div>
 
             <!-- USER STATUS CARD -->
-            <div v-show="!isDesktopSidebarCollapsed" class="p-3 border-b border-slate-800/80">
-                <div class="bg-slate-800/50 rounded-xl p-2.5 border border-slate-700/40 flex items-center space-x-3">
+            <div v-show="!isDesktopSidebarCollapsed" class="border-b border-slate-800/80 p-3">
+                <div class="flex items-center space-x-3 rounded-xl border border-slate-700/40 bg-slate-800/50 p-2.5">
                     <div class="relative shrink-0">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 flex items-center justify-center font-bold text-xs">
+                        <div
+                            class="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500/40 bg-emerald-950/80 text-xs font-bold text-emerald-300"
+                        >
                             {{ authUser?.name?.charAt(0) || 'A' }}
                         </div>
-                        <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-slate-900 absolute -bottom-0.5 -right-0.5"></span>
+                        <span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-slate-900 bg-emerald-500"></span>
                     </div>
-                    <div class="overflow-hidden min-w-0 flex-1">
-                        <div class="text-xs font-semibold text-white truncate">{{ authUser?.name }}</div>
-                        <div class="text-[10px] text-emerald-400 font-medium flex items-center space-x-1 mt-0.5">
-                            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <div class="min-w-0 flex-1 overflow-hidden">
+                        <div class="truncate text-xs font-semibold text-white">{{ authUser?.name }}</div>
+                        <div class="mt-0.5 flex items-center space-x-1 text-[10px] font-medium text-emerald-400">
+                            <span class="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400"></span>
                             <span>Trực tuyến</span>
                         </div>
                     </div>
@@ -266,106 +285,97 @@ const filteredAdminNav = computed(() => {
                         v-model="sidebarSearch"
                         type="text"
                         placeholder="Tìm chức năng..."
-                        class="w-full bg-slate-800/80 border border-slate-700/60 text-xs text-slate-200 placeholder-slate-400 rounded-xl pl-8 pr-3 py-2 focus:outline-hidden focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                        class="focus:outline-hidden w-full rounded-xl border border-slate-700/60 bg-slate-800/80 py-2 pl-8 pr-3 text-xs text-slate-200 placeholder-slate-400 transition-all focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                     />
-                    <Search class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" />
+                    <Search class="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
                 </div>
             </div>
 
             <!-- SIDEBAR NAVIGATION MENU -->
-            <div class="flex-1 overflow-y-auto px-2.5 py-3 space-y-4 scrollbar-thin scrollbar-thumb-slate-700">
+            <div class="scrollbar-thin scrollbar-thumb-slate-700 flex-1 space-y-4 overflow-y-auto px-2.5 py-3">
                 <!-- SECTION 1: VẬN HÀNH & KINH DOANH -->
                 <div>
-                    <div
-                        v-show="!isDesktopSidebarCollapsed"
-                        class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400"
-                    >
+                    <div v-show="!isDesktopSidebarCollapsed" class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                         DANH MỤC QUẢN TRỊ
                     </div>
-                    <nav class="space-y-1 mt-1">
+                    <nav class="mt-1 space-y-1">
                         <Link
                             v-for="item in filteredMainNav"
                             :key="item.name"
                             :href="item.href"
                             :title="isDesktopSidebarCollapsed ? item.name : undefined"
                             :class="[
-                                'flex items-center px-3 py-2.5 rounded-xl text-xs font-medium transition-all group duration-150',
+                                'group flex items-center rounded-xl px-3 py-2.5 text-xs font-medium transition-all duration-150',
                                 isRouteActive(item.pattern)
-                                    ? 'bg-emerald-600 text-white font-semibold shadow-sm shadow-emerald-600/30'
-                                    : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                                    ? 'bg-emerald-600 font-semibold text-white shadow-sm shadow-emerald-600/30'
+                                    : 'text-slate-300 hover:bg-slate-800/80 hover:text-white',
                             ]"
                         >
                             <component
                                 :is="item.icon"
                                 :class="[
-                                    'w-4 h-4 shrink-0 transition-colors',
+                                    'h-4 w-4 shrink-0 transition-colors',
                                     isRouteActive(item.pattern) ? 'text-white' : 'text-slate-400 group-hover:text-emerald-400',
-                                    isDesktopSidebarCollapsed ? 'mx-auto' : 'mr-3'
+                                    isDesktopSidebarCollapsed ? 'mx-auto' : 'mr-3',
                                 ]"
                             />
-                            <span v-show="!isDesktopSidebarCollapsed" class="truncate flex-1">{{ item.name }}</span>
+                            <span v-show="!isDesktopSidebarCollapsed" class="flex-1 truncate">{{ item.name }}</span>
                         </Link>
                     </nav>
                 </div>
 
                 <!-- SECTION 2: HỆ THỐNG CHUỖI (ADMIN ONLY) -->
                 <div v-if="authUser?.role === 'admin' && filteredAdminNav.length > 0">
-                    <div
-                        v-show="!isDesktopSidebarCollapsed"
-                        class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-teal-400"
-                    >
+                    <div v-show="!isDesktopSidebarCollapsed" class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-teal-400">
                         HỆ THỐNG CHUỖI
                     </div>
-                    <nav class="space-y-1 mt-1">
+                    <nav class="mt-1 space-y-1">
                         <Link
                             v-for="item in filteredAdminNav"
                             :key="item.name"
                             :href="item.href"
                             :title="isDesktopSidebarCollapsed ? item.name : undefined"
                             :class="[
-                                'flex items-center px-3 py-2.5 rounded-xl text-xs font-medium transition-all group duration-150',
+                                'group flex items-center rounded-xl px-3 py-2.5 text-xs font-medium transition-all duration-150',
                                 isRouteActive(item.pattern)
-                                    ? 'bg-emerald-600 text-white font-semibold shadow-sm shadow-emerald-600/30'
-                                    : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                                    ? 'bg-emerald-600 font-semibold text-white shadow-sm shadow-emerald-600/30'
+                                    : 'text-slate-300 hover:bg-slate-800/80 hover:text-white',
                             ]"
                         >
                             <component
                                 :is="item.icon"
                                 :class="[
-                                    'w-4 h-4 shrink-0 transition-colors',
+                                    'h-4 w-4 shrink-0 transition-colors',
                                     isRouteActive(item.pattern) ? 'text-white' : 'text-slate-400 group-hover:text-emerald-400',
-                                    isDesktopSidebarCollapsed ? 'mx-auto' : 'mr-3'
+                                    isDesktopSidebarCollapsed ? 'mx-auto' : 'mr-3',
                                 ]"
                             />
-                            <span v-show="!isDesktopSidebarCollapsed" class="truncate flex-1">{{ item.name }}</span>
+                            <span v-show="!isDesktopSidebarCollapsed" class="flex-1 truncate">{{ item.name }}</span>
                         </Link>
                     </nav>
                 </div>
 
                 <!-- SECTION 3: LIÊN KẾT NGOÀI -->
                 <div>
-                    <div
-                        v-show="!isDesktopSidebarCollapsed"
-                        class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400"
-                    >
+                    <div v-show="!isDesktopSidebarCollapsed" class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                         TRUY CẬP NHANH
                     </div>
-                    <nav class="space-y-1 mt-1">
+                    <nav class="mt-1 space-y-1">
                         <Link
                             :href="route('store.pos.index')"
                             :title="isDesktopSidebarCollapsed ? 'Bán Hàng POS' : undefined"
-                            class="flex items-center px-3 py-2 rounded-xl text-xs text-slate-300 hover:bg-slate-800/80 hover:text-white transition-colors group"
+                            class="group flex items-center rounded-xl px-3 py-2 text-xs text-slate-300 transition-colors hover:bg-slate-800/80 hover:text-white"
                         >
-                            <StoreIcon :class="['w-4 h-4 text-emerald-400 shrink-0', isDesktopSidebarCollapsed ? 'mx-auto' : 'mr-3']" />
+                            <StoreIcon :class="['h-4 w-4 shrink-0 text-emerald-400', isDesktopSidebarCollapsed ? 'mx-auto' : 'mr-3']" />
                             <span v-show="!isDesktopSidebarCollapsed" class="truncate">Mở Quầy POS Bán Lẻ</span>
                         </Link>
                         <a
                             href="/"
                             target="_blank"
                             :title="isDesktopSidebarCollapsed ? 'Website FreshFood' : undefined"
-                            class="flex items-center px-3 py-2 rounded-xl text-xs text-slate-300 hover:bg-slate-800/80 hover:text-white transition-colors group"
+                            class="group flex items-center rounded-xl px-3 py-2 text-xs text-slate-300 transition-colors hover:bg-slate-800/80 hover:text-white"
                         >
-                            <ExternalLink :class="['w-4 h-4 text-sky-400 shrink-0', isDesktopSidebarCollapsed ? 'mx-auto' : 'mr-3']" />
+                            <ExternalLink :class="['h-4 w-4 shrink-0 text-sky-400', isDesktopSidebarCollapsed ? 'mx-auto' : 'mr-3']" />
                             <span v-show="!isDesktopSidebarCollapsed" class="truncate">Cửa Hàng Trực Tuyến</span>
                         </a>
                     </nav>
@@ -373,7 +383,7 @@ const filteredAdminNav = computed(() => {
             </div>
 
             <!-- SIDEBAR FOOTER -->
-            <div class="p-3 border-t border-slate-800/80 text-[11px] text-slate-400 text-center bg-slate-950/60">
+            <div class="border-t border-slate-800/80 bg-slate-950/60 p-3 text-center text-[11px] text-slate-400">
                 <span v-show="!isDesktopSidebarCollapsed">FreshFood Platform &bull; v2.4</span>
                 <span v-show="isDesktopSidebarCollapsed">FF</span>
             </div>
@@ -382,28 +392,23 @@ const filteredAdminNav = computed(() => {
         <!-- ============================================== -->
         <!-- 3. MAIN CONTENT WRAPPER                        -->
         <!-- ============================================== -->
-        <div
-            :class="[
-                'flex-1 flex flex-col min-w-0 transition-all duration-300',
-                isDesktopSidebarCollapsed ? 'lg:pl-[68px]' : 'lg:pl-[260px]'
-            ]"
-        >
+        <div :class="['flex min-w-0 flex-1 flex-col transition-all duration-300', isDesktopSidebarCollapsed ? 'lg:pl-[68px]' : 'lg:pl-[260px]']">
             <!-- CONTENT HEADER -->
-            <div class="px-4 sm:px-6 pt-5 pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div class="flex flex-col gap-2 px-4 pb-3 pt-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <div>
-                    <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                    <h1 class="flex items-center gap-2 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
                         <span>{{ title || 'Dashboard' }}</span>
                     </h1>
                 </div>
 
                 <!-- MOBILE BREADCRUMB -->
-                <nav class="flex md:hidden items-center space-x-1.5 text-xs text-slate-500">
-                    <Link :href="route('admin.dashboard')" class="text-emerald-600 hover:underline flex items-center">
-                        <Home class="w-3.5 h-3.5 mr-1" />
+                <nav class="flex items-center space-x-1.5 text-xs text-slate-500 md:hidden">
+                    <Link :href="route('admin.dashboard')" class="flex items-center text-emerald-600 hover:underline">
+                        <Home class="mr-1 h-3.5 w-3.5" />
                         <span>Trang chủ</span>
                     </Link>
                     <span>/</span>
-                    <span class="text-slate-800 font-medium truncate max-w-[150px]">{{ title || 'Dashboard' }}</span>
+                    <span class="max-w-[150px] truncate font-medium text-slate-800">{{ title || 'Dashboard' }}</span>
                 </nav>
             </div>
 
@@ -411,41 +416,43 @@ const filteredAdminNav = computed(() => {
             <div class="px-4 sm:px-6">
                 <div
                     v-if="page.props.flash?.success"
-                    class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-medium flex items-center justify-between shadow-xs mb-4"
+                    class="shadow-xs mb-4 flex items-center justify-between rounded-xl border border-emerald-200/80 bg-emerald-50 p-3.5 text-xs font-medium text-emerald-800"
                 >
                     <div class="flex items-center space-x-2.5">
-                        <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0" />
+                        <CheckCircle2 class="h-4 w-4 shrink-0 text-emerald-600" />
                         <span>{{ page.props.flash.success }}</span>
                     </div>
                 </div>
 
                 <div
                     v-if="page.props.flash?.error"
-                    class="p-3.5 rounded-xl bg-rose-50 border border-rose-200/80 text-rose-800 text-xs font-medium flex items-center justify-between shadow-xs mb-4"
+                    class="shadow-xs mb-4 flex items-center justify-between rounded-xl border border-rose-200/80 bg-rose-50 p-3.5 text-xs font-medium text-rose-800"
                 >
                     <div class="flex items-center space-x-2.5">
-                        <XCircle class="w-4 h-4 text-rose-600 shrink-0" />
+                        <XCircle class="h-4 w-4 shrink-0 text-rose-600" />
                         <span>{{ page.props.flash.error }}</span>
                     </div>
                 </div>
             </div>
 
             <!-- MAIN PAGE CONTENT BODY -->
-            <main class="flex-1 px-4 sm:px-6 pb-8">
+            <main class="flex-1 px-4 pb-8 sm:px-6">
                 <slot />
             </main>
 
             <!-- ============================================== -->
             <!-- 4. MODERN FOOTER                               -->
             <!-- ============================================== -->
-            <footer class="bg-white/80 backdrop-blur-xs border-t border-slate-200/80 py-3.5 px-6 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-1.5">
+            <footer
+                class="backdrop-blur-xs flex flex-col items-center justify-between gap-1.5 border-t border-slate-200/80 bg-white/80 px-6 py-3.5 text-xs text-slate-500 sm:flex-row"
+            >
                 <div>
-                    <strong>Bản quyền &copy; 2026 <a href="/" class="text-emerald-600 hover:underline font-semibold">FreshFood Supermarket</a>.</strong>
+                    <strong
+                        >Bản quyền &copy; 2026 <a href="/" class="font-semibold text-emerald-600 hover:underline">FreshFood Supermarket</a>.</strong
+                    >
                     <span> Chuỗi Siêu Thị Thực Phẩm Tươi Sạch.</span>
                 </div>
-                <div class="text-slate-400 font-medium">
-                    Hệ Thống Quản Lý Đa Chi Nhánh
-                </div>
+                <div class="font-medium text-slate-400">Hệ Thống Quản Lý Đa Chi Nhánh</div>
             </footer>
 
             <!-- GLOBAL TOAST NOTIFICATIONS -->

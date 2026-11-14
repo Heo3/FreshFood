@@ -1,25 +1,24 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
-import { Link, router, usePage } from '@inertiajs/vue3';
 import { useCart } from '@/composables/useCart';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import {
-    ShoppingBag,
-    Search,
-    MapPin,
-    PhoneCall,
-    User as UserIcon,
     ChevronDown,
     ChevronRight,
-    Truck,
-    ShieldCheck,
     Clock,
-    Sparkles,
-    LogOut,
-    Package,
     LayoutDashboard,
-    X,
     LocateFixed,
+    LogOut,
+    MapPin,
+    Package,
+    PhoneCall,
+    Search,
+    ShieldCheck,
+    ShoppingBag,
+    Truck,
+    User as UserIcon,
+    X,
 } from 'lucide-vue-next';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 
 defineProps<{
     stores?: Array<{
@@ -77,11 +76,15 @@ watch(searchQuery, (newVal) => {
         suggestions.value = [];
         showSuggestions.value = false;
         if (typeof window !== 'undefined' && window.location.pathname === '/san-pham') {
-            router.get(route('products.index'), {}, {
-                preserveState: true,
-                preserveScroll: true,
-                replace: true,
-            });
+            router.get(
+                route('products.index'),
+                {},
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                    replace: true,
+                },
+            );
         }
         return;
     }
@@ -89,13 +92,17 @@ watch(searchQuery, (newVal) => {
     debounceTimer = setTimeout(async () => {
         // Tự động lọc danh sách sản phẩm trên trang /san-pham ngay khi gõ
         if (typeof window !== 'undefined' && window.location.pathname === '/san-pham') {
-            router.get(route('products.index'), {
-                q: trimmed,
-            }, {
-                preserveState: true,
-                preserveScroll: true,
-                replace: true,
-            });
+            router.get(
+                route('products.index'),
+                {
+                    q: trimmed,
+                },
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                    replace: true,
+                },
+            );
         }
 
         // Gọi API lấy kết quả gợi ý dropdown
@@ -123,7 +130,7 @@ function handleStoreChange(store: any) {
 
     if (cartItems.value.length > 0) {
         const confirmed = window.confirm(
-            `Giỏ hàng của bạn đang có ${cartItems.value.length} sản phẩm từ chi nhánh hiện tại. Khi chuyển sang chi nhánh "${store.ten_cua_hang}", giỏ hàng sẽ được tự động xóa sạch để bạn chọn sản phẩm mới. Bạn có đồng ý chuyển không?`
+            `Giỏ hàng của bạn đang có ${cartItems.value.length} sản phẩm từ chi nhánh hiện tại. Khi chuyển sang chi nhánh "${store.ten_cua_hang}", giỏ hàng sẽ được tự động xóa sạch để bạn chọn sản phẩm mới. Bạn có đồng ý chuyển không?`,
         );
         if (!confirmed) {
             isStoreSelectOpen.value = false;
@@ -147,7 +154,7 @@ function handleStoreChange(store: any) {
                     saveCart();
                     showToast(`Đã chuyển sang chi nhánh "${store.ten_cua_hang}" và làm mới giỏ hàng!`, 'success');
                 },
-            }
+            },
         );
         return;
     }
@@ -162,7 +169,7 @@ function handleStoreChange(store: any) {
             onSuccess: () => {
                 showToast(`Đã chuyển sang chi nhánh ${store.ten_cua_hang}!`, 'success');
             },
-        }
+        },
     );
 }
 
@@ -204,7 +211,7 @@ function autoLocateHeader() {
             isHeaderLocating.value = false;
             showToast('Không thể lấy vị trí hiện tại của bạn.', 'error');
         },
-        { timeout: 10000 }
+        { timeout: 10000 },
     );
 }
 
@@ -226,29 +233,29 @@ function formatPrice(value: number): string {
 </script>
 
 <template>
-    <header class="w-full bg-white shadow-sm sticky top-0 z-50 transition-all duration-200">
+    <header class="sticky top-0 z-50 w-full bg-white shadow-sm transition-all duration-200">
         <!-- TOP ANNOUNCEMENT BAR -->
-        <div class="bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700 text-white text-xs py-2 px-4">
-            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+        <div class="bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700 px-4 py-2 text-xs text-white">
+            <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 md:flex-row">
                 <div class="flex items-center space-x-4">
                     <span class="flex items-center font-medium">
-                        <Truck class="w-3.5 h-3.5 mr-1 text-emerald-200 animate-pulse" />
+                        <Truck class="mr-1 h-3.5 w-3.5 animate-pulse text-emerald-200" />
                         Giao hàng siêu tốc trong 2 giờ
                     </span>
-                    <span class="hidden sm:inline-block text-emerald-300">|</span>
-                    <span class="hidden sm:flex items-center">
-                        <ShieldCheck class="w-3.5 h-3.5 mr-1 text-emerald-200" />
+                    <span class="hidden text-emerald-300 sm:inline-block">|</span>
+                    <span class="hidden items-center sm:flex">
+                        <ShieldCheck class="mr-1 h-3.5 w-3.5 text-emerald-200" />
                         100% Thực phẩm VietGAP & Organic tươi mới
                     </span>
                 </div>
 
                 <div class="flex items-center space-x-4">
                     <span class="flex items-center">
-                        <PhoneCall class="w-3.5 h-3.5 mr-1 text-amber-300" />
+                        <PhoneCall class="mr-1 h-3.5 w-3.5 text-amber-300" />
                         Hotline đặt hàng: <strong class="ml-1 text-amber-300">1900 6868</strong>
                     </span>
-                    <Link :href="route('orders.tracking')" class="hover:underline flex items-center text-emerald-100 hover:text-white">
-                        <Clock class="w-3.5 h-3.5 mr-1" />
+                    <Link :href="route('orders.tracking')" class="flex items-center text-emerald-100 hover:text-white hover:underline">
+                        <Clock class="mr-1 h-3.5 w-3.5" />
                         Tra cứu đơn hàng
                     </Link>
                 </div>
@@ -256,21 +263,19 @@ function formatPrice(value: number): string {
         </div>
 
         <!-- MAIN HEADER -->
-        <div class="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between gap-4">
+        <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3.5">
             <!-- BRAND LOGO -->
-            <Link :href="route('home')" class="flex items-center space-x-3 shrink-0 group">
+            <Link :href="route('home')" class="group flex shrink-0 items-center space-x-3">
                 <img
                     src="/images/logo.png"
                     alt="Fresh Food"
-                    class="h-11 w-auto object-contain rounded-xl shadow-sm group-hover:scale-105 transition-transform duration-300"
+                    class="h-11 w-auto rounded-xl object-contain shadow-sm transition-transform duration-300 group-hover:scale-105"
                 />
                 <div>
-                    <span class="text-2xl font-black tracking-tight text-gray-900 group-hover:text-emerald-600 transition-colors">
+                    <span class="text-2xl font-black tracking-tight text-gray-900 transition-colors group-hover:text-emerald-600">
                         Fresh<span class="text-emerald-600">Food</span>
                     </span>
-                    <p class="text-[10px] uppercase font-bold tracking-widest text-emerald-700 -mt-1">
-                        Tươi Sạch Mỗi Ngày
-                    </p>
+                    <p class="-mt-1 text-[10px] font-bold uppercase tracking-widest text-emerald-700">Tươi Sạch Mỗi Ngày</p>
                 </div>
             </Link>
 
@@ -278,24 +283,24 @@ function formatPrice(value: number): string {
             <div class="relative hidden lg:block">
                 <button
                     @click="isStoreSelectOpen = !isStoreSelectOpen"
-                    class="flex items-center space-x-2 bg-emerald-50/70 hover:bg-emerald-100/70 text-emerald-900 px-3.5 py-2 rounded-xl text-xs font-medium border border-emerald-200/60 transition-colors"
+                    class="flex items-center space-x-2 rounded-xl border border-emerald-200/60 bg-emerald-50/70 px-3.5 py-2 text-xs font-medium text-emerald-900 transition-colors hover:bg-emerald-100/70"
                 >
-                    <MapPin class="w-4 h-4 text-emerald-600 shrink-0" />
-                    <div class="text-left max-w-[170px] truncate">
-                        <p class="text-[10px] text-gray-500 font-normal leading-tight">Chi nhánh nhận hàng:</p>
-                        <p class="font-semibold truncate">
-                            {{ stores?.find(s => s.id === selectedStoreId)?.ten_cua_hang || 'Chọn chi nhánh gần bạn' }}
+                    <MapPin class="h-4 w-4 shrink-0 text-emerald-600" />
+                    <div class="max-w-[170px] truncate text-left">
+                        <p class="text-[10px] font-normal leading-tight text-gray-500">Chi nhánh nhận hàng:</p>
+                        <p class="truncate font-semibold">
+                            {{ stores?.find((s) => s.id === selectedStoreId)?.ten_cua_hang || 'Chọn chi nhánh gần bạn' }}
                         </p>
                     </div>
-                    <ChevronDown class="w-3.5 h-3.5 text-emerald-600 ml-1" />
+                    <ChevronDown class="ml-1 h-3.5 w-3.5 text-emerald-600" />
                 </button>
 
                 <!-- Store Dropdown Menu -->
                 <div
                     v-if="isStoreSelectOpen"
-                    class="absolute left-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                    class="absolute left-0 z-50 mt-2 w-80 rounded-2xl border border-gray-100 bg-white p-2 shadow-xl duration-150 animate-in fade-in slide-in-from-top-2"
                 >
-                    <div class="flex items-center justify-between px-3 py-2 border-b">
+                    <div class="flex items-center justify-between border-b px-3 py-2">
                         <p class="text-xs font-bold text-gray-700">Chọn cửa hàng phục vụ:</p>
                     </div>
 
@@ -304,26 +309,26 @@ function formatPrice(value: number): string {
                         type="button"
                         @click="autoLocateHeader"
                         :disabled="isHeaderLocating"
-                        class="w-full text-left p-2.5 my-1.5 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center justify-between border border-emerald-200"
+                        class="my-1.5 flex w-full items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-left text-xs font-bold text-emerald-800 transition-colors hover:bg-emerald-100"
                     >
                         <div class="flex items-center space-x-2">
-                            <LocateFixed class="w-4 h-4 text-emerald-600" :class="{ 'animate-spin': isHeaderLocating }" />
+                            <LocateFixed class="h-4 w-4 text-emerald-600" :class="{ 'animate-spin': isHeaderLocating }" />
                             <span>{{ isHeaderLocating ? 'Đang xác định vị trí...' : '📍 Tự động chọn chi nhánh gần nhất' }}</span>
                         </div>
                     </button>
 
-                    <div class="max-h-60 overflow-y-auto mt-1 space-y-1">
+                    <div class="mt-1 max-h-60 space-y-1 overflow-y-auto">
                         <button
                             v-for="store in stores"
                             :key="store.id"
                             @click="handleStoreChange(store)"
-                            class="w-full text-left p-2.5 rounded-xl hover:bg-emerald-50 text-xs transition-colors flex items-start space-x-2.5"
-                            :class="{ 'bg-emerald-50/80 border border-emerald-200': store.id === selectedStoreId }"
+                            class="flex w-full items-start space-x-2.5 rounded-xl p-2.5 text-left text-xs transition-colors hover:bg-emerald-50"
+                            :class="{ 'border border-emerald-200 bg-emerald-50/80': store.id === selectedStoreId }"
                         >
-                            <MapPin class="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                            <MapPin class="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
                             <div>
                                 <p class="font-bold text-gray-800">{{ store.ten_cua_hang }}</p>
-                                <p class="text-gray-500 text-[11px] leading-relaxed line-clamp-1">{{ store.dia_chi }}</p>
+                                <p class="line-clamp-1 text-[11px] leading-relaxed text-gray-500">{{ store.dia_chi }}</p>
                             </div>
                         </button>
                     </div>
@@ -331,31 +336,31 @@ function formatPrice(value: number): string {
             </div>
 
             <!-- SEARCH BAR WITH INSTANT LIVE RESULTS -->
-            <div ref="searchContainerRef" class="flex-1 max-w-xl relative mx-2">
+            <div ref="searchContainerRef" class="relative mx-2 max-w-xl flex-1">
                 <form @submit.prevent="handleSearch" class="relative">
                     <input
                         v-model="searchQuery"
-                        @focus="suggestions.length > 0 ? showSuggestions = true : null"
+                        @focus="suggestions.length > 0 ? (showSuggestions = true) : null"
                         type="text"
                         placeholder="Tìm kiếm rau củ tươi, cá hồi Nauy, thịt bò Úc, hoa quả nhập khẩu..."
-                        class="w-full pl-11 pr-24 py-2.5 bg-gray-50/80 border border-gray-200 rounded-full text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-inner"
+                        class="w-full rounded-full border border-gray-200 bg-gray-50/80 py-2.5 pl-11 pr-24 text-sm text-gray-800 placeholder-gray-400 shadow-inner transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                     />
-                    <Search class="w-5 h-5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Search class="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
 
                     <!-- Clear button -->
                     <button
                         v-if="searchQuery"
                         type="button"
                         @click="searchQuery = ''"
-                        class="absolute right-20 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                        class="absolute right-20 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
                         title="Xóa tìm kiếm"
                     >
-                        <X class="w-4 h-4" />
+                        <X class="h-4 w-4" />
                     </button>
 
                     <button
                         type="submit"
-                        class="absolute right-1.5 top-1/2 -translate-y-1/2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-sm transition-colors"
+                        class="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-emerald-700"
                     >
                         Tìm kiếm
                     </button>
@@ -364,40 +369,42 @@ function formatPrice(value: number): string {
                 <!-- LIVE SEARCH SUGGESTIONS DROPDOWN -->
                 <div
                     v-if="showSuggestions && searchQuery.trim()"
-                    class="absolute left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                    class="absolute left-0 right-0 z-50 mt-2 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl duration-150 animate-in fade-in slide-in-from-top-2"
                 >
                     <!-- Loading state -->
-                    <div v-if="isSearching" class="p-4 text-center text-xs text-gray-500 flex items-center justify-center space-x-2">
-                        <div class="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                    <div v-if="isSearching" class="flex items-center justify-center space-x-2 p-4 text-center text-xs text-gray-500">
+                        <div class="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent"></div>
                         <span>Đang tìm sản phẩm...</span>
                     </div>
 
                     <!-- Results list -->
                     <div v-else-if="suggestions.length > 0">
-                        <div class="px-4 py-2 bg-gray-50 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 flex justify-between items-center">
+                        <div
+                            class="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-gray-500"
+                        >
                             <span>Sản phẩm gợi ý</span>
-                            <span class="text-emerald-600 font-semibold lowercase">{{ suggestions.length }} kết quả</span>
+                            <span class="font-semibold lowercase text-emerald-600">{{ suggestions.length }} kết quả</span>
                         </div>
-                        <div class="max-h-80 overflow-y-auto divide-y divide-gray-50">
+                        <div class="max-h-80 divide-y divide-gray-50 overflow-y-auto">
                             <div
                                 v-for="item in suggestions"
                                 :key="item.id"
                                 @click="selectSuggestion(item)"
-                                class="p-3 hover:bg-emerald-50/60 cursor-pointer flex items-center space-x-3 transition-colors group"
+                                class="group flex cursor-pointer items-center space-x-3 p-3 transition-colors hover:bg-emerald-50/60"
                             >
                                 <img
                                     :src="item.hinh_anh || '/images/logo.png'"
                                     :alt="item.ten_san_pham"
-                                    class="w-11 h-11 object-cover rounded-xl border border-gray-100 shrink-0 group-hover:scale-105 transition-transform"
+                                    class="h-11 w-11 shrink-0 rounded-xl border border-gray-100 object-cover transition-transform group-hover:scale-105"
                                 />
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-xs font-bold text-gray-900 group-hover:text-emerald-700 truncate">
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-xs font-bold text-gray-900 group-hover:text-emerald-700">
                                         {{ item.ten_san_pham }}
                                     </p>
-                                    <p class="text-[10px] text-gray-500 truncate" v-if="item.ten_danh_muc">
+                                    <p class="truncate text-[10px] text-gray-500" v-if="item.ten_danh_muc">
                                         {{ item.ten_danh_muc }}
                                     </p>
-                                    <div class="flex items-center space-x-2 mt-0.5">
+                                    <div class="mt-0.5 flex items-center space-x-2">
                                         <span class="text-xs font-black text-emerald-700">
                                             {{ formatPrice(item.gia_giam || item.gia_ban) }}
                                         </span>
@@ -407,57 +414,57 @@ function formatPrice(value: number): string {
                                         <span class="text-[10px] text-gray-400">/ {{ item.don_vi_tinh }}</span>
                                     </div>
                                 </div>
-                                <ChevronRight class="w-4 h-4 text-gray-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                                <ChevronRight class="h-4 w-4 text-gray-400 transition-all group-hover:translate-x-0.5 group-hover:text-emerald-600" />
                             </div>
                         </div>
 
                         <!-- View all link -->
                         <button
                             @click="handleSearch"
-                            class="w-full text-center py-2.5 bg-gray-50 hover:bg-emerald-50 text-xs font-bold text-emerald-700 border-t border-gray-100 transition-colors flex items-center justify-center space-x-1"
+                            class="flex w-full items-center justify-center space-x-1 border-t border-gray-100 bg-gray-50 py-2.5 text-center text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-50"
                         >
                             <span>Xem tất cả kết quả cho "{{ searchQuery }}"</span>
-                            <ChevronRight class="w-3.5 h-3.5" />
+                            <ChevronRight class="h-3.5 w-3.5" />
                         </button>
                     </div>
 
                     <!-- Empty state -->
                     <div v-else class="p-6 text-center text-xs text-gray-500">
                         <p class="font-medium text-gray-700">Không tìm thấy sản phẩm nào</p>
-                        <p class="text-[11px] text-gray-400 mt-1">Thử tìm với từ khóa khác như "thịt bò", "rau cải", "táo",...</p>
+                        <p class="mt-1 text-[11px] text-gray-400">Thử tìm với từ khóa khác như "thịt bò", "rau cải", "táo",...</p>
                     </div>
                 </div>
             </div>
 
             <!-- RIGHT ACTIONS (ACCOUNT & CART) -->
-            <div class="flex items-center space-x-3 shrink-0">
+            <div class="flex shrink-0 items-center space-x-3">
                 <!-- User Account Dropdown -->
                 <div class="relative">
                     <template v-if="authUser">
                         <button
                             @click="isUserMenuOpen = !isUserMenuOpen"
-                            class="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-gray-100 transition-colors text-left"
+                            class="flex items-center space-x-2 rounded-xl p-1.5 text-left transition-colors hover:bg-gray-100"
                         >
-                            <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-sm shadow-sm border border-emerald-200">
+                            <div
+                                class="flex h-9 w-9 items-center justify-center rounded-full border border-emerald-200 bg-emerald-100 text-sm font-bold text-emerald-700 shadow-sm"
+                            >
                                 {{ authUser.name?.charAt(0) || 'U' }}
                             </div>
                             <div class="hidden md:block">
-                                <p class="text-xs font-bold text-gray-800 leading-tight">{{ authUser.name }}</p>
-                                <p class="text-[10px] text-amber-600 font-bold flex items-center">
-                                    ★ {{ authUser.loyalty_points || 0 }} điểm
-                                </p>
+                                <p class="text-xs font-bold leading-tight text-gray-800">{{ authUser.name }}</p>
+                                <p class="flex items-center text-[10px] font-bold text-amber-600">★ {{ authUser.loyalty_points || 0 }} điểm</p>
                             </div>
-                            <ChevronDown class="w-3.5 h-3.5 text-gray-500 hidden md:block" />
+                            <ChevronDown class="hidden h-3.5 w-3.5 text-gray-500 md:block" />
                         </button>
 
                         <div
                             v-if="isUserMenuOpen"
-                            class="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                            class="absolute right-0 z-50 mt-2 w-56 rounded-2xl border border-gray-100 bg-white p-2 shadow-xl duration-150 animate-in fade-in slide-in-from-top-2"
                         >
-                            <div class="px-3 py-2 border-b border-gray-100">
-                                <p class="text-xs font-bold text-gray-800 truncate">{{ authUser.name }}</p>
-                                <p class="text-[11px] text-gray-500 truncate">{{ authUser.email }}</p>
-                                <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                            <div class="border-b border-gray-100 px-3 py-2">
+                                <p class="truncate text-xs font-bold text-gray-800">{{ authUser.name }}</p>
+                                <p class="truncate text-[11px] text-gray-500">{{ authUser.email }}</p>
+                                <span class="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
                                     {{ authUser.loyalty_points || 0 }} Điểm thưởng
                                 </span>
                             </div>
@@ -465,16 +472,16 @@ function formatPrice(value: number): string {
                             <div class="py-1">
                                 <Link
                                     :href="route('account.index')"
-                                    class="flex items-center space-x-2.5 px-3 py-2 text-xs text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors"
+                                    class="flex items-center space-x-2.5 rounded-lg px-3 py-2 text-xs text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
                                 >
-                                    <UserIcon class="w-4 h-4 text-emerald-600" />
+                                    <UserIcon class="h-4 w-4 text-emerald-600" />
                                     <span>Tài khoản của tôi</span>
                                 </Link>
                                 <Link
                                     :href="route('account.orders')"
-                                    class="flex items-center space-x-2.5 px-3 py-2 text-xs text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors"
+                                    class="flex items-center space-x-2.5 rounded-lg px-3 py-2 text-xs text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
                                 >
-                                    <Package class="w-4 h-4 text-emerald-600" />
+                                    <Package class="h-4 w-4 text-emerald-600" />
                                     <span>Đơn hàng đã đặt</span>
                                 </Link>
 
@@ -482,9 +489,9 @@ function formatPrice(value: number): string {
                                 <Link
                                     v-if="authUser.role === 'admin' || authUser.role === 'quan_ly'"
                                     :href="route('admin.dashboard')"
-                                    class="flex items-center space-x-2.5 px-3 py-2 text-xs text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors font-semibold"
+                                    class="flex items-center space-x-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-indigo-700 transition-colors hover:bg-indigo-50"
                                 >
-                                    <LayoutDashboard class="w-4 h-4 text-indigo-600" />
+                                    <LayoutDashboard class="h-4 w-4 text-indigo-600" />
                                     <span>Trang Quản trị Hệ thống</span>
                                 </Link>
 
@@ -492,9 +499,9 @@ function formatPrice(value: number): string {
                                 <Link
                                     v-if="authUser.role === 'nhan_vien' || authUser.role === 'quan_ly'"
                                     :href="route('store.pos.index')"
-                                    class="flex items-center space-x-2.5 px-3 py-2 text-xs text-teal-700 hover:bg-teal-50 rounded-lg transition-colors font-semibold"
+                                    class="flex items-center space-x-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-teal-700 transition-colors hover:bg-teal-50"
                                 >
-                                    <ShoppingBag class="w-4 h-4 text-teal-600" />
+                                    <ShoppingBag class="h-4 w-4 text-teal-600" />
                                     <span>POS Bán hàng & Kho</span>
                                 </Link>
 
@@ -502,21 +509,21 @@ function formatPrice(value: number): string {
                                 <Link
                                     v-if="authUser.role === 'giao_hang'"
                                     :href="route('delivery.index')"
-                                    class="flex items-center space-x-2.5 px-3 py-2 text-xs text-sky-700 hover:bg-sky-50 rounded-lg transition-colors font-semibold"
+                                    class="flex items-center space-x-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-sky-700 transition-colors hover:bg-sky-50"
                                 >
-                                    <Truck class="w-4 h-4 text-sky-600" />
+                                    <Truck class="h-4 w-4 text-sky-600" />
                                     <span>Đơn Giao Của Tôi (Shipper)</span>
                                 </Link>
                             </div>
 
-                            <div class="pt-1 border-t border-gray-100">
+                            <div class="border-t border-gray-100 pt-1">
                                 <Link
                                     :href="route('logout')"
                                     method="post"
                                     as="button"
-                                    class="w-full flex items-center space-x-2.5 px-3 py-2 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    class="flex w-full items-center space-x-2.5 rounded-lg px-3 py-2 text-xs text-red-600 transition-colors hover:bg-red-50"
                                 >
-                                    <LogOut class="w-4 h-4" />
+                                    <LogOut class="h-4 w-4" />
                                     <span>Đăng xuất</span>
                                 </Link>
                             </div>
@@ -526,9 +533,9 @@ function formatPrice(value: number): string {
                     <template v-else>
                         <Link
                             :href="route('login')"
-                            class="flex items-center space-x-1.5 text-xs font-bold text-gray-700 hover:text-emerald-600 px-3 py-2 rounded-xl hover:bg-emerald-50/60 transition-colors"
+                            class="flex items-center space-x-1.5 rounded-xl px-3 py-2 text-xs font-bold text-gray-700 transition-colors hover:bg-emerald-50/60 hover:text-emerald-600"
                         >
-                            <UserIcon class="w-4 h-4" />
+                            <UserIcon class="h-4 w-4" />
                             <span>Đăng nhập</span>
                         </Link>
                     </template>
@@ -539,18 +546,18 @@ function formatPrice(value: number): string {
                     <Link
                         :href="'/gio-hang'"
                         @mouseenter="isCartPreviewOpen = true"
-                        class="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-2xl shadow-md shadow-emerald-600/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                        class="flex cursor-pointer items-center space-x-2 rounded-2xl bg-emerald-600 px-3.5 py-2 text-white shadow-md shadow-emerald-600/20 transition-all hover:scale-105 hover:bg-emerald-700 active:scale-95"
                     >
-                        <div class="relative pointer-events-none">
-                            <ShoppingBag class="w-5 h-5" />
+                        <div class="pointer-events-none relative">
+                            <ShoppingBag class="h-5 w-5" />
                             <span
                                 v-if="totalItems > 0"
-                                class="absolute -top-2 -right-2 bg-amber-400 text-gray-900 font-extrabold text-[10px] w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white"
+                                class="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[10px] font-extrabold text-gray-900 ring-2 ring-white"
                             >
                                 {{ totalItems > 99 ? '99+' : totalItems }}
                             </span>
                         </div>
-                        <span class="hidden sm:inline font-bold text-xs pointer-events-none">
+                        <span class="pointer-events-none hidden text-xs font-bold sm:inline">
                             {{ totalItems > 0 ? formatPrice(subtotal) : 'Giỏ hàng' }}
                         </span>
                     </Link>
@@ -558,51 +565,39 @@ function formatPrice(value: number): string {
                     <!-- Cart Preview Dropdown -->
                     <div
                         v-if="isCartPreviewOpen && totalItems > 0"
-                        class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                        class="absolute right-0 z-50 mt-2 w-80 rounded-2xl border border-gray-100 bg-white p-3 shadow-2xl duration-150 animate-in fade-in slide-in-from-top-2"
                     >
-                        <div class="flex items-center justify-between pb-2 border-b border-gray-100">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-2">
                             <span class="text-xs font-bold text-gray-700">Giỏ hàng của bạn ({{ totalItems }})</span>
-                            <Link :href="'/gio-hang'" class="text-[11px] font-semibold text-emerald-600 hover:underline">
-                                Xem tất cả
-                            </Link>
+                            <Link :href="'/gio-hang'" class="text-[11px] font-semibold text-emerald-600 hover:underline"> Xem tất cả </Link>
                         </div>
 
-                        <div class="max-h-64 overflow-y-auto divide-y divide-gray-100 my-2">
-                            <div
-                                v-for="item in cartItems.slice(0, 4)"
-                                :key="item.san_pham_id"
-                                class="py-2 flex items-center space-x-2.5 text-xs"
-                            >
+                        <div class="my-2 max-h-64 divide-y divide-gray-100 overflow-y-auto">
+                            <div v-for="item in cartItems.slice(0, 4)" :key="item.san_pham_id" class="flex items-center space-x-2.5 py-2 text-xs">
                                 <img
                                     :src="item.hinh_anh_chinh"
                                     :alt="item.ten_san_pham"
-                                    class="w-10 h-10 rounded-lg object-cover bg-gray-100 shrink-0"
+                                    class="h-10 w-10 shrink-0 rounded-lg bg-gray-100 object-cover"
                                 />
-                                <div class="flex-1 min-w-0">
-                                    <p class="font-medium text-gray-800 truncate">{{ item.ten_san_pham }}</p>
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate font-medium text-gray-800">{{ item.ten_san_pham }}</p>
                                     <p class="text-[11px] text-gray-500">
                                         {{ item.so_luong }} {{ item.don_vi_tinh }} ×
                                         <span class="font-bold text-emerald-700">{{ formatPrice(item.gia_giam || item.gia_ban) }}</span>
                                     </p>
                                 </div>
-                                <button
-                                    @click="removeFromCart(item.san_pham_id)"
-                                    class="text-gray-400 hover:text-red-500 p-1"
-                                    title="Xóa"
-                                >
-                                    ×
-                                </button>
+                                <button @click="removeFromCart(item.san_pham_id)" class="p-1 text-gray-400 hover:text-red-500" title="Xóa">×</button>
                             </div>
                         </div>
 
-                        <div class="pt-2 border-t border-gray-100">
-                            <div class="flex justify-between items-center mb-2.5">
+                        <div class="border-t border-gray-100 pt-2">
+                            <div class="mb-2.5 flex items-center justify-between">
                                 <span class="text-xs text-gray-600">Tạm tính:</span>
                                 <span class="text-sm font-extrabold text-emerald-700">{{ formatPrice(subtotal) }}</span>
                             </div>
                             <Link
                                 :href="'/thanh-toan'"
-                                class="w-full block text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-xs transition-colors shadow-sm"
+                                class="block w-full rounded-xl bg-emerald-600 py-2 text-center text-xs font-bold text-white shadow-sm transition-colors hover:bg-emerald-700"
                             >
                                 Tiến hành đặt hàng ngay
                             </Link>
@@ -613,31 +608,33 @@ function formatPrice(value: number): string {
         </div>
 
         <!-- QUICK NAV CATEGORIES -->
-        <nav class="border-t border-gray-100 bg-gray-50/60 hidden sm:block">
-            <div class="max-w-7xl mx-auto px-4 flex items-center space-x-6 text-xs font-semibold text-gray-700 py-2.5 overflow-x-auto no-scrollbar">
-                <Link :href="route('home')" class="hover:text-emerald-600 transition-colors shrink-0">
-                    Trang chủ
-                </Link>
-                <Link :href="route('products.index')" class="hover:text-emerald-600 transition-colors shrink-0">
-                    Tất cả sản phẩm
-                </Link>
-                <Link :href="route('categories.show', { slug: 'rau-cu-huu-co' })" class="hover:text-emerald-600 transition-colors shrink-0">
+        <nav class="hidden border-t border-gray-100 bg-gray-50/60 sm:block">
+            <div class="no-scrollbar mx-auto flex max-w-7xl items-center space-x-6 overflow-x-auto px-4 py-2.5 text-xs font-semibold text-gray-700">
+                <Link :href="route('home')" class="shrink-0 transition-colors hover:text-emerald-600"> Trang chủ </Link>
+                <Link :href="route('products.index')" class="shrink-0 transition-colors hover:text-emerald-600"> Tất cả sản phẩm </Link>
+                <Link :href="route('categories.show', { slug: 'rau-cu-huu-co' })" class="shrink-0 transition-colors hover:text-emerald-600">
                     Rau củ hữu cơ
                 </Link>
-                <Link :href="route('categories.show', { slug: 'trai-cay-tuoi-ngon' })" class="hover:text-emerald-600 transition-colors shrink-0">
+                <Link :href="route('categories.show', { slug: 'trai-cay-tuoi-ngon' })" class="shrink-0 transition-colors hover:text-emerald-600">
                     Trái cây tươi
                 </Link>
-                <Link :href="route('categories.show', { slug: 'thit-tuoi-trung-sach' })" class="hover:text-emerald-600 transition-colors shrink-0">
+                <Link :href="route('categories.show', { slug: 'thit-tuoi-trung-sach' })" class="shrink-0 transition-colors hover:text-emerald-600">
                     Thịt sạch & Trứng
                 </Link>
-                <Link :href="route('categories.show', { slug: 'thuy-hai-san-tuoi-song' })" class="hover:text-emerald-600 transition-colors shrink-0">
+                <Link :href="route('categories.show', { slug: 'thuy-hai-san-tuoi-song' })" class="shrink-0 transition-colors hover:text-emerald-600">
                     Cá hồi & Hải sản tươi
                 </Link>
-                <Link :href="route('categories.show', { slug: 'sua-bo-thuc-pham-che-bien' })" class="hover:text-emerald-600 transition-colors shrink-0">
+                <Link
+                    :href="route('categories.show', { slug: 'sua-bo-thuc-pham-che-bien' })"
+                    class="shrink-0 transition-colors hover:text-emerald-600"
+                >
                     Sữa bơ Dalatmilk
                 </Link>
-                <Link :href="route('products.index', { is_fresh: true })" class="text-emerald-700 font-bold hover:underline shrink-0 flex items-center">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-ping"></span>
+                <Link
+                    :href="route('products.index', { is_fresh: true })"
+                    class="flex shrink-0 items-center font-bold text-emerald-700 hover:underline"
+                >
+                    <span class="mr-1.5 h-2 w-2 animate-ping rounded-full bg-emerald-500"></span>
                     Hàng tươi mới hôm nay
                 </Link>
             </div>

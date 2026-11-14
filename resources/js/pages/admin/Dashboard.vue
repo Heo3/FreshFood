@@ -1,25 +1,7 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
-import {
-    DollarSign,
-    ShoppingBag,
-    AlertOctagon,
-    Boxes,
-    Store,
-    TrendingUp,
-    Clock,
-    CheckCircle,
-    XCircle,
-    ArrowUpRight,
-    ChevronRight,
-    ArrowRight,
-    RefreshCw,
-    BarChart2,
-    Calendar,
-    Sparkles,
-    Eye,
-} from 'lucide-vue-next';
+import { Link } from '@inertiajs/vue3';
+import { AlertOctagon, ArrowRight, BarChart2, Boxes, ChevronRight, DollarSign, Eye, ShoppingBag, Store, TrendingUp } from 'lucide-vue-next';
 
 const props = defineProps<{
     metrics: {
@@ -101,23 +83,25 @@ const maxStoreRev = Math.max(...props.stores_revenue.map((s) => s.doanh_thu), 1)
             <!-- SCOPE NOTICE BANNER -->
             <div
                 v-if="scope?.is_manager"
-                class="bg-gradient-to-r from-emerald-50/80 to-teal-50/50 border border-emerald-200/80 p-4 sm:p-5 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                class="shadow-xs flex flex-col justify-between gap-3 rounded-2xl border border-emerald-200/80 bg-gradient-to-r from-emerald-50/80 to-teal-50/50 p-4 sm:flex-row sm:items-center sm:p-5"
             >
                 <div class="flex items-center space-x-3.5">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-100/80 text-emerald-700 flex items-center justify-center shrink-0">
-                        <Store class="w-5 h-5" />
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100/80 text-emerald-700">
+                        <Store class="h-5 w-5" />
                     </div>
                     <div>
                         <p class="text-xs font-bold text-slate-800">
                             Phân quyền Quản lý Chi nhánh:
-                            <span class="text-emerald-700 font-extrabold">{{ scope.store_name || `Chi nhánh #${scope.store_id}` }}</span>
+                            <span class="font-extrabold text-emerald-700">{{ scope.store_name || `Chi nhánh #${scope.store_id}` }}</span>
                         </p>
-                        <p class="text-[11px] text-slate-500 mt-0.5">
+                        <p class="mt-0.5 text-[11px] text-slate-500">
                             Các số liệu doanh thu, đơn hàng, cảnh báo cận date và xuất hủy bên dưới được tự động giới hạn riêng cho chi nhánh của bạn.
                         </p>
                     </div>
                 </div>
-                <span class="self-start sm:self-auto text-[11px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300/80">
+                <span
+                    class="self-start rounded-full border border-emerald-300/80 bg-emerald-100 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-800 sm:self-auto"
+                >
                     Chi nhánh Scoped
                 </span>
             </div>
@@ -125,123 +109,139 @@ const maxStoreRev = Math.max(...props.stores_revenue.map((s) => s.doanh_thu), 1)
             <!-- ============================================================== -->
             <!-- 1. MODERN METRIC STAT CARDS (4 Sleek Responsive Cards)         -->
             <!-- ============================================================== -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
                 <!-- CARD 1: DOANH THU THÁNG (Emerald) -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:shadow-md hover:border-emerald-300 transition-all duration-200 flex flex-col justify-between group">
+                <div
+                    class="shadow-xs group flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 transition-all duration-200 hover:border-emerald-300 hover:shadow-md"
+                >
                     <div>
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Doanh Thu Tháng Này</span>
-                            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-                                <DollarSign class="w-5 h-5" />
+                            <div
+                                class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-transform duration-200 group-hover:scale-105"
+                            >
+                                <DollarSign class="h-5 w-5" />
                             </div>
                         </div>
-                        <div class="text-2xl font-extrabold text-slate-900 tracking-tight mt-2">
+                        <div class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
                             {{ formatCurrency(metrics.doanh_thu_thang_nay) }}
                         </div>
-                        <div class="flex items-center gap-1.5 text-xs text-slate-500 mt-1">
+                        <div class="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
                             <span class="font-medium text-emerald-600">Hôm nay:</span>
                             <span class="font-semibold text-slate-700">{{ formatCurrency(metrics.doanh_thu_hom_nay) }}</span>
                         </div>
                     </div>
-                    <div class="pt-4 mt-3 border-t border-slate-100">
+                    <div class="mt-3 border-t border-slate-100 pt-4">
                         <Link
                             :href="route('admin.reports.index')"
-                            class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 inline-flex items-center gap-1 transition-colors"
+                            class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 transition-colors hover:text-emerald-700"
                         >
                             <span>Xem báo cáo chi tiết</span>
-                            <ArrowRight class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                            <ArrowRight class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                         </Link>
                     </div>
                 </div>
 
                 <!-- CARD 2: ĐƠN HÀNG HÔM NAY (Blue) -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition-all duration-200 flex flex-col justify-between group">
+                <div
+                    class="shadow-xs group flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 transition-all duration-200 hover:border-blue-300 hover:shadow-md"
+                >
                     <div>
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Đơn Hàng Hôm Nay</span>
-                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-                                <ShoppingBag class="w-5 h-5" />
+                            <div
+                                class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-transform duration-200 group-hover:scale-105"
+                            >
+                                <ShoppingBag class="h-5 w-5" />
                             </div>
                         </div>
-                        <div class="text-2xl font-extrabold text-slate-900 tracking-tight mt-2 flex items-baseline gap-1.5">
+                        <div class="mt-2 flex items-baseline gap-1.5 text-2xl font-extrabold tracking-tight text-slate-900">
                             <span>{{ metrics.don_hang_hom_nay }}</span>
                             <span class="text-sm font-normal text-slate-500">đơn</span>
                         </div>
-                        <div class="text-xs text-slate-500 mt-1">
+                        <div class="mt-1 text-xs text-slate-500">
                             <span>Chờ duyệt: </span>
-                            <b class="text-purple-600 font-semibold">{{ metrics.don_cho_xac_nhan }}</b>
+                            <b class="font-semibold text-purple-600">{{ metrics.don_cho_xac_nhan }}</b>
                             <span class="mx-1 text-slate-300">&bull;</span>
                             <span>Hoàn thành: </span>
-                            <b class="text-emerald-600 font-semibold">{{ metrics.don_hoan_thanh }}</b>
+                            <b class="font-semibold text-emerald-600">{{ metrics.don_hoan_thanh }}</b>
                         </div>
                     </div>
-                    <div class="pt-4 mt-3 border-t border-slate-100">
+                    <div class="mt-3 border-t border-slate-100 pt-4">
                         <Link
                             :href="route('admin.orders.index')"
-                            class="text-xs font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors"
+                            class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700"
                         >
                             <span>Quản lý đơn hàng</span>
-                            <ArrowRight class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                            <ArrowRight class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                         </Link>
                     </div>
                 </div>
 
                 <!-- CARD 3: CẢNH BÁO DATE (Amber) -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:shadow-md hover:border-amber-300 transition-all duration-200 flex flex-col justify-between group">
+                <div
+                    class="shadow-xs group flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 transition-all duration-200 hover:border-amber-300 hover:shadow-md"
+                >
                     <div>
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Lô Cận Hạn Sử Dụng</span>
-                            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-                                <AlertOctagon class="w-5 h-5" />
+                            <div
+                                class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 transition-transform duration-200 group-hover:scale-105"
+                            >
+                                <AlertOctagon class="h-5 w-5" />
                             </div>
                         </div>
-                        <div class="text-2xl font-extrabold text-slate-900 tracking-tight mt-2 flex items-baseline gap-1.5">
+                        <div class="mt-2 flex items-baseline gap-1.5 text-2xl font-extrabold tracking-tight text-slate-900">
                             <span>{{ metrics.so_lo_can_date }}</span>
                             <span class="text-sm font-normal text-slate-500">lô</span>
                         </div>
-                        <div class="text-xs text-slate-500 mt-1">
+                        <div class="mt-1 text-xs text-slate-500">
                             <span>Đã hết HSD: </span>
-                            <b class="text-rose-600 font-semibold">{{ metrics.so_lo_het_han }} lô</b>
+                            <b class="font-semibold text-rose-600">{{ metrics.so_lo_het_han }} lô</b>
                             <span class="text-slate-400"> cần xuất hủy</span>
                         </div>
                     </div>
-                    <div class="pt-4 mt-3 border-t border-slate-100">
+                    <div class="mt-3 border-t border-slate-100 pt-4">
                         <Link
                             :href="route('store.batches.expiry')"
-                            class="text-xs font-semibold text-amber-600 hover:text-amber-700 inline-flex items-center gap-1 transition-colors"
+                            class="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 transition-colors hover:text-amber-700"
                         >
                             <span>Xử lý xả hàng / Hủy lô</span>
-                            <ArrowRight class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                            <ArrowRight class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                         </Link>
                     </div>
                 </div>
 
                 <!-- CARD 4: HAO HỤT HÀNG HỦY (Rose) -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:shadow-md hover:border-rose-300 transition-all duration-200 flex flex-col justify-between group">
+                <div
+                    class="shadow-xs group flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 transition-all duration-200 hover:border-rose-300 hover:shadow-md"
+                >
                     <div>
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Chi Phí Hủy Hàng / Date</span>
-                            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-                                <Store class="w-5 h-5" />
+                            <div
+                                class="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 transition-transform duration-200 group-hover:scale-105"
+                            >
+                                <Store class="h-5 w-5" />
                             </div>
                         </div>
-                        <div class="text-2xl font-extrabold text-slate-900 tracking-tight mt-2">
+                        <div class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
                             {{ formatCurrency(metrics.tong_tien_xuat_huy) }}
                         </div>
-                        <div class="text-xs text-slate-500 mt-1">
+                        <div class="mt-1 text-xs text-slate-500">
                             <span>Hệ thống: </span>
                             <b class="text-slate-700">{{ metrics.tong_chi_nhanh }} siêu thị</b>
                             <span class="mx-1 text-slate-300">&bull;</span>
                             <span>{{ metrics.tong_san_pham }} SP</span>
                         </div>
                     </div>
-                    <div class="pt-4 mt-3 border-t border-slate-100">
+                    <div class="mt-3 border-t border-slate-100 pt-4">
                         <Link
                             :href="route('admin.stores.index')"
-                            class="text-xs font-semibold text-rose-600 hover:text-rose-700 inline-flex items-center gap-1 transition-colors"
+                            class="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 transition-colors hover:text-rose-700"
                         >
                             <span>Quản lý chuỗi chi nhánh</span>
-                            <ArrowRight class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                            <ArrowRight class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                         </Link>
                     </div>
                 </div>
@@ -250,46 +250,50 @@ const maxStoreRev = Math.max(...props.stores_revenue.map((s) => s.doanh_thu), 1)
             <!-- ============================================================== -->
             <!-- 2. CHARTS & STORE REVENUES ROW                                 -->
             <!-- ============================================================== -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
                 <!-- CHART CARD (7 Days Revenue) -->
-                <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+                <div class="shadow-xs flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 lg:col-span-2">
                     <div>
                         <!-- Header -->
-                        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                             <div>
-                                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                    <BarChart2 class="w-4 h-4 text-emerald-600" />
+                                <h3 class="flex items-center gap-2 text-sm font-bold text-slate-900">
+                                    <BarChart2 class="h-4 w-4 text-emerald-600" />
                                     <span>Biểu Đồ Doanh Thu 7 Ngày Gần Nhất</span>
                                 </h3>
-                                <p class="text-xs text-slate-400 mt-0.5">Thống kê doanh số chuỗi cửa hàng theo thời gian thực</p>
+                                <p class="mt-0.5 text-xs text-slate-400">Thống kê doanh số chuỗi cửa hàng theo thời gian thực</p>
                             </div>
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                                <TrendingUp class="w-3 h-3 mr-1 text-emerald-600" />
+                            <span
+                                class="inline-flex items-center rounded-full border border-emerald-200/60 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700"
+                            >
+                                <TrendingUp class="mr-1 h-3 w-3 text-emerald-600" />
                                 Real-time
                             </span>
                         </div>
 
                         <!-- Bar Chart Container -->
-                        <div class="h-64 flex items-end justify-between gap-3 pt-8 pb-2 border-b border-slate-100">
+                        <div class="flex h-64 items-end justify-between gap-3 border-b border-slate-100 pb-2 pt-8">
                             <div
                                 v-for="item in chart_revenue"
                                 :key="item.ngay"
-                                class="flex-1 flex flex-col items-center h-full justify-end group relative"
+                                class="group relative flex h-full flex-1 flex-col items-center justify-end"
                             >
                                 <!-- Floating Tooltip on Hover -->
-                                <div class="opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[11px] rounded-xl px-2.5 py-1.5 mb-2 pointer-events-none text-center whitespace-nowrap shadow-lg absolute -top-8 z-20">
+                                <div
+                                    class="pointer-events-none absolute -top-8 z-20 mb-2 whitespace-nowrap rounded-xl bg-slate-900 px-2.5 py-1.5 text-center text-[11px] text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+                                >
                                     <div class="font-bold text-emerald-400">{{ formatCurrency(item.doanh_thu) }}</div>
-                                    <div class="text-slate-300 text-[10px]">{{ item.so_don }} đơn hàng</div>
+                                    <div class="text-[10px] text-slate-300">{{ item.so_don }} đơn hàng</div>
                                 </div>
 
                                 <!-- Sleek Bar with Rounded Top & Gradient -->
                                 <div
-                                    class="w-full max-w-[42px] bg-gradient-to-t from-emerald-600 to-teal-400 hover:from-emerald-500 hover:to-teal-300 rounded-t-xl transition-all duration-300 relative min-h-[10px] shadow-xs cursor-pointer"
+                                    class="shadow-xs relative min-h-[10px] w-full max-w-[42px] cursor-pointer rounded-t-xl bg-gradient-to-t from-emerald-600 to-teal-400 transition-all duration-300 hover:from-emerald-500 hover:to-teal-300"
                                     :style="{ height: `${Math.round((item.doanh_thu / maxRev) * 100)}%` }"
                                 />
 
                                 <!-- X-Axis Date Label -->
-                                <span class="text-xs text-slate-500 font-medium mt-2.5">{{ item.ngay }}</span>
+                                <span class="mt-2.5 text-xs font-medium text-slate-500">{{ item.ngay }}</span>
                             </div>
                         </div>
                     </div>
@@ -297,60 +301,56 @@ const maxStoreRev = Math.max(...props.stores_revenue.map((s) => s.doanh_thu), 1)
                     <!-- Chart Footer Info -->
                     <div class="flex items-center justify-between pt-3 text-xs text-slate-500">
                         <span>Biểu đồ tự động cập nhật theo đơn hàng</span>
-                        <span class="font-semibold text-slate-800">Doanh số cao nhất: <span class="text-emerald-600 font-bold">{{ formatCurrency(maxRev) }}</span></span>
+                        <span class="font-semibold text-slate-800"
+                            >Doanh số cao nhất: <span class="font-bold text-emerald-600">{{ formatCurrency(maxRev) }}</span></span
+                        >
                     </div>
                 </div>
 
                 <!-- STORE REVENUE CARD -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+                <div class="shadow-xs flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6">
                     <div>
                         <!-- Header -->
-                        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                             <div>
-                                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                    <Store class="w-4 h-4 text-emerald-600" />
+                                <h3 class="flex items-center gap-2 text-sm font-bold text-slate-900">
+                                    <Store class="h-4 w-4 text-emerald-600" />
                                     <span>Doanh Thu Theo Chi Nhánh</span>
                                 </h3>
-                                <p class="text-xs text-slate-400 mt-0.5">Xếp hạng theo doanh số bán lẻ</p>
+                                <p class="mt-0.5 text-xs text-slate-400">Xếp hạng theo doanh số bán lẻ</p>
                             </div>
-                            <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                            <span class="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
                                 {{ stores_revenue.length }} điểm bán
                             </span>
                         </div>
 
                         <!-- Store List -->
-                        <div class="py-4 space-y-3.5">
-                            <div
-                                v-for="store in stores_revenue"
-                                :key="store.id"
-                                class="group"
-                            >
-                                <div class="flex items-center justify-between text-xs mb-1.5">
-                                    <span class="font-semibold text-slate-800 truncate max-w-[180px]">{{ store.ten_cua_hang }}</span>
+                        <div class="space-y-3.5 py-4">
+                            <div v-for="store in stores_revenue" :key="store.id" class="group">
+                                <div class="mb-1.5 flex items-center justify-between text-xs">
+                                    <span class="max-w-[180px] truncate font-semibold text-slate-800">{{ store.ten_cua_hang }}</span>
                                     <span class="font-bold text-emerald-600">{{ formatCurrency(store.doanh_thu) }}</span>
                                 </div>
                                 <!-- Micro Progress Bar -->
-                                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                <div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                                     <div
-                                        class="bg-emerald-500 h-1.5 rounded-full transition-all duration-500"
+                                        class="h-1.5 rounded-full bg-emerald-500 transition-all duration-500"
                                         :style="{ width: `${Math.round((store.doanh_thu / maxStoreRev) * 100)}%` }"
                                     />
                                 </div>
-                                <div class="text-[10px] text-slate-400 mt-1">
-                                    {{ store.so_don }} đơn hàng thành công
-                                </div>
+                                <div class="mt-1 text-[10px] text-slate-400">{{ store.so_don }} đơn hàng thành công</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Footer Link -->
-                    <div class="pt-3 border-t border-slate-100">
+                    <div class="border-t border-slate-100 pt-3">
                         <Link
                             :href="route('admin.reports.index')"
-                            class="w-full inline-flex items-center justify-center text-xs font-semibold text-slate-700 hover:text-emerald-600 py-2.5 px-3 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all gap-1"
+                            class="inline-flex w-full items-center justify-center gap-1 rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-700 transition-all hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-emerald-600"
                         >
                             <span>Xem Báo Cáo Doanh Số Chi Nhánh</span>
-                            <ChevronRight class="w-3.5 h-3.5" />
+                            <ChevronRight class="h-3.5 w-3.5" />
                         </Link>
                     </div>
                 </div>
@@ -359,45 +359,49 @@ const maxStoreRev = Math.max(...props.stores_revenue.map((s) => s.doanh_thu), 1)
             <!-- ============================================================== -->
             <!-- 3. TOP PRODUCTS & RECENT ORDERS ROW                            -->
             <!-- ============================================================== -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
                 <!-- TOP SELLING PRODUCTS -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+                <div class="shadow-xs flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6">
                     <div>
                         <!-- Header -->
-                        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                             <div>
-                                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                    <Boxes class="w-4 h-4 text-amber-500" />
+                                <h3 class="flex items-center gap-2 text-sm font-bold text-slate-900">
+                                    <Boxes class="h-4 w-4 text-amber-500" />
                                     <span>Top Sản Phẩm Bán Chạy</span>
                                 </h3>
-                                <p class="text-xs text-slate-400 mt-0.5">Sản phẩm thực phẩm tươi có lượng tiêu thụ lớn</p>
+                                <p class="mt-0.5 text-xs text-slate-400">Sản phẩm thực phẩm tươi có lượng tiêu thụ lớn</p>
                             </div>
                         </div>
 
                         <!-- Product List -->
-                        <div class="py-2 divide-y divide-slate-100">
+                        <div class="divide-y divide-slate-100 py-2">
                             <div
                                 v-for="(prod, idx) in top_products"
                                 :key="prod.san_pham_id"
-                                class="py-3 flex items-center justify-between hover:bg-slate-50/80 px-2 -mx-2 rounded-xl transition-colors"
+                                class="-mx-2 flex items-center justify-between rounded-xl px-2 py-3 transition-colors hover:bg-slate-50/80"
                             >
-                                <div class="flex items-center space-x-3 min-w-0">
+                                <div class="flex min-w-0 items-center space-x-3">
                                     <span
                                         :class="[
-                                            'w-6 h-6 rounded-lg font-bold flex items-center justify-center text-[11px] shrink-0',
-                                            idx === 0 ? 'bg-amber-100 text-amber-800' :
-                                            idx === 1 ? 'bg-slate-200 text-slate-700' :
-                                            idx === 2 ? 'bg-amber-50 text-amber-900 border border-amber-300' : 'bg-slate-100 text-slate-500'
+                                            'flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold',
+                                            idx === 0
+                                                ? 'bg-amber-100 text-amber-800'
+                                                : idx === 1
+                                                  ? 'bg-slate-200 text-slate-700'
+                                                  : idx === 2
+                                                    ? 'border border-amber-300 bg-amber-50 text-amber-900'
+                                                    : 'bg-slate-100 text-slate-500',
                                         ]"
                                     >
                                         {{ idx + 1 }}
                                     </span>
                                     <div class="min-w-0">
-                                        <div class="font-semibold text-xs text-slate-800 truncate max-w-[150px]">{{ prod.ten_san_pham }}</div>
-                                        <span class="text-[11px] text-emerald-600 font-medium">Đã bán: {{ Number(prod.tong_ban).toFixed(1) }}</span>
+                                        <div class="max-w-[150px] truncate text-xs font-semibold text-slate-800">{{ prod.ten_san_pham }}</div>
+                                        <span class="text-[11px] font-medium text-emerald-600">Đã bán: {{ Number(prod.tong_ban).toFixed(1) }}</span>
                                     </div>
                                 </div>
-                                <span class="font-bold text-xs text-slate-900 whitespace-nowrap pl-2">
+                                <span class="whitespace-nowrap pl-2 text-xs font-bold text-slate-900">
                                     {{ formatCurrency(prod.tong_tien) }}
                                 </span>
                             </div>
@@ -405,77 +409,79 @@ const maxStoreRev = Math.max(...props.stores_revenue.map((s) => s.doanh_thu), 1)
                     </div>
 
                     <!-- Footer Link -->
-                    <div class="pt-3 border-t border-slate-100">
+                    <div class="border-t border-slate-100 pt-3">
                         <Link
                             :href="route('admin.products.index')"
-                            class="w-full inline-flex items-center justify-center text-xs font-semibold text-slate-700 hover:text-emerald-600 py-2.5 px-3 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all gap-1"
+                            class="inline-flex w-full items-center justify-center gap-1 rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-700 transition-all hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-emerald-600"
                         >
                             <span>Xem Kho Hàng & Sản Phẩm</span>
-                            <ChevronRight class="w-3.5 h-3.5" />
+                            <ChevronRight class="h-3.5 w-3.5" />
                         </Link>
                     </div>
                 </div>
 
                 <!-- RECENT ORDERS TABLE -->
-                <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col justify-between">
+                <div class="shadow-xs flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/80 bg-white lg:col-span-2">
                     <div>
                         <!-- Header -->
-                        <div class="p-5 sm:px-6 sm:py-5 border-b border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center justify-between border-b border-slate-100 p-5 sm:px-6 sm:py-5">
                             <div>
-                                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                    <ShoppingBag class="w-4 h-4 text-emerald-600" />
+                                <h3 class="flex items-center gap-2 text-sm font-bold text-slate-900">
+                                    <ShoppingBag class="h-4 w-4 text-emerald-600" />
                                     <span>Đơn Hàng Mới Nhất Chuỗi</span>
                                 </h3>
-                                <p class="text-xs text-slate-400 mt-0.5">Theo dõi luồng đơn hàng trực tuyến và POS</p>
+                                <p class="mt-0.5 text-xs text-slate-400">Theo dõi luồng đơn hàng trực tuyến và POS</p>
                             </div>
                             <Link
                                 :href="route('admin.orders.index')"
-                                class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 hover:underline"
+                                class="flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
                             >
                                 <span>Xem tất cả</span>
-                                <ChevronRight class="w-3.5 h-3.5" />
+                                <ChevronRight class="h-3.5 w-3.5" />
                             </Link>
                         </div>
 
                         <!-- Table -->
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs border-collapse">
+                            <table class="w-full border-collapse text-left text-xs">
                                 <thead>
-                                    <tr class="bg-slate-50/70 border-b border-slate-100 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
-                                        <th class="py-3 px-4 sm:px-6">Mã Đơn</th>
-                                        <th class="py-3 px-4">Khách Hàng</th>
-                                        <th class="py-3 px-4">Chi Nhánh</th>
-                                        <th class="py-3 px-4">Tổng Tiền</th>
-                                        <th class="py-3 px-4 text-center">Trạng Thái</th>
-                                        <th class="py-3 px-4 sm:px-6 text-right">Chi Tiết</th>
+                                    <tr
+                                        class="border-b border-slate-100 bg-slate-50/70 text-[10px] font-semibold uppercase tracking-wider text-slate-400"
+                                    >
+                                        <th class="px-4 py-3 sm:px-6">Mã Đơn</th>
+                                        <th class="px-4 py-3">Khách Hàng</th>
+                                        <th class="px-4 py-3">Chi Nhánh</th>
+                                        <th class="px-4 py-3">Tổng Tiền</th>
+                                        <th class="px-4 py-3 text-center">Trạng Thái</th>
+                                        <th class="px-4 py-3 text-right sm:px-6">Chi Tiết</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
-                                    <tr v-for="order in recent_orders" :key="order.id" class="hover:bg-slate-50/60 transition-colors">
-                                        <td class="py-3 px-4 sm:px-6 font-semibold text-emerald-600">
+                                    <tr v-for="order in recent_orders" :key="order.id" class="transition-colors hover:bg-slate-50/60">
+                                        <td class="px-4 py-3 font-semibold text-emerald-600 sm:px-6">
                                             <Link :href="route('admin.orders.show', order.id)" class="hover:underline">
                                                 {{ order.ma_don_hang }}
                                             </Link>
                                         </td>
-                                        <td class="py-3 px-4 font-medium text-slate-800">{{ order.khach_hang }}</td>
-                                        <td class="py-3 px-4 text-slate-500">{{ order.cua_hang }}</td>
-                                        <td class="py-3 px-4 font-bold text-slate-900">{{ formatCurrency(order.tong_thanhtoan) }}</td>
-                                        <td class="py-3 px-4 text-center">
+                                        <td class="px-4 py-3 font-medium text-slate-800">{{ order.khach_hang }}</td>
+                                        <td class="px-4 py-3 text-slate-500">{{ order.cua_hang }}</td>
+                                        <td class="px-4 py-3 font-bold text-slate-900">{{ formatCurrency(order.tong_thanhtoan) }}</td>
+                                        <td class="px-4 py-3 text-center">
                                             <span
                                                 :class="[
-                                                    'inline-block px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wide',
-                                                    getStatusBadge(order.trang_thai_don_hang).class
+                                                    'inline-block rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-wide',
+                                                    getStatusBadge(order.trang_thai_don_hang).class,
                                                 ]"
                                             >
                                                 {{ getStatusBadge(order.trang_thai_don_hang).label }}
                                             </span>
                                         </td>
-                                        <td class="py-3 px-4 sm:px-6 text-right">
+                                        <td class="px-4 py-3 text-right sm:px-6">
                                             <Link
                                                 :href="route('admin.orders.show', order.id)"
-                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-700 font-medium transition-colors"
+                                                class="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 font-medium text-slate-700 transition-colors hover:bg-emerald-600 hover:text-white"
                                             >
-                                                <Eye class="w-3 h-3" />
+                                                <Eye class="h-3 w-3" />
                                                 <span>Xem</span>
                                             </Link>
                                         </td>
@@ -486,9 +492,11 @@ const maxStoreRev = Math.max(...props.stores_revenue.map((s) => s.doanh_thu), 1)
                     </div>
 
                     <!-- Footer Table Count -->
-                    <div class="px-6 py-3 border-t border-slate-100 bg-slate-50/40 text-[11px] text-slate-500 flex items-center justify-between">
+                    <div class="flex items-center justify-between border-t border-slate-100 bg-slate-50/40 px-6 py-3 text-[11px] text-slate-500">
                         <span>Hiển thị {{ recent_orders.length }} đơn hàng phát sinh gần nhất</span>
-                        <Link :href="route('admin.orders.index')" class="text-emerald-600 hover:underline font-medium">Quản lý toàn bộ đơn &rarr;</Link>
+                        <Link :href="route('admin.orders.index')" class="font-medium text-emerald-600 hover:underline"
+                            >Quản lý toàn bộ đơn &rarr;</Link
+                        >
                     </div>
                 </div>
             </div>

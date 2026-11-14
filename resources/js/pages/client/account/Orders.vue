@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
-import StoreLayout from '@/layouts/StoreLayout.vue';
 import AccountSidebar from '@/components/storefront/AccountSidebar.vue';
-import { Package, ChevronRight, PackageX, Ban, X, Clock } from 'lucide-vue-next';
+import StoreLayout from '@/layouts/StoreLayout.vue';
+import { Link, router } from '@inertiajs/vue3';
+import { Ban, ChevronRight, Clock, PackageX, X } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 const props = defineProps<{
     orders: {
@@ -57,54 +57,63 @@ function openCancelModal(order: any) {
 function submitCancel() {
     if (!cancellingOrder.value) return;
 
-    const finalReason = cancelReasonSelect.value === 'Khác'
-        ? cancelReasonCustom.value.trim()
-        : (cancelReasonCustom.value.trim() ? `${cancelReasonSelect.value} - ${cancelReasonCustom.value.trim()}` : cancelReasonSelect.value);
+    const finalReason =
+        cancelReasonSelect.value === 'Khác'
+            ? cancelReasonCustom.value.trim()
+            : cancelReasonCustom.value.trim()
+              ? `${cancelReasonSelect.value} - ${cancelReasonCustom.value.trim()}`
+              : cancelReasonSelect.value;
 
     isSubmittingCancel.value = true;
-    router.post(route('account.orders.cancel', cancellingOrder.value.id), {
-        ly_do: finalReason || 'Khách hàng yêu cầu hủy đơn',
-    }, {
-        onSuccess: () => {
-            isCancelModalOpen.value = false;
-            cancellingOrder.value = null;
+    router.post(
+        route('account.orders.cancel', cancellingOrder.value.id),
+        {
+            ly_do: finalReason || 'Khách hàng yêu cầu hủy đơn',
         },
-        onFinish: () => {
-            isSubmittingCancel.value = false;
+        {
+            onSuccess: () => {
+                isCancelModalOpen.value = false;
+                cancellingOrder.value = null;
+            },
+            onFinish: () => {
+                isSubmittingCancel.value = false;
+            },
         },
-    });
+    );
 }
 </script>
 
 <template>
     <StoreLayout title="Lịch Sử Đơn Hàng">
         <!-- BREADCRUMBS -->
-        <div class="bg-white border-b border-gray-100 py-3">
-            <div class="max-w-7xl mx-auto px-4 flex items-center space-x-2 text-xs text-gray-500">
-                <Link :href="route('home')" class="hover:text-emerald-600 transition-colors">Trang chủ</Link>
-                <ChevronRight class="w-3.5 h-3.5 text-gray-400" />
-                <Link :href="route('account.index')" class="hover:text-emerald-600 transition-colors">Tài khoản</Link>
-                <ChevronRight class="w-3.5 h-3.5 text-gray-400" />
-                <span class="text-gray-900 font-semibold">Đơn hàng của tôi</span>
+        <div class="border-b border-gray-100 bg-white py-3">
+            <div class="mx-auto flex max-w-7xl items-center space-x-2 px-4 text-xs text-gray-500">
+                <Link :href="route('home')" class="transition-colors hover:text-emerald-600">Trang chủ</Link>
+                <ChevronRight class="h-3.5 w-3.5 text-gray-400" />
+                <Link :href="route('account.index')" class="transition-colors hover:text-emerald-600">Tài khoản</Link>
+                <ChevronRight class="h-3.5 w-3.5 text-gray-400" />
+                <span class="font-semibold text-gray-900">Đơn hàng của tôi</span>
             </div>
         </div>
 
-        <div class="max-w-7xl mx-auto px-4 py-8">
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div class="mx-auto max-w-7xl px-4 py-8">
+            <div class="grid grid-cols-1 gap-8 lg:grid-cols-4">
                 <!-- SIDEBAR -->
                 <div class="lg:col-span-1">
                     <AccountSidebar activeTab="orders" />
                 </div>
 
                 <!-- ORDERS LIST -->
-                <div class="lg:col-span-3 space-y-6">
+                <div class="space-y-6 lg:col-span-3">
                     <!-- STATUS TABS -->
-                    <div class="bg-white p-2 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-1 overflow-x-auto text-xs font-bold">
+                    <div
+                        class="flex items-center space-x-1 overflow-x-auto rounded-2xl border border-gray-100 bg-white p-2 text-xs font-bold shadow-sm"
+                    >
                         <button
                             v-for="t in tabs"
                             :key="t.key"
                             @click="setStatus(t.key)"
-                            class="px-4 py-2 rounded-xl transition-all whitespace-nowrap"
+                            class="whitespace-nowrap rounded-xl px-4 py-2 transition-all"
                             :class="currentStatus === t.key ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'"
                         >
                             {{ t.label }}
@@ -116,17 +125,17 @@ function submitCancel() {
                         <div
                             v-for="order in orders.data"
                             :key="order.id"
-                            class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-4 text-xs"
+                            class="space-y-4 rounded-3xl border border-gray-100 bg-white p-6 text-xs shadow-sm"
                         >
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-gray-100 gap-2">
+                            <div class="flex flex-col justify-between gap-2 border-b border-gray-100 pb-3 sm:flex-row sm:items-center">
                                 <div class="flex items-center space-x-2">
                                     <span class="text-gray-400">Mã đơn:</span>
-                                    <strong class="font-mono text-gray-900 text-sm">{{ order.ma_don_hang }}</strong>
+                                    <strong class="font-mono text-sm text-gray-900">{{ order.ma_don_hang }}</strong>
                                     <span class="text-gray-300">•</span>
                                     <span class="text-gray-500">{{ new Date(order.created_at).toLocaleDateString('vi-VN') }}</span>
                                 </div>
                                 <span
-                                    class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider w-fit"
+                                    class="w-fit rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider"
                                     :class="statusMap[order.trang_thai_don_hang]?.class || 'bg-gray-100 text-gray-700'"
                                 >
                                     {{ statusMap[order.trang_thai_don_hang]?.label || order.trang_thai_don_hang }}
@@ -135,59 +144,55 @@ function submitCancel() {
 
                             <!-- Items preview -->
                             <div class="space-y-2">
-                                <div
-                                    v-for="item in order.chi_tiets"
-                                    :key="item.id"
-                                    class="flex items-center justify-between py-1"
-                                >
+                                <div v-for="item in order.chi_tiets" :key="item.id" class="flex items-center justify-between py-1">
                                     <div class="flex items-center space-x-3">
                                         <img
                                             :src="item.hinh_anh_snapshot || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200'"
                                             :alt="item.ten_san_pham"
-                                            class="w-10 h-10 rounded-xl object-cover bg-gray-50"
+                                            class="h-10 w-10 rounded-xl bg-gray-50 object-cover"
                                         />
                                         <div>
                                             <p class="font-bold text-gray-900">{{ item.ten_san_pham }}</p>
-                                            <p class="text-gray-400 text-[11px]">{{ item.so_luong }} × {{ formatPrice(item.don_gia) }}</p>
+                                            <p class="text-[11px] text-gray-400">{{ item.so_luong }} × {{ formatPrice(item.don_gia) }}</p>
                                         </div>
                                     </div>
                                     <span class="font-bold text-gray-800">{{ formatPrice(item.thanh_tien) }}</span>
                                 </div>
                             </div>
 
-                            <div class="pt-3 border-t border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                            <div class="flex flex-col justify-between gap-3 border-t border-gray-100 pt-3 sm:flex-row sm:items-center">
                                 <span class="text-gray-500">
                                     Chi nhánh: <strong class="text-gray-800">{{ order.cua_hang?.ten_cua_hang || 'Fresh Food' }}</strong>
                                 </span>
-                                <div class="flex flex-wrap items-center justify-between sm:justify-end gap-3">
+                                <div class="flex flex-wrap items-center justify-between gap-3 sm:justify-end">
                                     <div class="text-right">
-                                        <span class="text-gray-500 text-[11px]">Tổng đơn: </span>
-                                        <span class="font-black text-sm text-emerald-700">{{ formatPrice(order.tong_thanhtoan) }}</span>
+                                        <span class="text-[11px] text-gray-500">Tổng đơn: </span>
+                                        <span class="text-sm font-black text-emerald-700">{{ formatPrice(order.tong_thanhtoan) }}</span>
                                     </div>
 
                                     <!-- NÚT HỦY KHI CHỜ XÁC NHẬN -->
                                     <button
                                         v-if="order.trang_thai_don_hang === 'cho_xac_nhan'"
                                         @click="openCancelModal(order)"
-                                        class="px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs transition-colors shadow-2xs flex items-center space-x-1"
+                                        class="shadow-2xs flex items-center space-x-1 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-bold text-red-700 transition-colors hover:bg-red-100"
                                     >
-                                        <Ban class="w-3.5 h-3.5 text-red-600" />
+                                        <Ban class="h-3.5 w-3.5 text-red-600" />
                                         <span>Hủy đơn</span>
                                     </button>
 
                                     <!-- NHÃN KHI ĐÃ DUYỆT VÀ ĐANG CHUẨN BỊ (KHÔNG THỂ HỦY) -->
                                     <span
                                         v-else-if="order.trang_thai_don_hang === 'dang_chuan_bi'"
-                                        class="px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-[11px] font-bold flex items-center space-x-1"
+                                        class="flex items-center space-x-1 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-bold text-blue-700"
                                         title="Đơn hàng đã được duyệt và đang chuẩn bị đóng gói, không thể hủy"
                                     >
-                                        <Clock class="w-3.5 h-3.5 text-blue-600" />
+                                        <Clock class="h-3.5 w-3.5 text-blue-600" />
                                         <span>Đang chuẩn bị (Không thể hủy)</span>
                                     </span>
 
                                     <Link
                                         :href="route('account.orders.show', { maDonHang: order.ma_don_hang })"
-                                        class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-colors shadow-sm"
+                                        class="rounded-xl bg-emerald-600 px-4 py-2 font-bold text-white shadow-sm transition-colors hover:bg-emerald-700"
                                     >
                                         Chi tiết đơn hàng
                                     </Link>
@@ -197,9 +202,9 @@ function submitCancel() {
                     </div>
 
                     <!-- EMPTY ORDERS -->
-                    <div v-else class="bg-white rounded-3xl p-16 text-center border border-gray-100 shadow-sm">
-                        <PackageX class="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                        <h4 class="text-sm font-bold text-gray-800 mb-1">Không có đơn hàng nào</h4>
+                    <div v-else class="rounded-3xl border border-gray-100 bg-white p-16 text-center shadow-sm">
+                        <PackageX class="mx-auto mb-3 h-12 w-12 text-gray-300" />
+                        <h4 class="mb-1 text-sm font-bold text-gray-800">Không có đơn hàng nào</h4>
                         <p class="text-xs text-gray-400">Bạn chưa có đơn hàng nào ở trạng thái này.</p>
                     </div>
 
@@ -209,11 +214,11 @@ function submitCancel() {
                             v-for="(link, i) in orders.links"
                             :key="i"
                             :href="link.url || '#'"
-                            class="px-3.5 py-2 rounded-xl text-xs font-bold transition-colors"
+                            class="rounded-xl px-3.5 py-2 text-xs font-bold transition-colors"
                             :class="{
                                 'bg-emerald-600 text-white shadow-sm': link.active,
-                                'bg-white text-gray-700 hover:bg-gray-100 border border-gray-100': !link.active && link.url,
-                                'text-gray-300 pointer-events-none': !link.url
+                                'border border-gray-100 bg-white text-gray-700 hover:bg-gray-100': !link.active && link.url,
+                                'pointer-events-none text-gray-300': !link.url,
                             }"
                             v-html="link.label"
                         />
@@ -223,47 +228,52 @@ function submitCancel() {
         </div>
 
         <!-- CANCEL ORDER CONFIRMATION MODAL -->
-        <div v-if="isCancelModalOpen && cancellingOrder" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in fade-in duration-200">
-                <div class="flex justify-between items-center pb-3 border-b border-gray-100">
-                    <h3 class="font-black text-base text-gray-900 flex items-center">
-                        <Ban class="w-5 h-5 mr-2 text-red-600" /> Xác Nhận Hủy Đơn Hàng
+        <div v-if="isCancelModalOpen && cancellingOrder" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <div class="w-full max-w-md space-y-4 rounded-3xl bg-white p-6 shadow-2xl duration-200 animate-in fade-in">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <h3 class="flex items-center text-base font-black text-gray-900">
+                        <Ban class="mr-2 h-5 w-5 text-red-600" /> Xác Nhận Hủy Đơn Hàng
                     </h3>
                     <button @click="isCancelModalOpen = false" class="text-gray-400 hover:text-gray-600">
-                        <X class="w-5 h-5" />
+                        <X class="h-5 w-5" />
                     </button>
                 </div>
 
-                <div class="p-3.5 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-800 space-y-1">
-                    <p class="font-bold">Mã đơn: <span class="font-mono text-gray-900">{{ cancellingOrder.ma_don_hang }}</span></p>
+                <div class="space-y-1 rounded-2xl border border-red-200 bg-red-50 p-3.5 text-xs text-red-800">
+                    <p class="font-bold">
+                        Mã đơn: <span class="font-mono text-gray-900">{{ cancellingOrder.ma_don_hang }}</span>
+                    </p>
                     <p class="text-[11px] leading-relaxed">
-                        Bạn chỉ có thể tự hủy đơn khi đơn hàng đang ở trạng thái <strong>Chờ xác nhận</strong>. Khi chi nhánh đã duyệt và chuyển sang trạng thái <strong>Đang chuẩn bị</strong> đóng gói, đơn hàng sẽ không thể hủy tự động.
+                        Bạn chỉ có thể tự hủy đơn khi đơn hàng đang ở trạng thái <strong>Chờ xác nhận</strong>. Khi chi nhánh đã duyệt và chuyển sang
+                        trạng thái <strong>Đang chuẩn bị</strong> đóng gói, đơn hàng sẽ không thể hủy tự động.
                     </p>
                 </div>
 
                 <!-- Cancellation reason select -->
                 <div class="space-y-1.5 text-xs">
-                    <label class="font-bold text-gray-700 block">Chọn lý do hủy đơn *</label>
+                    <label class="block font-bold text-gray-700">Chọn lý do hủy đơn *</label>
                     <select
                         v-model="cancelReasonSelect"
-                        class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-red-500 focus:outline-none"
+                        class="w-full rounded-xl border border-gray-200 bg-gray-50 p-3 focus:border-red-500 focus:outline-none"
                     >
                         <option value="Đổi ý không muốn mua nữa">Đổi ý không muốn mua nữa</option>
                         <option value="Muốn thay đổi địa chỉ / số điện thoại">Muốn thay đổi địa chỉ / số điện thoại nhận</option>
                         <option value="Đặt nhầm sản phẩm hoặc số lượng">Đặt nhầm sản phẩm hoặc số lượng</option>
-                        <option value="Tìm thấy nơi khác có giá hoặc thời gian giao tốt hơn">Tìm thấy nơi khác có giá hoặc thời gian giao tốt hơn</option>
+                        <option value="Tìm thấy nơi khác có giá hoặc thời gian giao tốt hơn">
+                            Tìm thấy nơi khác có giá hoặc thời gian giao tốt hơn
+                        </option>
                         <option value="Khác">Lý do khác...</option>
                     </select>
                 </div>
 
                 <!-- Optional Custom Note -->
                 <div class="space-y-1.5 text-xs">
-                    <label class="font-bold text-gray-700 block">Ghi chú thêm (tùy chọn)</label>
+                    <label class="block font-bold text-gray-700">Ghi chú thêm (tùy chọn)</label>
                     <textarea
                         v-model="cancelReasonCustom"
                         rows="2"
                         placeholder="Nhập thêm chi tiết lý do bạn muốn hủy đơn..."
-                        class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-red-500 focus:outline-none text-xs"
+                        class="w-full rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs focus:border-red-500 focus:outline-none"
                     ></textarea>
                 </div>
 
@@ -272,7 +282,7 @@ function submitCancel() {
                     <button
                         type="button"
                         @click="isCancelModalOpen = false"
-                        class="flex-1 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold transition-colors"
+                        class="flex-1 rounded-xl bg-gray-100 py-3 text-xs font-bold text-gray-700 transition-colors hover:bg-gray-200"
                     >
                         Đóng
                     </button>
@@ -280,7 +290,7 @@ function submitCancel() {
                         type="button"
                         @click="submitCancel"
                         :disabled="isSubmittingCancel"
-                        class="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center justify-center space-x-1"
+                        class="flex flex-1 items-center justify-center space-x-1 rounded-xl bg-red-600 py-3 text-xs font-bold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
                     >
                         <span>{{ isSubmittingCancel ? 'Đang hủy...' : 'Xác nhận hủy đơn' }}</span>
                     </button>

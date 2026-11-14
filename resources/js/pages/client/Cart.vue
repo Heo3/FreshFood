@@ -1,21 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
-import StoreLayout from '@/layouts/StoreLayout.vue';
 import { useCart } from '@/composables/useCart';
-import {
-    ShoppingBag,
-    Trash2,
-    ArrowRight,
-    Tag,
-    Truck,
-    ShieldAlert,
-    ChevronRight,
-    MapPin,
-    TicketPercent,
-    Check,
-    Sparkles,
-} from 'lucide-vue-next';
+import StoreLayout from '@/layouts/StoreLayout.vue';
+import { Link } from '@inertiajs/vue3';
+import { ArrowRight, Check, ChevronRight, MapPin, ShieldAlert, ShoppingBag, Sparkles, Tag, TicketPercent, Trash2, Truck } from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
 
 const props = withDefaults(
     defineProps<{
@@ -27,10 +15,23 @@ const props = withDefaults(
     {
         availableCoupons: () => [],
         appliedCoupon: null,
-    }
+    },
 );
 
-const { cartItems, selectedStoreId, subtotal, totalItems, updateQuantity, removeFromCart, clearCart, showToast, refreshCartPrices, syncCartToServer, saveCart, syncWithServer } = useCart();
+const {
+    cartItems,
+    selectedStoreId,
+    subtotal,
+    totalItems,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+    showToast,
+    refreshCartPrices,
+    syncCartToServer,
+    saveCart,
+    syncWithServer,
+} = useCart();
 
 const currentStoreName = computed(() => {
     return props.stores?.find((s) => s.id === selectedStoreId.value)?.ten_cua_hang || 'Chi nhánh đã chọn';
@@ -96,7 +97,7 @@ async function handleApplyCoupon() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
             },
             body: JSON.stringify({
@@ -151,51 +152,54 @@ function formatPrice(val: number): string {
 <template>
     <StoreLayout title="Giỏ Hàng" :stores="stores">
         <!-- BREADCRUMBS -->
-        <div class="bg-white border-b border-gray-100 py-3">
-            <div class="max-w-7xl mx-auto px-4 flex items-center space-x-2 text-xs text-gray-500">
-                <Link :href="route('home')" class="hover:text-emerald-600 transition-colors">Trang chủ</Link>
-                <ChevronRight class="w-3.5 h-3.5 text-gray-400" />
-                <span class="text-gray-900 font-semibold">Giỏ hàng của bạn</span>
+        <div class="border-b border-gray-100 bg-white py-3">
+            <div class="mx-auto flex max-w-7xl items-center space-x-2 px-4 text-xs text-gray-500">
+                <Link :href="route('home')" class="transition-colors hover:text-emerald-600">Trang chủ</Link>
+                <ChevronRight class="h-3.5 w-3.5 text-gray-400" />
+                <span class="font-semibold text-gray-900">Giỏ hàng của bạn</span>
             </div>
         </div>
 
-        <div class="max-w-7xl mx-auto px-4 py-8">
-            <h1 class="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight mb-6 flex items-center">
+        <div class="mx-auto max-w-7xl px-4 py-8">
+            <h1 class="mb-6 flex items-center text-2xl font-black tracking-tight text-gray-900 sm:text-3xl">
                 Giỏ Hàng Của Bạn
-                <span class="ml-3 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">
-                    {{ totalItems }} sản phẩm
-                </span>
+                <span class="ml-3 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700"> {{ totalItems }} sản phẩm </span>
             </h1>
 
             <!-- IF CART HAS ITEMS -->
-            <div v-if="cartItems.length > 0" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div v-if="cartItems.length > 0" class="grid grid-cols-1 gap-8 lg:grid-cols-3">
                 <!-- CART ITEMS LIST (LEFT) -->
-                <div class="lg:col-span-2 space-y-4">
+                <div class="space-y-4 lg:col-span-2">
                     <!-- Branch Notice -->
-                    <div class="px-4 py-3 bg-emerald-50/80 border border-emerald-200/80 rounded-2xl flex flex-wrap items-center justify-between gap-2 shadow-xs">
+                    <div
+                        class="shadow-xs flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-4 py-3"
+                    >
                         <div class="flex items-center space-x-2 text-xs text-emerald-950">
-                            <MapPin class="w-4 h-4 text-emerald-600 shrink-0" />
-                            <span>Đơn hàng được phục vụ bởi: <strong class="text-emerald-800 font-bold">{{ currentStoreName }}</strong></span>
+                            <MapPin class="h-4 w-4 shrink-0 text-emerald-600" />
+                            <span
+                                >Đơn hàng được phục vụ bởi: <strong class="font-bold text-emerald-800">{{ currentStoreName }}</strong></span
+                            >
                         </div>
-                        <span class="text-[11px] font-semibold text-emerald-700 bg-white/90 px-2.5 py-1 rounded-xl border border-emerald-100">
+                        <span class="rounded-xl border border-emerald-100 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
                             Tất cả sản phẩm phải cùng chi nhánh
                         </span>
                     </div>
 
-                    <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+                    <div class="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
                         <!-- Free shipping progress bar -->
-                        <div class="mb-6 p-4 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-center space-x-3 text-xs">
-                            <Truck class="w-5 h-5 text-emerald-600 shrink-0" />
+                        <div class="mb-6 flex items-center space-x-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-xs">
+                            <Truck class="h-5 w-5 shrink-0 text-emerald-600" />
                             <div class="flex-1">
                                 <p v-if="subtotal >= 300000" class="font-bold text-emerald-800">
                                     🎉 Chúc mừng! Đơn hàng của bạn được MIỄN PHÍ giao hàng siêu tốc 2h.
                                 </p>
                                 <p v-else class="text-gray-700">
-                                    Mua thêm <strong class="text-emerald-700 font-black">{{ formatPrice(300000 - subtotal) }}</strong> để được <strong class="text-emerald-700">MIỄN PHÍ GIAO HÀNG</strong>!
+                                    Mua thêm <strong class="font-black text-emerald-700">{{ formatPrice(300000 - subtotal) }}</strong> để được
+                                    <strong class="text-emerald-700">MIỄN PHÍ GIAO HÀNG</strong>!
                                 </p>
-                                <div class="w-full bg-gray-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                                <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
                                     <div
-                                        class="bg-emerald-600 h-full rounded-full transition-all duration-300"
+                                        class="h-full rounded-full bg-emerald-600 transition-all duration-300"
                                         :style="{ width: `${Math.min(100, (subtotal / 300000) * 100)}%` }"
                                     ></div>
                                 </div>
@@ -207,39 +211,39 @@ function formatPrice(val: number): string {
                             <div
                                 v-for="item in cartItems"
                                 :key="item.san_pham_id"
-                                class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                                class="flex flex-col justify-between gap-4 py-4 sm:flex-row sm:items-center"
                             >
-                                <div class="flex items-center space-x-3.5 min-w-0">
+                                <div class="flex min-w-0 items-center space-x-3.5">
                                     <img
                                         :src="item.hinh_anh_chinh"
                                         :alt="item.ten_san_pham"
-                                        class="w-16 h-16 rounded-2xl object-cover bg-gray-50 border border-gray-100 shrink-0"
+                                        class="h-16 w-16 shrink-0 rounded-2xl border border-gray-100 bg-gray-50 object-cover"
                                     />
                                     <div class="min-w-0">
                                         <Link
                                             :href="'/san-pham/' + item.duong_dan_seo"
-                                            class="font-bold text-sm text-gray-900 hover:text-emerald-600 transition-colors line-clamp-1"
+                                            class="line-clamp-1 text-sm font-bold text-gray-900 transition-colors hover:text-emerald-600"
                                         >
                                             {{ item.ten_san_pham }}
                                         </Link>
-                                        <p class="text-xs text-gray-400 mt-0.5">
-                                            {{ item.quy_cach || ('Đơn vị: ' + item.don_vi_tinh) }}
+                                        <p class="mt-0.5 text-xs text-gray-400">
+                                            {{ item.quy_cach || 'Đơn vị: ' + item.don_vi_tinh }}
                                         </p>
-                                        <div class="text-xs font-bold text-emerald-700 mt-1">
+                                        <div class="mt-1 text-xs font-bold text-emerald-700">
                                             {{ formatPrice(item.gia_giam || item.gia_ban) }}
-                                            <span v-if="item.gia_giam" class="text-gray-400 line-through text-[11px] ml-1 font-normal">
+                                            <span v-if="item.gia_giam" class="ml-1 text-[11px] font-normal text-gray-400 line-through">
                                                 {{ formatPrice(item.gia_ban) }}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="flex items-center justify-between sm:justify-end space-x-6">
+                                <div class="flex items-center justify-between space-x-6 sm:justify-end">
                                     <!-- Quantity Stepper -->
-                                    <div class="flex items-center border border-gray-200 rounded-xl bg-gray-50 p-1">
+                                    <div class="flex items-center rounded-xl border border-gray-200 bg-gray-50 p-1">
                                         <button
                                             @click="updateQuantity(item.san_pham_id, item.so_luong - 1)"
-                                            class="w-7 h-7 rounded-lg bg-white shadow-sm font-bold text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors text-xs"
+                                            class="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-xs font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-100"
                                         >
                                             -
                                         </button>
@@ -247,18 +251,18 @@ function formatPrice(val: number): string {
                                             type="number"
                                             :value="item.so_luong"
                                             @change="updateQuantity(item.san_pham_id, parseFloat(($event.target as any).value) || 1)"
-                                            class="w-10 text-center text-xs font-black bg-transparent border-none focus:outline-none"
+                                            class="w-10 border-none bg-transparent text-center text-xs font-black focus:outline-none"
                                         />
                                         <button
                                             @click="updateQuantity(item.san_pham_id, item.so_luong + 1)"
-                                            class="w-7 h-7 rounded-lg bg-white shadow-sm font-bold text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors text-xs"
+                                            class="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-xs font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-100"
                                         >
                                             +
                                         </button>
                                     </div>
 
                                     <!-- Line total -->
-                                    <div class="text-right min-w-[90px]">
+                                    <div class="min-w-[90px] text-right">
                                         <span class="text-sm font-black text-gray-900">
                                             {{ formatPrice((item.gia_giam || item.gia_ban) * item.so_luong) }}
                                         </span>
@@ -267,46 +271,42 @@ function formatPrice(val: number): string {
                                     <!-- Remove button -->
                                     <button
                                         @click="removeFromCart(item.san_pham_id)"
-                                        class="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                                        class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
                                         title="Xóa khỏi giỏ"
                                     >
-                                        <Trash2 class="w-4 h-4" />
+                                        <Trash2 class="h-4 w-4" />
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="pt-4 border-t border-gray-100 flex justify-between items-center text-xs">
-                            <Link :href="route('products.index')" class="text-emerald-700 font-bold hover:underline flex items-center">
+                        <div class="flex items-center justify-between border-t border-gray-100 pt-4 text-xs">
+                            <Link :href="route('products.index')" class="flex items-center font-bold text-emerald-700 hover:underline">
                                 ← Tiếp tục mua sắm thực phẩm khác
                             </Link>
-                            <button @click="handleClearCart" class="text-gray-400 hover:text-red-500 font-medium">
-                                Xóa tất cả giỏ hàng
-                            </button>
+                            <button @click="handleClearCart" class="font-medium text-gray-400 hover:text-red-500">Xóa tất cả giỏ hàng</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- ORDER SUMMARY & CHECKOUT (RIGHT) -->
                 <div class="space-y-4">
-                    <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-5">
-                        <h3 class="text-base font-black text-gray-900 pb-3 border-b border-gray-100">
-                            Tóm Tắt Đơn Hàng
-                        </h3>
+                    <div class="space-y-5 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+                        <h3 class="border-b border-gray-100 pb-3 text-base font-black text-gray-900">Tóm Tắt Đơn Hàng</h3>
 
                         <!-- Voucher Code Form -->
                         <div class="space-y-2">
                             <div class="flex items-center justify-between">
-                                <label class="text-xs font-bold text-gray-700 flex items-center">
-                                    <Tag class="w-3.5 h-3.5 mr-1 text-emerald-600" /> Mã Giảm Giá / Voucher
+                                <label class="flex items-center text-xs font-bold text-gray-700">
+                                    <Tag class="mr-1 h-3.5 w-3.5 text-emerald-600" /> Mã Giảm Giá / Voucher
                                 </label>
                                 <button
                                     v-if="availableCoupons && availableCoupons.length > 0"
                                     type="button"
                                     @click="showVoucherList = !showVoucherList"
-                                    class="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer"
+                                    class="flex cursor-pointer items-center gap-1 text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline"
                                 >
-                                    <TicketPercent class="w-3.5 h-3.5" />
+                                    <TicketPercent class="h-3.5 w-3.5" />
                                     <span>{{ showVoucherList ? 'Thu gọn' : `Xem mã (${availableCoupons.length})` }}</span>
                                 </button>
                             </div>
@@ -316,29 +316,32 @@ function formatPrice(val: number): string {
                                     v-model="couponCode"
                                     type="text"
                                     placeholder="Nhập mã (VD: FRESH10)"
-                                    class="flex-1 uppercase font-mono text-xs px-3 py-2.5 border border-gray-200 rounded-xl focus:border-emerald-500 focus:outline-none"
+                                    class="flex-1 rounded-xl border border-gray-200 px-3 py-2.5 font-mono text-xs uppercase focus:border-emerald-500 focus:outline-none"
                                     :disabled="!!appliedCoupon"
                                 />
                                 <button
                                     v-if="!appliedCoupon"
                                     @click="handleApplyCoupon"
                                     :disabled="isCheckingCoupon"
-                                    class="bg-gray-900 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
+                                    class="cursor-pointer rounded-xl bg-gray-900 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-emerald-600 disabled:opacity-50"
                                 >
                                     {{ isCheckingCoupon ? '...' : 'Áp dụng' }}
                                 </button>
                                 <button
                                     v-else
                                     @click="removeCoupon"
-                                    class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold px-3 py-2.5 rounded-xl transition-colors cursor-pointer"
+                                    class="cursor-pointer rounded-xl bg-red-50 px-3 py-2.5 text-xs font-bold text-red-600 transition-colors hover:bg-red-100"
                                 >
                                     Hủy mã
                                 </button>
                             </div>
-                            <p v-if="couponError" class="text-[11px] text-red-500 mt-1.5 flex items-center">
-                                <ShieldAlert class="w-3 h-3 mr-1" /> {{ couponError }}
+                            <p v-if="couponError" class="mt-1.5 flex items-center text-[11px] text-red-500">
+                                <ShieldAlert class="mr-1 h-3 w-3" /> {{ couponError }}
                             </p>
-                            <div v-if="appliedCoupon" class="mt-2 p-2.5 bg-emerald-50 rounded-xl text-xs text-emerald-800 font-medium flex items-center justify-between">
+                            <div
+                                v-if="appliedCoupon"
+                                class="mt-2 flex items-center justify-between rounded-xl bg-emerald-50 p-2.5 text-xs font-medium text-emerald-800"
+                            >
                                 <div>
                                     ✓ Đã áp dụng: <strong>{{ appliedCoupon.program }}</strong>
                                 </div>
@@ -346,26 +349,35 @@ function formatPrice(val: number): string {
                             </div>
 
                             <!-- AVAILABLE VOUCHERS LIST -->
-                            <div v-if="showVoucherList && availableCoupons && availableCoupons.length > 0" class="pt-2 space-y-2 border-t border-gray-100">
-                                <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-                                    <Sparkles class="w-3 h-3 text-amber-500" />
+                            <div
+                                v-if="showVoucherList && availableCoupons && availableCoupons.length > 0"
+                                class="space-y-2 border-t border-gray-100 pt-2"
+                            >
+                                <p class="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                                    <Sparkles class="h-3 w-3 text-amber-500" />
                                     <span>Voucher khả dụng cho bạn</span>
                                 </p>
-                                <div class="max-h-56 overflow-y-auto space-y-2 pr-1">
+                                <div class="max-h-56 space-y-2 overflow-y-auto pr-1">
                                     <div
                                         v-for="c in availableCoupons"
                                         :key="c.id"
-                                        class="p-2.5 rounded-xl border border-dashed transition-all flex items-center justify-between gap-2"
-                                        :class="subtotal >= c.don_hang_toi_thieu ? 'bg-emerald-50/40 border-emerald-300' : 'bg-gray-50/70 border-gray-200 opacity-75'"
+                                        class="flex items-center justify-between gap-2 rounded-xl border border-dashed p-2.5 transition-all"
+                                        :class="
+                                            subtotal >= c.don_hang_toi_thieu
+                                                ? 'border-emerald-300 bg-emerald-50/40'
+                                                : 'border-gray-200 bg-gray-50/70 opacity-75'
+                                        "
                                     >
                                         <div class="min-w-0">
                                             <div class="flex items-center gap-1.5">
-                                                <span class="font-mono font-extrabold text-xs text-emerald-700 uppercase bg-emerald-100 px-1.5 py-0.5 rounded">
+                                                <span
+                                                    class="rounded bg-emerald-100 px-1.5 py-0.5 font-mono text-xs font-extrabold uppercase text-emerald-700"
+                                                >
                                                     {{ c.ma_khuyen_mai }}
                                                 </span>
                                                 <span class="text-[10px] text-gray-400">HSD: {{ c.ngay_ket_thuc }}</span>
                                             </div>
-                                            <p class="text-xs font-bold text-gray-800 mt-0.5 truncate">{{ c.ten_chuong_trinh }}</p>
+                                            <p class="mt-0.5 truncate text-xs font-bold text-gray-800">{{ c.ten_chuong_trinh }}</p>
                                             <p class="text-[10px] text-gray-500">
                                                 Đơn tối thiểu: <b>{{ formatPrice(c.don_hang_toi_thieu) }}</b>
                                                 <span v-if="c.giam_toi_da"> &bull; Tối đa {{ formatPrice(c.giam_toi_da) }}</span>
@@ -376,21 +388,24 @@ function formatPrice(val: number): string {
                                             <button
                                                 v-if="appliedCoupon?.code === c.ma_khuyen_mai"
                                                 type="button"
-                                                class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[11px] flex items-center gap-1"
+                                                class="flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white"
                                                 disabled
                                             >
-                                                <Check class="w-3 h-3" />
+                                                <Check class="h-3 w-3" />
                                                 <span>Đang dùng</span>
                                             </button>
                                             <button
                                                 v-else-if="subtotal >= c.don_hang_toi_thieu"
                                                 type="button"
                                                 @click="selectVoucher(c)"
-                                                class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition cursor-pointer"
+                                                class="cursor-pointer rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-emerald-700"
                                             >
                                                 Áp dụng
                                             </button>
-                                            <span v-else class="text-[10px] text-amber-700 bg-amber-50 px-2 py-1 rounded font-medium whitespace-nowrap block text-center">
+                                            <span
+                                                v-else
+                                                class="block whitespace-nowrap rounded bg-amber-50 px-2 py-1 text-center text-[10px] font-medium text-amber-700"
+                                            >
                                                 Thiếu {{ formatPrice(c.don_hang_toi_thieu - subtotal) }}
                                             </span>
                                         </div>
@@ -400,54 +415,56 @@ function formatPrice(val: number): string {
                         </div>
 
                         <!-- Calculations -->
-                        <div class="space-y-2.5 text-xs text-gray-600 pt-3 border-t border-gray-100">
+                        <div class="space-y-2.5 border-t border-gray-100 pt-3 text-xs text-gray-600">
                             <div class="flex justify-between">
                                 <span>Tiền hàng:</span>
                                 <strong class="text-gray-900">{{ formatPrice(subtotal) }}</strong>
                             </div>
                             <div class="flex justify-between">
                                 <span>Phí vận chuyển:</span>
-                                <strong v-if="shippingFee === 0" class="text-emerald-700 font-bold">Miễn phí</strong>
+                                <strong v-if="shippingFee === 0" class="font-bold text-emerald-700">Miễn phí</strong>
                                 <strong v-else class="text-gray-900">{{ formatPrice(shippingFee) }}</strong>
                             </div>
-                            <div v-if="discountAmount > 0" class="flex justify-between text-emerald-700 font-bold">
+                            <div v-if="discountAmount > 0" class="flex justify-between font-bold text-emerald-700">
                                 <span>Giảm giá khuyến mãi:</span>
                                 <span>-{{ formatPrice(discountAmount) }}</span>
                             </div>
-                            <div class="flex justify-between text-base font-black text-gray-900 pt-3 border-t border-gray-100">
+                            <div class="flex justify-between border-t border-gray-100 pt-3 text-base font-black text-gray-900">
                                 <span>Tổng thanh toán:</span>
-                                <span class="text-emerald-700 text-xl font-black">{{ formatPrice(grandTotal) }}</span>
+                                <span class="text-xl font-black text-emerald-700">{{ formatPrice(grandTotal) }}</span>
                             </div>
                         </div>
 
                         <!-- Proceed to Checkout -->
                         <Link
-                            :href="appliedCoupon ? `${route('checkout.index')}?coupon=${encodeURIComponent(appliedCoupon.code)}` : route('checkout.index')"
-                            class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 px-6 rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/30 transition-all hover:scale-102 active:scale-98 text-sm"
+                            :href="
+                                appliedCoupon
+                                    ? `${route('checkout.index')}?coupon=${encodeURIComponent(appliedCoupon.code)}`
+                                    : route('checkout.index')
+                            "
+                            class="hover:scale-102 active:scale-98 flex w-full items-center justify-center space-x-2 rounded-2xl bg-emerald-600 px-6 py-4 text-sm font-black text-white shadow-lg shadow-emerald-600/30 transition-all hover:bg-emerald-700"
                             id="checkout-cta-btn"
                         >
                             <span>Tiến Hành Đặt Hàng</span>
-                            <ArrowRight class="w-4 h-4" />
+                            <ArrowRight class="h-4 w-4" />
                         </Link>
                     </div>
                 </div>
             </div>
 
             <!-- EMPTY CART STATE -->
-            <div v-else class="bg-white rounded-3xl p-16 text-center border border-gray-100 shadow-sm max-w-xl mx-auto">
-                <div class="w-20 h-20 rounded-3xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4">
-                    <ShoppingBag class="w-10 h-10" />
+            <div v-else class="mx-auto max-w-xl rounded-3xl border border-gray-100 bg-white p-16 text-center shadow-sm">
+                <div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-50 text-emerald-600">
+                    <ShoppingBag class="h-10 w-10" />
                 </div>
-                <h3 class="text-xl font-black text-gray-900 mb-2">Giỏ hàng của bạn đang trống</h3>
-                <p class="text-xs text-gray-500 mb-6">
-                    Hãy dạo quanh cửa hàng và chọn những món thực phẩm tươi ngon, bổ dưỡng cho gia đình nhé!
-                </p>
+                <h3 class="mb-2 text-xl font-black text-gray-900">Giỏ hàng của bạn đang trống</h3>
+                <p class="mb-6 text-xs text-gray-500">Hãy dạo quanh cửa hàng và chọn những món thực phẩm tươi ngon, bổ dưỡng cho gia đình nhé!</p>
                 <Link
                     :href="route('products.index')"
-                    class="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-6 py-3.5 rounded-2xl inline-flex items-center space-x-2 shadow-lg shadow-emerald-600/20 transition-all"
+                    class="inline-flex items-center space-x-2 rounded-2xl bg-emerald-600 px-6 py-3.5 text-xs font-black text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-700"
                 >
                     <span>Khám phá sản phẩm ngay</span>
-                    <ArrowRight class="w-4 h-4" />
+                    <ArrowRight class="h-4 w-4" />
                 </Link>
             </div>
         </div>

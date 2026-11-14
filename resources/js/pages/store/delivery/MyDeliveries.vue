@@ -1,23 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Head, router, Link } from '@inertiajs/vue3';
-import {
-    Truck,
-    Bike,
-    Phone,
-    MapPin,
-    CheckCircle2,
-    Clock,
-    AlertCircle,
-    Package,
-    Navigation,
-    LogOut,
-    Check,
-    Layers,
-    ArrowLeftRight,
-} from 'lucide-vue-next';
-import { useToast } from '@/composables/useToast';
 import ToastContainer from '@/components/ui/ToastContainer.vue';
+import { useToast } from '@/composables/useToast';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { ArrowLeftRight, Bike, Check, CheckCircle2, Clock, LogOut, MapPin, Package, Phone, Truck } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 const props = defineProps<{
     activeDeliveries: Array<any>;
@@ -54,7 +40,7 @@ function completeDelivery(orderId: number, orderCode: string) {
             onFinish: () => {
                 isSubmitting.value = null;
             },
-        }
+        },
     );
 }
 
@@ -70,31 +56,31 @@ function reportIssue(orderId: number, orderCode: string) {
             onSuccess: () => {
                 toast.info(`Đã lưu ghi chú sự cố cho đơn #${orderCode}.`);
             },
-        }
+        },
     );
 }
 </script>
 
 <template>
-    <div class="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-900 pb-12">
+    <div class="flex min-h-screen flex-col bg-slate-100 pb-12 font-sans text-slate-900">
         <Head title="Cổng Giao Hàng & Điều Phối Xe - FreshFood" />
         <ToastContainer />
 
         <!-- TOP APP BAR -->
-        <header class="bg-slate-900 text-white px-4 py-3 sticky top-0 z-40 shadow-md">
-            <div class="max-w-3xl mx-auto flex items-center justify-between">
+        <header class="sticky top-0 z-40 bg-slate-900 px-4 py-3 text-white shadow-md">
+            <div class="mx-auto flex max-w-3xl items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <div
-                        class="w-10 h-10 rounded-2xl flex items-center justify-center font-black shadow-inner"
+                        class="flex h-10 w-10 items-center justify-center rounded-2xl font-black shadow-inner"
                         :class="driverInfo.loai_phuong_tien === 'xe_tai' ? 'bg-sky-500 text-white' : 'bg-emerald-500 text-white'"
                     >
-                        <Truck v-if="driverInfo.loai_phuong_tien === 'xe_tai'" class="w-5 h-5" />
-                        <Bike v-else class="w-5 h-5" />
+                        <Truck v-if="driverInfo.loai_phuong_tien === 'xe_tai'" class="h-5 w-5" />
+                        <Bike v-else class="h-5 w-5" />
                     </div>
                     <div>
-                        <h1 class="text-sm font-bold flex items-center gap-1.5">
+                        <h1 class="flex items-center gap-1.5 text-sm font-bold">
                             <span>{{ driverInfo.name }}</span>
-                            <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded-full font-mono text-emerald-400">
+                            <span class="rounded-full bg-slate-800 px-2 py-0.5 font-mono text-[10px] text-emerald-400">
                                 {{ driverInfo.bien_so_xe || 'BKS: —' }}
                             </span>
                         </h1>
@@ -107,9 +93,9 @@ function reportIssue(orderId: number, orderCode: string) {
                 <div class="flex items-center space-x-2">
                     <Link
                         :href="route('home')"
-                        class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center gap-1"
+                        class="flex items-center gap-1 rounded-xl bg-slate-800 p-2 text-xs font-bold text-slate-300 transition hover:bg-slate-700"
                     >
-                        <LogOut class="w-3.5 h-3.5" />
+                        <LogOut class="h-3.5 w-3.5" />
                         <span class="hidden sm:inline">Về web</span>
                     </Link>
                 </div>
@@ -117,16 +103,16 @@ function reportIssue(orderId: number, orderCode: string) {
         </header>
 
         <!-- MAIN CONTENT -->
-        <main class="max-w-3xl mx-auto w-full px-4 pt-4 space-y-4">
+        <main class="mx-auto w-full max-w-3xl space-y-4 px-4 pt-4">
             <!-- TABS -->
-            <div class="grid grid-cols-3 gap-2 bg-slate-200/80 p-1 rounded-2xl text-xs font-bold">
+            <div class="grid grid-cols-3 gap-2 rounded-2xl bg-slate-200/80 p-1 text-xs font-bold">
                 <button
                     type="button"
                     @click="activeTab = 'active'"
-                    class="py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5"
+                    class="flex items-center justify-center space-x-1.5 rounded-xl py-2.5 transition"
                     :class="activeTab === 'active' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'"
                 >
-                    <Package class="w-4 h-4 text-emerald-600" />
+                    <Package class="h-4 w-4 text-emerald-600" />
                     <span>Đơn Cần Giao ({{ activeDeliveries.length }})</span>
                 </button>
 
@@ -134,97 +120,101 @@ function reportIssue(orderId: number, orderCode: string) {
                     v-if="driverInfo.loai_phuong_tien === 'xe_tai' || driverInfo.role === 'admin'"
                     type="button"
                     @click="activeTab = 'transfers'"
-                    class="py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5"
+                    class="flex items-center justify-center space-x-1.5 rounded-xl py-2.5 transition"
                     :class="activeTab === 'transfers' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'"
                 >
-                    <ArrowLeftRight class="w-4 h-4 text-sky-600" />
+                    <ArrowLeftRight class="h-4 w-4 text-sky-600" />
                     <span>Chuyến Xe Tải ({{ transferTrips?.length || 0 }})</span>
                 </button>
 
                 <button
                     type="button"
                     @click="activeTab = 'history'"
-                    class="py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5"
+                    class="flex items-center justify-center space-x-1.5 rounded-xl py-2.5 transition"
                     :class="activeTab === 'history' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'"
                 >
-                    <Clock class="w-4 h-4 text-slate-500" />
+                    <Clock class="h-4 w-4 text-slate-500" />
                     <span>Lịch Sử ({{ historyDeliveries.length }})</span>
                 </button>
             </div>
 
             <!-- TAB 1: ACTIVE DELIVERIES -->
             <div v-if="activeTab === 'active'" class="space-y-4">
-                <div v-if="activeDeliveries.length === 0" class="bg-white rounded-3xl p-8 text-center border border-slate-200 text-slate-400 space-y-2">
-                    <CheckCircle2 class="w-10 h-10 mx-auto text-emerald-500" />
-                    <h3 class="font-bold text-slate-800 text-sm">Hiện không có đơn hàng nào cần giao!</h3>
+                <div
+                    v-if="activeDeliveries.length === 0"
+                    class="space-y-2 rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-400"
+                >
+                    <CheckCircle2 class="mx-auto h-10 w-10 text-emerald-500" />
+                    <h3 class="text-sm font-bold text-slate-800">Hiện không có đơn hàng nào cần giao!</h3>
                     <p class="text-xs">Bạn đang ở trạng thái sẵn sàng. Khi cửa hàng điều phối đơn mới, đơn sẽ hiển thị tại đây.</p>
                 </div>
 
                 <div
                     v-for="order in activeDeliveries"
                     :key="order.id"
-                    class="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 space-y-4"
+                    class="space-y-4 rounded-3xl border border-slate-200/90 bg-white p-5 shadow-sm"
                 >
                     <div class="flex items-start justify-between">
                         <div>
                             <div class="flex items-center space-x-2">
-                                <span class="font-mono font-black text-slate-900 text-sm">#{{ order.ma_don_hang }}</span>
+                                <span class="font-mono text-sm font-black text-slate-900">#{{ order.ma_don_hang }}</span>
                                 <span
                                     v-if="order.loai_phuong_tien_giao === 'xe_tai'"
-                                    class="bg-sky-100 text-sky-800 text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1"
+                                    class="flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-black text-sky-800"
                                 >
-                                    <Truck class="w-3 h-3" /> Đơn Xe Tải
+                                    <Truck class="h-3 w-3" /> Đơn Xe Tải
                                 </span>
                                 <span
                                     v-else
-                                    class="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1"
+                                    class="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-800"
                                 >
-                                    <Bike class="w-3 h-3" /> Đơn Xe Máy
+                                    <Bike class="h-3 w-3" /> Đơn Xe Máy
                                 </span>
                             </div>
-                            <p class="text-[11px] text-slate-400 mt-0.5">
+                            <p class="mt-0.5 text-[11px] text-slate-400">
                                 Xuất từ chi nhánh: <strong>{{ order.cua_hang?.ten_cua_hang }}</strong>
                             </p>
                         </div>
 
-                        <span class="px-2.5 py-1 bg-amber-100 text-amber-900 font-bold text-xs rounded-full animate-pulse">
-                            Đang đi giao
-                        </span>
+                        <span class="animate-pulse rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-900"> Đang đi giao </span>
                     </div>
 
                     <!-- CUSTOMER INFO CARD -->
-                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-xs">
+                    <div class="space-y-2 rounded-2xl border border-slate-100 bg-slate-50 p-3.5 text-xs">
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-slate-900 text-sm">{{ order.ten_nguoi_nhan }}</span>
+                            <span class="text-sm font-bold text-slate-900">{{ order.ten_nguoi_nhan }}</span>
                             <a
                                 :href="`tel:${order.so_dien_thoai_nhan}`"
-                                class="inline-flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl shadow-xs transition"
+                                class="shadow-xs inline-flex items-center space-x-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 font-bold text-white transition hover:bg-emerald-700"
                             >
-                                <Phone class="w-3.5 h-3.5" />
+                                <Phone class="h-3.5 w-3.5" />
                                 <span>Gọi: {{ order.so_dien_thoai_nhan }}</span>
                             </a>
                         </div>
 
                         <div class="flex items-start space-x-1.5 text-slate-700">
-                            <MapPin class="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                            <MapPin class="mt-0.5 h-4 w-4 shrink-0 text-rose-500" />
                             <span class="font-medium leading-relaxed">{{ order.dia_chi_giao }}</span>
                         </div>
 
-                        <div v-if="order.ghi_chu_giao_hang" class="p-2 bg-amber-50 rounded-xl text-amber-900 text-[11px] border border-amber-200">
+                        <div v-if="order.ghi_chu_giao_hang" class="rounded-xl border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-900">
                             <strong>Ghi chú giao:</strong> {{ order.ghi_chu_giao_hang }}
                         </div>
                     </div>
 
                     <!-- PAYMENT STRIP -->
-                    <div class="p-3.5 rounded-2xl border flex items-center justify-between text-xs" :class="order.phuong_thuc_thanh_toan === 'cod' ? 'bg-amber-50/70 border-amber-200' : 'bg-emerald-50/70 border-emerald-200'">
+                    <div
+                        class="flex items-center justify-between rounded-2xl border p-3.5 text-xs"
+                        :class="order.phuong_thuc_thanh_toan === 'cod' ? 'border-amber-200 bg-amber-50/70' : 'border-emerald-200 bg-emerald-50/70'"
+                    >
                         <div>
-                            <span class="text-slate-500 block text-[11px]">Hình thức thanh toán:</span>
+                            <span class="block text-[11px] text-slate-500">Hình thức thanh toán:</span>
                             <strong class="font-bold" :class="order.phuong_thuc_thanh_toan === 'cod' ? 'text-amber-900' : 'text-emerald-900'">
                                 {{ order.phuong_thuc_thanh_toan === 'cod' ? '💵 Thu tiền mặt khi giao (COD)' : '💳 Đã thanh toán online trước' }}
                             </strong>
                         </div>
                         <div class="text-right">
-                            <span class="text-[11px] text-slate-500 block">Số tiền cần thu:</span>
+                            <span class="block text-[11px] text-slate-500">Số tiền cần thu:</span>
                             <span class="text-base font-black" :class="order.phuong_thuc_thanh_toan === 'cod' ? 'text-red-600' : 'text-emerald-700'">
                                 {{ order.phuong_thuc_thanh_toan === 'cod' ? formatPrice(order.tong_thanhtoan) : '0đ (Đã trả)' }}
                             </span>
@@ -236,7 +226,7 @@ function reportIssue(orderId: number, orderCode: string) {
                         <button
                             type="button"
                             @click="reportIssue(order.id, order.ma_don_hang)"
-                            class="py-3 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition"
+                            class="rounded-2xl bg-slate-100 px-4 py-3 text-xs font-bold text-slate-700 transition hover:bg-slate-200"
                         >
                             Chưa giao được / Hẹn lại
                         </button>
@@ -244,9 +234,9 @@ function reportIssue(orderId: number, orderCode: string) {
                             type="button"
                             @click="completeDelivery(order.id, order.ma_don_hang)"
                             :disabled="isSubmitting === order.id"
-                            class="py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md shadow-emerald-600/30 transition flex items-center justify-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                            class="flex cursor-pointer items-center justify-center space-x-1.5 rounded-2xl bg-emerald-600 px-4 py-3 text-xs font-black text-white shadow-md shadow-emerald-600/30 transition hover:bg-emerald-700 disabled:opacity-50"
                         >
-                            <Check class="w-4 h-4" />
+                            <Check class="h-4 w-4" />
                             <span>{{ isSubmitting === order.id ? 'Đang cập nhật...' : 'Đã Giao Thành Công' }}</span>
                         </button>
                     </div>
@@ -255,27 +245,26 @@ function reportIssue(orderId: number, orderCode: string) {
 
             <!-- TAB 2: INTER-STORE TRANSFERS FOR TRUCKS -->
             <div v-if="activeTab === 'transfers'" class="space-y-4">
-                <div v-if="!transferTrips || transferTrips.length === 0" class="bg-white rounded-3xl p-8 text-center border border-slate-200 text-slate-400">
-                    <Truck class="w-10 h-10 mx-auto text-sky-500 mb-2" />
+                <div
+                    v-if="!transferTrips || transferTrips.length === 0"
+                    class="rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-400"
+                >
+                    <Truck class="mx-auto mb-2 h-10 w-10 text-sky-500" />
                     <p class="text-xs">Chưa có chuyến xe tải điều chuyển liên chi nhánh nào được gán cho bạn.</p>
                 </div>
 
-                <div
-                    v-for="trip in transferTrips"
-                    :key="trip.id"
-                    class="bg-white rounded-3xl border border-sky-200 p-5 space-y-3"
-                >
+                <div v-for="trip in transferTrips" :key="trip.id" class="space-y-3 rounded-3xl border border-sky-200 bg-white p-5">
                     <div class="flex items-center justify-between">
-                        <span class="font-mono font-black text-sky-900 text-sm">Phiếu chuyển: #{{ trip.ma_phieu }}</span>
+                        <span class="font-mono text-sm font-black text-sky-900">Phiếu chuyển: #{{ trip.ma_phieu }}</span>
                         <span
-                            class="text-[10px] font-black px-2.5 py-1 rounded-full uppercase"
-                            :class="trip.trang_thai === 3 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800 animate-pulse'"
+                            class="rounded-full px-2.5 py-1 text-[10px] font-black uppercase"
+                            :class="trip.trang_thai === 3 ? 'bg-emerald-100 text-emerald-800' : 'animate-pulse bg-amber-100 text-amber-800'"
                         >
                             {{ trip.trang_thai === 3 ? 'Đã giao tới kho đích' : 'Đang chở xe tải' }}
                         </span>
                     </div>
 
-                    <div class="p-3 bg-sky-50 rounded-2xl text-xs space-y-1.5 text-sky-950">
+                    <div class="space-y-1.5 rounded-2xl bg-sky-50 p-3 text-xs text-sky-950">
                         <div class="flex justify-between">
                             <span>Từ kho xuất:</span>
                             <strong class="font-bold">{{ trip.cua_hang?.ten_cua_hang }}</strong>
@@ -294,32 +283,31 @@ function reportIssue(orderId: number, orderCode: string) {
 
             <!-- TAB 3: HISTORY -->
             <div v-if="activeTab === 'history'" class="space-y-3">
-                <div v-if="historyDeliveries.length === 0" class="bg-white rounded-3xl p-8 text-center border border-slate-200 text-slate-400">
-                    <Clock class="w-8 h-8 mx-auto text-slate-300 mb-1" />
+                <div v-if="historyDeliveries.length === 0" class="rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-400">
+                    <Clock class="mx-auto mb-1 h-8 w-8 text-slate-300" />
                     <p class="text-xs">Chưa có lịch sử đơn hàng nào.</p>
                 </div>
 
                 <div
                     v-for="h in historyDeliveries"
                     :key="h.id"
-                    class="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between text-xs"
+                    class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 text-xs"
                 >
                     <div>
                         <div class="flex items-center space-x-2">
                             <span class="font-mono font-bold text-slate-900">#{{ h.ma_don_hang }}</span>
-                            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-black px-2 py-0.5 rounded-full">
-                                Đã giao
-                            </span>
+                            <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-800"> Đã giao </span>
                         </div>
-                        <p class="text-[11px] text-slate-500 mt-0.5">{{ h.ten_nguoi_nhan }} • {{ h.dia_chi_giao }}</p>
+                        <p class="mt-0.5 text-[11px] text-slate-500">{{ h.ten_nguoi_nhan }} • {{ h.dia_chi_giao }}</p>
                     </div>
                     <div class="text-right">
-                        <span class="font-black text-slate-900 block">{{ formatPrice(h.tong_thanhtoan) }}</span>
-                        <span class="text-[10px] text-slate-400">{{ new Date(h.thoi_gian_giao_thanh_cong || h.updated_at).toLocaleDateString('vi-VN') }}</span>
+                        <span class="block font-black text-slate-900">{{ formatPrice(h.tong_thanhtoan) }}</span>
+                        <span class="text-[10px] text-slate-400">{{
+                            new Date(h.thoi_gian_giao_thanh_cong || h.updated_at).toLocaleDateString('vi-VN')
+                        }}</span>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 </template>
-

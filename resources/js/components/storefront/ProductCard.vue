@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
 import { useCart } from '@/composables/useCart';
-import { ShoppingBag, Sparkles, Snowflake } from 'lucide-vue-next';
+import { Link } from '@inertiajs/vue3';
+import { ShoppingBag, Snowflake, Sparkles } from 'lucide-vue-next';
 
 const props = defineProps<{
     product: {
@@ -31,19 +31,19 @@ function formatPrice(val: number): string {
     return new Intl.NumberFormat('vi-VN').format(val) + 'đ';
 }
 
-const discountPercent = props.product.gia_giam
-    ? Math.round(((props.product.gia_ban - props.product.gia_giam) / props.product.gia_ban) * 100)
-    : 0;
+const discountPercent = props.product.gia_giam ? Math.round(((props.product.gia_ban - props.product.gia_giam) / props.product.gia_ban) * 100) : 0;
 </script>
 
 <template>
-    <div class="group bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl hover:border-emerald-200 transition-all duration-300 flex flex-col justify-between relative">
+    <div
+        class="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:border-emerald-200 hover:shadow-xl"
+    >
         <!-- BADGES -->
-        <div class="absolute top-3 left-3 z-10 flex flex-col gap-1.5 pointer-events-none">
+        <div class="pointer-events-none absolute left-3 top-3 z-10 flex flex-col gap-1.5">
             <!-- Discount Badge -->
             <span
                 v-if="discountPercent > 0"
-                class="bg-gradient-to-r from-red-600 to-rose-500 text-white font-black text-[10px] px-2 py-0.5 rounded-full shadow-md uppercase tracking-wider"
+                class="rounded-full bg-gradient-to-r from-red-600 to-rose-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white shadow-md"
             >
                 -{{ discountPercent }}%
             </span>
@@ -51,16 +51,16 @@ const discountPercent = props.product.gia_giam
             <!-- Freshness Badge -->
             <span
                 v-if="product.la_tuoi_song"
-                class="bg-emerald-600/90 backdrop-blur-sm text-white font-bold text-[10px] px-2 py-0.5 rounded-full shadow-sm flex items-center"
+                class="flex items-center rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm backdrop-blur-sm"
             >
-                <Sparkles class="w-3 h-3 mr-0.5" />
+                <Sparkles class="mr-0.5 h-3 w-3" />
                 Tươi mới
             </span>
 
             <!-- Branch Price Badge -->
             <span
                 v-if="product.co_gia_chi_nhanh"
-                class="bg-teal-700/90 backdrop-blur-sm text-white font-bold text-[9px] px-2 py-0.5 rounded-full shadow-sm flex items-center"
+                class="flex items-center rounded-full bg-teal-700/90 px-2 py-0.5 text-[9px] font-bold text-white shadow-sm backdrop-blur-sm"
             >
                 Giá chi nhánh
             </span>
@@ -68,63 +68,57 @@ const discountPercent = props.product.gia_giam
             <!-- Cool preservation Badge -->
             <span
                 v-if="product.dieu_kien_bao_quan === 'mat' || product.dieu_kien_bao_quan === 'dong_lanh'"
-                class="bg-sky-600/80 backdrop-blur-sm text-white font-medium text-[9px] px-1.5 py-0.5 rounded-full flex items-center"
+                class="flex items-center rounded-full bg-sky-600/80 px-1.5 py-0.5 text-[9px] font-medium text-white backdrop-blur-sm"
             >
-                <Snowflake class="w-2.5 h-2.5 mr-0.5" />
+                <Snowflake class="mr-0.5 h-2.5 w-2.5" />
                 {{ product.dieu_kien_bao_quan === 'mat' ? 'Lạnh 0-4°C' : 'Đông -18°C' }}
             </span>
         </div>
 
         <!-- PRODUCT IMAGE WITH ZOOM EFFECT -->
-        <Link
-            :href="'/san-pham/' + product.duong_dan_seo"
-            class="block overflow-hidden relative aspect-square bg-gray-50 cursor-pointer"
-        >
+        <Link :href="'/san-pham/' + product.duong_dan_seo" class="relative block aspect-square cursor-pointer overflow-hidden bg-gray-50">
             <img
                 :src="product.hinh_anh_chinh || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600'"
                 :alt="product.ten_san_pham"
-                class="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 ease-out"
+                class="group-hover:scale-108 h-full w-full object-cover transition-transform duration-500 ease-out"
                 loading="lazy"
             />
-            <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+            <div class="pointer-events-none absolute inset-0 bg-black/5 opacity-0 transition-opacity group-hover:opacity-100"></div>
         </Link>
 
         <!-- PRODUCT CONTENT -->
-        <div class="p-4 flex-1 flex flex-col justify-between">
+        <div class="flex flex-1 flex-col justify-between p-4">
             <div>
                 <!-- Category name -->
-                <p v-if="product.danh_muc" class="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider mb-1 line-clamp-1">
+                <p v-if="product.danh_muc" class="mb-1 line-clamp-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-600">
                     {{ product.danh_muc.ten_danh_muc }}
                 </p>
 
                 <!-- Product Title -->
                 <Link
                     :href="'/san-pham/' + product.duong_dan_seo"
-                    class="font-bold text-gray-900 text-sm hover:text-emerald-600 transition-colors line-clamp-2 leading-snug mb-1.5 cursor-pointer block"
+                    class="mb-1.5 line-clamp-2 block cursor-pointer text-sm font-bold leading-snug text-gray-900 transition-colors hover:text-emerald-600"
                     :title="product.ten_san_pham"
                 >
                     {{ product.ten_san_pham }}
                 </Link>
 
                 <!-- Specification / Packing -->
-                <p class="text-[11px] text-gray-400 line-clamp-1 mb-2">
-                    {{ product.quy_cach || ('Đơn vị: ' + product.don_vi_tinh) }}
+                <p class="mb-2 line-clamp-1 text-[11px] text-gray-400">
+                    {{ product.quy_cach || 'Đơn vị: ' + product.don_vi_tinh }}
                 </p>
             </div>
 
             <!-- PRICE & ADD TO CART ACTION -->
-            <div class="pt-2 border-t border-gray-50 flex items-end justify-between gap-2 mt-auto">
+            <div class="mt-auto flex items-end justify-between gap-2 border-t border-gray-50 pt-2">
                 <div class="min-w-0">
                     <div class="flex items-baseline space-x-1.5">
-                        <span class="text-base font-black text-emerald-700 tracking-tight">
+                        <span class="text-base font-black tracking-tight text-emerald-700">
                             {{ formatPrice(product.gia_giam ?? product.gia_ban) }}
                         </span>
-                        <span class="text-[10px] text-gray-500 font-medium">/{{ product.don_vi_tinh }}</span>
+                        <span class="text-[10px] font-medium text-gray-500">/{{ product.don_vi_tinh }}</span>
                     </div>
-                    <p
-                        v-if="product.gia_giam"
-                        class="text-xs text-gray-400 line-through -mt-0.5"
-                    >
+                    <p v-if="product.gia_giam" class="-mt-0.5 text-xs text-gray-400 line-through">
                         {{ formatPrice(product.gia_ban) }}
                     </p>
                 </div>
@@ -132,11 +126,11 @@ const discountPercent = props.product.gia_giam
                 <!-- ADD TO CART BUTTON -->
                 <button
                     @click="addToCart(product)"
-                    class="w-9 h-9 rounded-xl bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white flex items-center justify-center transition-all duration-200 active:scale-90 shadow-sm shrink-0 group/btn"
+                    class="group/btn flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 shadow-sm transition-all duration-200 hover:bg-emerald-600 hover:text-white active:scale-90"
                     title="Thêm vào giỏ hàng"
                     :id="'add-btn-' + product.id"
                 >
-                    <ShoppingBag class="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+                    <ShoppingBag class="h-4 w-4 transition-transform group-hover/btn:scale-110" />
                 </button>
             </div>
         </div>
