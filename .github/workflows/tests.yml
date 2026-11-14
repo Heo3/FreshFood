@@ -54,10 +54,4 @@ jobs:
         run: npm run build
 
       - name: Tests
-        run: |
-          php artisan test > test_output.log 2>&1 || {
-            ERR=$(grep -E 'FAIL|FAILED|Error|Exception|SQLSTATE' test_output.log | head -n 10 | tr '\n' ' ')
-            echo "::error title=TestFailure::$ERR"
-            cat test_output.log
-            exit 1
-          }
+        run: php artisan test --compact
