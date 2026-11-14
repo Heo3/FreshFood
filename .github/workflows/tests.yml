@@ -55,11 +55,9 @@ jobs:
 
       - name: Tests
         run: |
-          set -o pipefail
-          php artisan test 2>&1 | tee test_log.txt || {
-            echo "## ❌ Test Output" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 80 test_log.txt >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
+          php artisan test > test_output.log 2>&1 || {
+            ERR=$(grep -E 'FAIL|FAILED|Error|Exception|SQLSTATE' test_output.log | head -n 10 | tr '\n' ' ')
+            echo "::error title=TestFailure::$ERR"
+            cat test_output.log
             exit 1
           }
