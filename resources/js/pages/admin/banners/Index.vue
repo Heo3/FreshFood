@@ -188,7 +188,7 @@ function deleteBanner(banner: BannerItem) {
                                 </td>
                                 <td class="px-4 py-3">
                                     <p class="text-sm font-extrabold text-slate-900">{{ b.tieu_de }}</p>
-                                    <p class="mt-0.5 line-clamp-1 text-[11px] text-slate-500">{{ b.phu_de || '—' }}</p>
+                                    <p class="mt-0.5 line-clamp-1 text-[11px] text-slate-500">{{ b.phu_de || '-' }}</p>
                                 </td>
                                 <td class="px-4 py-3 font-mono text-[11px] text-slate-600">
                                     <a
@@ -196,7 +196,7 @@ function deleteBanner(banner: BannerItem) {
                                         target="_blank"
                                         class="inline-flex items-center gap-1 text-emerald-700 hover:underline"
                                     >
-                                        <span>{{ b.duong_dan || '—' }}</span>
+                                        <span>{{ b.duong_dan || '-' }}</span>
                                         <ExternalLink class="h-3 w-3" />
                                     </a>
                                 </td>
@@ -255,9 +255,9 @@ function deleteBanner(banner: BannerItem) {
                             class="rounded-lg px-3 py-1.5 text-xs font-bold transition"
                             :class="link.active ? 'bg-emerald-600 text-white' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'"
                         >
-                            <span v-html="link.label" />
+                            <span v-html="link.label"></span>
                         </Link>
-                        <span v-else v-html="link.label" class="px-3 py-1.5 text-xs text-slate-400" />
+                        <span v-else v-html="link.label" class="px-3 py-1.5 text-xs text-slate-400"></span>
                     </template>
                 </div>
             </div>
