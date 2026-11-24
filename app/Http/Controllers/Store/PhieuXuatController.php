@@ -56,16 +56,14 @@ class PhieuXuatController extends Controller
 
         $pendingOrders = DonHang::query()
             ->where('cua_hang_id', $storeId)
-            ->whereIn('trang_thai_don_hang', ['cho_xac_nhan', 'dang_chuan_bi'])
-            ->whereDoesntHave('phieuXuats')
+            ->where('trang_thai_don_hang', 'cho_xac_nhan')
             ->with(['user', 'nguoiGiaoHang', 'chiTietDonHangs.sanPham'])
             ->latest('id')
             ->get();
 
         $readyOrders = DonHang::query()
             ->where('cua_hang_id', $storeId)
-            ->whereIn('trang_thai_don_hang', ['dang_chuan_bi', 'dang_giao'])
-            ->has('phieuXuats')
+            ->whereIn('trang_thai_don_hang', ['dang_chuan_bi', 'dang_giao', 'da_giao'])
             ->with(['user', 'nguoiGiaoHang', 'chiTietDonHangs.sanPham', 'phieuXuats'])
             ->latest('id')
             ->get();
@@ -282,9 +280,17 @@ class PhieuXuatController extends Controller
                 ->route('store.outbound.show', $phieuXuat->id)
                 ->with('success', "Soạn hàng & xuất kho FEFO thành công cho đơn #{$donHang->ma_don_hang}! Mã phiếu: #{$phieuXuat->ma_phieu}");
         } catch (InsufficientInventoryException $e) {
-            return back()->withErrors(['error' => 'Thiếu tồn kho khi soạn hàng: '.$e->getMessage()]);
+            $donHang->update([
+                'trang_thai_don_hang' => 'dang_chuan_bi',
+            ]);
+
+            return back()->with('info', "Đơn #{$donHang->ma_don_hang} đã chuyển sang trạng thái 'Đang đóng gói'! (Chưa thể xuất kho tự động do: {$e->getMessage()})");
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Lỗi xuất kho đơn hàng: '.$e->getMessage()]);
+            $donHang->update([
+                'trang_thai_don_hang' => 'dang_chuan_bi',
+            ]);
+
+            return back()->with('info', "Đơn #{$donHang->ma_don_hang} đã chuyển sang trạng thái 'Đang đóng gói'! (Lỗi xuất kho: {$e->getMessage()})");
         }
     }
 }

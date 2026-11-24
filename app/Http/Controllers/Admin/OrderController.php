@@ -120,12 +120,15 @@ class OrderController extends Controller
             $updateData['ghi_chu'] = $validated['ghi_chu'];
         }
 
-        // Tự động sinh Phiếu Xuất Kho (FEFO) và trừ lô hàng khi đơn hàng được chuẩn bị / đóng gói
+        // Cố gắng tự động sinh Phiếu Xuất Kho (FEFO) và trừ lô hàng khi đơn hàng được chuẩn bị / đóng gói
+        $fefoWarning = '';
         if (in_array($validated['trang_thai_don_hang'], ['dang_chuan_bi', 'dang_giao']) && ! $donHang->phieuXuats()->exists() && $donHang->chiTiets()->exists()) {
             try {
                 $this->inventoryService->xuatKhoDonHang($donHang, $user?->id);
             } catch (InsufficientInventoryException $e) {
-                return back()->withErrors(['error' => 'Không thể duyệt đơn do thiếu hàng: '.$e->getMessage()]);
+                $fefoWarning = ' (Lưu ý: Chưa thể tự động xuất kho FEFO do: '.$e->getMessage().')';
+            } catch (\Throwable $e) {
+                $fefoWarning = ' (Lưu ý: Không thể xuất kho tự động: '.$e->getMessage().')';
             }
         }
 
@@ -196,6 +199,6 @@ class OrderController extends Controller
 
         $donHang->update($updateData);
 
-        return back()->with('success', "Đã cập nhật trạng thái đơn hàng {$donHang->ma_don_hang} thành công!");
+        return back()->with('success', "Đã cập nhật trạng thái đơn hàng {$donHang->ma_don_hang} thành công!{$fefoWarning}");
     }
 }

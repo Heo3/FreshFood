@@ -50,7 +50,7 @@ const props = defineProps<{
 }>();
 
 const form = useForm({
-    trang_thai_don_hang: props.order.trang_thai_don_hang === 'da_giao' ? 'hoan_thanh' : props.order.trang_thai_don_hang,
+    trang_thai_don_hang: props.order.trang_thai_don_hang,
     trang_thai_thanh_toan: props.order.trang_thai_thanh_toan,
     ghi_chu: props.order.ghi_chu || '',
 });
@@ -200,9 +200,10 @@ function formatCurrency(val: number): string {
                                     v-model="form.trang_thai_don_hang"
                                     class="focus:outline-hidden w-full rounded-sm border border-gray-300 bg-white px-2.5 py-1.5 font-semibold focus:border-[#28a745]"
                                 >
-                                    <option value="cho_xac_nhan">Chờ Duyệt</option>
+                                    <option value="cho_xac_nhan">Chờ Duyệt (Chờ Xác Nhận)</option>
                                     <option value="dang_chuan_bi">Đang Đóng Gói (Xuất FEFO)</option>
                                     <option value="dang_giao">Đang Giao Hàng</option>
+                                    <option value="da_giao">Đã Giao Hàng</option>
                                     <option value="hoan_thanh">Đã Hoàn Thành</option>
                                     <option value="da_huy">Đã Hủy Đơn</option>
                                 </select>

@@ -200,6 +200,9 @@ function fulfillOrder(orderId: number, maDon: string) {
         {},
         {
             preserveScroll: true,
+            onError: (errs: any) => {
+                toast.error(errs?.error || 'Có lỗi xảy ra khi xử lý đơn hàng.');
+            },
             onFinish: () => {
                 isFulfilling.value = null;
             },

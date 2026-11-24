@@ -62,6 +62,8 @@ function getStatusBadge(st: string) {
     switch (st) {
         case 'hoan_thanh':
             return { label: 'Hoàn thành', class: 'bg-[#28a745] text-white' };
+        case 'da_giao':
+            return { label: 'Đã giao hàng', class: 'bg-[#17a2b8] text-white' };
         case 'dang_giao':
             return { label: 'Đang giao hàng', class: 'bg-[#007bff] text-white' };
         case 'dang_chuan_bi':
@@ -102,6 +104,7 @@ function getStatusBadge(st: string) {
                         <option value="cho_xac_nhan">Chờ duyệt</option>
                         <option value="dang_chuan_bi">Đang đóng gói</option>
                         <option value="dang_giao">Đang giao hàng</option>
+                        <option value="da_giao">Đã giao hàng</option>
                         <option value="hoan_thanh">Đã hoàn thành</option>
                         <option value="da_huy">Đã hủy</option>
                     </select>

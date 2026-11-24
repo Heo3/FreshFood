@@ -427,12 +427,12 @@ const filteredAdminNav = computed(() => {
                 </div>
 
                 <div
-                    v-if="page.props.flash?.error"
+                    v-if="page.props.flash?.error || (page.props.errors as any)?.error"
                     class="shadow-xs mb-4 flex items-center justify-between rounded-xl border border-rose-200/80 bg-rose-50 p-3.5 text-xs font-medium text-rose-800"
                 >
                     <div class="flex items-center space-x-2.5">
                         <XCircle class="h-4 w-4 shrink-0 text-rose-600" />
-                        <span>{{ page.props.flash.error }}</span>
+                        <span>{{ page.props.flash?.error || (page.props.errors as any)?.error }}</span>
                     </div>
                 </div>
             </div>
