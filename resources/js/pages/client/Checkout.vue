@@ -2,7 +2,7 @@
 import { useCart } from '@/composables/useCart';
 import StoreLayout from '@/layouts/StoreLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
-import { AlertTriangle, CheckCircle2, ChevronRight, Clock, Coins, LocateFixed, QrCode, Sparkles, TicketPercent, X } from 'lucide-vue-next';
+import { AlertTriangle, CheckCircle2, ChevronRight, Clock, Coins, CreditCard, LocateFixed, QrCode, Sparkles, TicketPercent, X } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 const props = withDefaults(
@@ -559,12 +559,12 @@ function formatPrice(val: number): string {
                                 </div>
                             </label>
 
-                            <!-- VNPAY-QR PAYMENT -->
+                            <!-- VNPAY SANDBOX PAYMENT -->
                             <label
                                 class="flex cursor-pointer items-start space-x-3.5 rounded-2xl border p-4 transition-all"
                                 :class="
                                     form.phuong_thuc_thanh_toan === 'vnpay'
-                                        ? 'border-emerald-600 bg-emerald-50/40 shadow-sm ring-1 ring-emerald-600/20'
+                                        ? 'border-blue-600 bg-blue-50/40 shadow-sm ring-1 ring-blue-600/20'
                                         : 'border-gray-200 hover:bg-gray-50'
                                 "
                             >
@@ -572,28 +572,35 @@ function formatPrice(val: number): string {
                                     type="radio"
                                     value="vnpay"
                                     v-model="form.phuong_thuc_thanh_toan"
-                                    class="mt-1 text-emerald-600 focus:ring-emerald-500"
+                                    class="mt-1 text-blue-600 focus:ring-blue-500"
                                 />
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-2">
-                                        <QrCode class="h-4 w-4 text-emerald-600" />
-                                        <strong class="text-xs font-bold text-gray-900">Thanh toán quét mã VNPAY-QR</strong>
+                                        <CreditCard class="h-4 w-4 text-blue-600" />
+                                        <strong class="text-xs font-bold text-gray-900">Cổng thanh toán VNPAY Sandbox</strong>
                                         <span class="rounded bg-blue-100 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-blue-700">
-                                            Khuyên Dùng
+                                            Thử Nghiệm
                                         </span>
                                     </div>
                                     <span class="mt-0.5 block text-[11px] leading-relaxed text-gray-500">
-                                        Hệ thống sẽ tạo mã QR VNPAY tương ứng với số tiền đơn hàng. Quét mã bằng App Ngân hàng (Vietcombank, BIDV,
-                                        VietinBank, MB, Techcombank, TPBank,...) hoặc Ví VNPAY để thanh toán tức thì.
+                                        Chuyển hướng an toàn sang Cổng thanh toán VNPay Sandbox. Hỗ trợ quét mã VNPAY-QR, Thẻ ATM nội địa (NCB, Vietcombank,...) và Thẻ quốc tế.
                                     </span>
 
-                                    <!-- VNPAY HELPER NOTICE WHEN SELECTED -->
+                                    <!-- VNPAY SANDBOX TEST CARD INFO -->
                                     <div
                                         v-if="form.phuong_thuc_thanh_toan === 'vnpay'"
-                                        class="mt-2.5 flex items-center space-x-2 rounded-xl border border-blue-200/60 bg-blue-50/80 p-2.5 text-[11px] text-blue-800"
+                                        class="mt-3 rounded-xl border border-blue-200 bg-blue-50/90 p-3 text-[11px] text-blue-900 space-y-1.5"
                                     >
-                                        <Sparkles class="h-3.5 w-3.5 shrink-0 text-blue-600" />
-                                        <span>Mã QR VNPAY được tạo tự động ngay sau khi bấm Xác nhận đặt hàng.</span>
+                                        <div class="flex items-center font-bold text-blue-800">
+                                            <Sparkles class="mr-1.5 h-3.5 w-3.5 text-blue-600" />
+                                            <span>Thông tin thẻ TEST thanh toán VNPay Sandbox:</span>
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+                                            <div>Ngân hàng: <strong class="font-bold">NCB</strong></div>
+                                            <div>Số thẻ: <strong class="font-mono font-bold">9704198526191432198</strong></div>
+                                            <div>Tên chủ thẻ: <strong class="font-bold">NGUYEN VAN A</strong></div>
+                                            <div>Ngày phát hành: <strong class="font-bold">07/15</strong> • OTP: <strong class="font-bold">123456</strong></div>
+                                        </div>
                                     </div>
                                 </div>
                             </label>

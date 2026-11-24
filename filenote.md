@@ -47,6 +47,8 @@
 | 25 | [LichSuTichDiem.php](file:///d:/FreshFood/app/Models/LichSuTichDiem.php) | `lich_su_tich_diem` | Nhật ký cộng điểm khi mua hàng thành công và trừ điểm khi dùng điểm thanh toán đơn hàng. |
 | 26 | [DanhGiaSanPham.php](file:///d:/FreshFood/app/Models/DanhGiaSanPham.php) | `danh_gia_san_pham` | Đánh giá sao (1-5★), nhận xét độ tươi ngon và phản hồi của người mua. |
 | 27 | [ThongBao.php](file:///d:/FreshFood/app/Models/ThongBao.php) | `thong_bao` | Thông báo đơn hàng, biến động điểm thưởng, nhắc nhở lô hàng cận date cho quản lý. |
+| 28 | [PhienChat.php](file:///d:/FreshFood/app/Models/PhienChat.php) | `phien_chat` | Quản lý phiên hội thoại hỗ trợ khách hàng, phân loại Chat AI / Chat Nhân viên, chủ đề tư vấn, khiếu nại, gắn mã đơn hàng liên quan. |
+| 29 | [TinNhanChat.php](file:///d:/FreshFood/app/Models/TinNhanChat.php) | `tin_nhan_chat` | Lưu trữ từng tin nhắn trong phiên chat (người gửi: khách hàng, AI, nhân viên CSKH, thông báo hệ thống), hỗ trợ dữ liệu đính kèm card món ăn, sản phẩm và đơn hàng. |
 
 ---
 
@@ -210,3 +212,21 @@
 - [public/logo.png](file:///d:/FreshFood/public/logo.png): Logo favicon và hiển thị biểu tượng ứng dụng trên trình duyệt.
 - [AppLogo.vue](file:///d:/FreshFood/resources/js/components/AppLogo.vue): Component Vue hiển thị logo nhận diện cho ứng dụng.
 - [AppLogoIcon.vue](file:///d:/FreshFood/resources/js/components/AppLogoIcon.vue): Component Vue hiển thị icon logo thu nhỏ.
+
+
+---
+
+## 7. HỆ THỐNG TRỢ LÝ AI HYBRID & CSKH / KHIẾU NẠI TRỰC TIẾP
+
+- [ChatAiService.php](file:///d:/FreshFood/app/Services/ChatAiService.php): Dịch vụ AI Hybrid thông minh kết hợp gọi Google Gemini API và bộ tri thức nội bộ Knowledge Base:
+  * Trả lời chuẩn xác đúng trọng tâm từng nhóm thực phẩm (Thịt bò, Cá hồi, Thịt heo, Hải sản, Rau củ, Trái cây...) thay vì trả lời câu chung chung.
+  * Tự động nhận diện ý định nấu món ăn (Bò bít tết, Ba chỉ bò cuộn nấm, Bò xào bông cải xanh, Cá hồi áp chảo bơ chanh, Canh chua cá hồi, Canh cải thịt bằm, Sườn non kho/rim, Tôm sú nướng bơ tỏi, Salad,...).
+  * Tách biệt rõ ràng 2 nhóm nguyên liệu: **(1) Nguyên liệu CÓ BÁN tại siêu thị Fresh Food** (kèm thẻ để bấm Mua ngay 1-click) và **(2) Gia vị / Nguyên liệu CÒN THIẾU** cần tự chuẩn bị thêm ở nhà (muối biển, tiêu đen, hương thảo, chanh tươi, giấm táo...).
+  * Cung cấp các bước sơ chế & nấu nhanh chuẩn vị cùng bí quyết đầu bếp chuyên nghiệp.
+  * Tra cứu trạng thái đơn hàng theo thời gian thực bằng mã đơn `FF...`.
+  * Hướng dẫn chính sách đổi trả 24h và chuyển phiên sang nhân viên CSKH khi khách có khiếu nại.
+- [ChatController.php](file:///d:/FreshFood/app/Http/Controllers/Client/ChatController.php): Bộ điều khiển xử lý API Chat Storefront (tạo phiên, gửi nhận tin nhắn, chuyển đổi chế độ AI/Nhân viên, polling tin nhắn).
+- [SupportChatController.php](file:///d:/FreshFood/app/Http/Controllers/Admin/SupportChatController.php): Quản trị hội thoại CSKH & Khiếu nại của nhân viên và quản lý (tiếp nhận, phản hồi, tra cứu đơn khiếu nại, đóng phiên).
+- [FloatingChatWidget.vue](file:///d:/FreshFood/resources/js/components/chat/FloatingChatWidget.vue): Widget bong bóng chat nổi ở góc dưới phải màn hình trên toàn hệ thống storefront, tích hợp 2 tab Chat AI và Gặp nhân viên, hiển thị thẻ sản phẩm gợi ý kèm nút "Mua ngay", khối nguyên liệu cần chuẩn bị thêm ở nhà, và thẻ tra cứu đơn hàng.
+- [Index.vue](file:///d:/FreshFood/resources/js/pages/admin/support/Index.vue): Trang quản lý hộp thư khiếu nại & CSKH đa năng dành cho nhân viên và admin, hỗ trợ câu trả lời nhanh (canned responses) và xem chi tiết đơn hàng khiếu nại.
+- [ChatSupportTest.php](file:///d:/FreshFood/tests/Feature/ChatSupportTest.php): Bộ kiểm thử tính năng tự động (8 tests) bao gồm kiểm thử tư vấn thịt bò chuẩn xác và tư vấn công thức món ăn bít tết tách nhóm nguyên liệu.

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import StoreLayout from '@/layouts/StoreLayout.vue';
-import { Link } from '@inertiajs/vue3';
-import { ArrowRight, Banknote, CheckCircle2, Download } from 'lucide-vue-next';
+import { Link, router } from '@inertiajs/vue3';
+import { ArrowRight, Banknote, CheckCircle2, CreditCard, Download, ExternalLink, RefreshCw, ShieldCheck } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const props = defineProps<{
@@ -13,6 +13,8 @@ const props = defineProps<{
         phi_giao_hang: number;
         tien_giam_gia: number;
         phuong_thuc_thanh_toan: string;
+        trang_thai_thanh_toan: string;
+        trang_thai_don_hang: string;
         ten_nguoi_nhan: string;
         so_dien_thoai_nhan: string;
         dia_chi_giao: string;
@@ -24,6 +26,10 @@ const props = defineProps<{
 
 function formatPrice(val: number): string {
     return new Intl.NumberFormat('vi-VN').format(val) + 'đ';
+}
+
+function payWithVNPay() {
+    router.post(route('checkout.vnpay-payment', props.order.ma_don_hang));
 }
 
 // Link tạo mã QR VNPAY / VietQR chuẩn với thông tin tài khoản VPBank
@@ -52,71 +58,87 @@ const vnpayQrUrl = computed(() => {
                     >. Nhân viên siêu thị đang tiến hành chọn những phần thực phẩm tươi sạch nhất để giao đến bạn.
                 </p>
 
-                <!-- VNPAY-QR PAYMENT BOX -->
-                <div
-                    v-if="order.phuong_thuc_thanh_toan === 'vnpay' || order.phuong_thuc_thanh_toan === 'chuyen_khoan'"
-                    class="mx-auto mb-8 max-w-lg space-y-4 rounded-3xl border-2 border-blue-200/80 bg-gradient-to-b from-blue-50/70 via-white to-blue-50/40 p-6 text-left shadow-lg shadow-blue-900/5"
-                >
-                    <div class="flex items-center justify-between border-b border-blue-100 pb-3">
-                        <div class="flex items-center space-x-2">
-                            <div class="flex h-7 w-7 items-center justify-center rounded-xl bg-blue-600 text-xs font-black text-white">QR</div>
+                <!-- VNPAY PAYMENT BOX -->
+                <div v-if="order.phuong_thuc_thanh_toan === 'vnpay' || order.phuong_thuc_thanh_toan === 'chuyen_khoan'">
+                    <!-- ĐÃ THANH TOÁN THÀNH CÔNG -->
+                    <div
+                        v-if="order.trang_thai_thanh_toan === 'da_thanh_toan'"
+                        class="mx-auto mb-8 max-w-lg rounded-3xl border-2 border-emerald-300 bg-emerald-50/80 p-6 text-left shadow-lg shadow-emerald-900/5"
+                    >
+                        <div class="flex items-center space-x-3">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white">
+                                <CheckCircle2 class="h-6 w-6" />
+                            </div>
                             <div>
-                                <h3 class="text-sm font-black text-blue-950">MÃ THANH TOÁN VNPAY-QR</h3>
-                                <p class="text-[11px] text-blue-700">Quét mã bằng App Ngân hàng hoặc Ví VNPAY</p>
+                                <h3 class="text-sm font-black text-emerald-950">ĐÃ THANH TOÁN VNPAY THÀNH CÔNG</h3>
+                                <p class="text-xs text-emerald-700 font-medium">Hệ thống đã nhận được số tiền {{ formatPrice(order.tong_thanhtoan) }}. Đơn hàng đang được chuẩn bị!</p>
                             </div>
                         </div>
-                        <span class="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-blue-800">
-                            VNPAY-QR
-                        </span>
                     </div>
 
-                    <div class="flex flex-col items-center gap-5 pt-1 sm:flex-row">
-                        <!-- QR IMAGE -->
-                        <div class="group relative shrink-0 rounded-2xl border-2 border-blue-300 bg-white p-2 shadow-sm">
-                            <img :src="vnpayQrUrl" alt="Mã VNPAY QR Thanh Toán" class="h-44 w-44 rounded-xl object-contain" />
-                            <a
-                                :href="vnpayQrUrl"
-                                download="VNPAY-QR-Order.png"
-                                target="_blank"
-                                class="mt-1.5 flex w-full items-center justify-center space-x-1 rounded-lg bg-blue-50 py-1 text-[10px] font-bold text-blue-700 transition hover:bg-blue-100"
+                    <!-- CHƯA THANH TOÁN - CỔNG VNPAY SANDBOX -->
+                    <div
+                        v-else
+                        class="mx-auto mb-8 max-w-lg space-y-4 rounded-3xl border-2 border-blue-200/90 bg-gradient-to-b from-blue-50/70 via-white to-blue-50/40 p-6 text-left shadow-lg shadow-blue-900/5"
+                    >
+                        <div class="flex items-center justify-between border-b border-blue-100 pb-3">
+                            <div class="flex items-center space-x-2">
+                                <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600 text-xs font-black text-white">
+                                    <CreditCard class="h-4 w-4" />
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-black text-blue-950">CỔNG THANH TOÁN VNPAY SANDBOX</h3>
+                                    <p class="text-[11px] text-blue-700">Đơn hàng đang chờ bạn thanh toán trực tuyến</p>
+                                </div>
+                            </div>
+                            <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-800">
+                                Chờ Thanh Toán
+                            </span>
+                        </div>
+
+                        <!-- NÚT THANH TOÁN NGAY QUA VNPAY -->
+                        <div class="rounded-2xl border border-blue-100 bg-blue-50/80 p-4 text-center">
+                            <p class="text-xs text-slate-600 mb-1">Số tiền cần thanh toán:</p>
+                            <p class="text-2xl font-black text-blue-700 mb-3">{{ formatPrice(order.tong_thanhtoan) }}</p>
+                            <button
+                                @click="payWithVNPay"
+                                type="button"
+                                class="inline-flex w-full items-center justify-center space-x-2 rounded-xl bg-blue-600 py-3 text-xs font-black uppercase tracking-wider text-white shadow-md transition-all hover:bg-blue-700 cursor-pointer"
                             >
-                                <Download class="h-3 w-3" />
-                                <span>Tải mã QR</span>
-                            </a>
+                                <ExternalLink class="h-4 w-4" />
+                                <span>Thanh Toán Ngay Qua VNPAY Sandbox</span>
+                            </button>
                         </div>
 
-                        <!-- TRANSFER DETAILS -->
-                        <div class="flex-1 space-y-2 text-xs text-slate-700">
-                            <div class="rounded-xl border border-blue-100/80 bg-blue-50/60 p-2.5">
-                                <span class="block text-[10px] font-bold uppercase tracking-wider text-blue-600">Số tiền thanh toán:</span>
-                                <strong class="text-base font-black text-blue-700">{{ formatPrice(order.tong_thanhtoan) }}</strong>
-                            </div>
-
-                            <div class="space-y-1 text-[11px]">
-                                <p>Cổng thanh toán: <strong class="text-slate-900">VNPAY-QR / NAPAS247</strong></p>
-                                <p>Đơn vị thụ hưởng: <strong class="uppercase text-slate-900">PHAN VAN THIEN DUY</strong></p>
-                                <p>Ngân hàng: <strong class="text-slate-900">VPBank (Việt Nam Thịnh Vượng)</strong></p>
-                                <p>Số tài khoản: <strong class="font-mono text-xs font-bold text-blue-700">0329643444</strong></p>
-                                <p>
-                                    Nội dung chuyển khoản: <strong class="font-mono font-bold text-blue-700">VNPAY {{ order.ma_don_hang }}</strong>
-                                </p>
+                        <!-- THÔNG TIN THẺ TEST -->
+                        <div class="rounded-2xl border border-blue-200 bg-white p-3 text-[11px] text-slate-700 space-y-1.5">
+                            <p class="font-bold text-blue-900 flex items-center">
+                                <ShieldCheck class="mr-1 h-3.5 w-3.5 text-blue-600" />
+                                Thông tin thẻ TEST (Môi trường Sandbox):
+                            </p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
+                                <div>Ngân hàng: <strong class="font-bold text-slate-900">NCB</strong></div>
+                                <div>Số thẻ: <strong class="font-mono font-bold text-blue-700">9704198526191432198</strong></div>
+                                <div>Tên: <strong class="font-bold text-slate-900">NGUYEN VAN A</strong></div>
+                                <div>Ngày: <strong class="font-bold text-slate-900">07/15</strong> • OTP: <strong class="font-bold text-slate-900">123456</strong></div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- 3 EASY STEPS -->
-                    <div class="grid grid-cols-3 gap-2 border-t border-blue-100 pt-3 text-center text-[10px] text-slate-600">
-                        <div class="rounded-xl border border-blue-100 bg-white p-1.5">
-                            <span class="block font-bold text-blue-600">Bước 1</span>
-                            <span>Mở App Ngân hàng hoặc Ví VNPAY</span>
-                        </div>
-                        <div class="rounded-xl border border-blue-100 bg-white p-1.5">
-                            <span class="block font-bold text-blue-600">Bước 2</span>
-                            <span>Chọn biểu tượng "Quét QR"</span>
-                        </div>
-                        <div class="rounded-xl border border-blue-100 bg-white p-1.5">
-                            <span class="block font-bold text-blue-600">Bước 3</span>
-                            <span>Xác nhận & Hoàn tất thanh toán</span>
+                        <!-- QR DỰ PHÒNG HOẶC QUÉT MÃ -->
+                        <div class="border-t border-blue-100 pt-3">
+                            <details class="text-xs text-slate-600">
+                                <summary class="font-bold text-blue-700 cursor-pointer hover:underline">
+                                    Hoặc quét mã VietQR / VNPAY-QR chuyển khoản
+                                </summary>
+                                <div class="mt-3 flex flex-col items-center sm:flex-row gap-4 p-2 bg-slate-50 rounded-xl">
+                                    <img :src="vnpayQrUrl" alt="Mã VNPAY QR Thanh Toán" class="h-32 w-32 rounded-lg object-contain bg-white p-1 border" />
+                                    <div class="text-[11px] space-y-1">
+                                        <p>STK: <strong class="font-mono text-blue-700">0329643444</strong> (VPBank)</p>
+                                        <p>Chủ TK: <strong class="uppercase text-slate-900">PHAN VAN THIEN DUY</strong></p>
+                                        <p>Nội dung: <strong class="font-mono text-blue-700">VNPAY {{ order.ma_don_hang }}</strong></p>
+                                    </div>
+                                </div>
+                            </details>
                         </div>
                     </div>
                 </div>

@@ -14,6 +14,7 @@ const props = defineProps<{
             gia_giam: number | null;
             don_vi_tinh: string;
             hinh_anh_chinh: string | null;
+            hinh_anhs_count?: number;
             la_tuoi_song: boolean;
             trang_thai: number;
             danh_muc?: {
@@ -182,7 +183,7 @@ function formatCurrency(val: number): string {
                                 <td class="px-3 py-2.5">
                                     <div class="flex items-center space-x-2.5">
                                         <div
-                                            class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-gray-200 bg-gray-100"
+                                            class="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-gray-200 bg-gray-100"
                                         >
                                             <img
                                                 v-if="prod.hinh_anh_chinh"
@@ -191,6 +192,13 @@ function formatCurrency(val: number): string {
                                                 class="h-full w-full object-cover"
                                             />
                                             <Boxes v-else class="h-4 w-4 text-gray-400" />
+                                            <span
+                                                v-if="prod.hinh_anhs_count && prod.hinh_anhs_count > 1"
+                                                class="absolute bottom-0 right-0 rounded-tl bg-black/70 px-1 text-[8px] font-bold text-white backdrop-blur-xs"
+                                                :title="`${prod.hinh_anhs_count} hình ảnh`"
+                                            >
+                                                📷 {{ prod.hinh_anhs_count }}
+                                            </span>
                                         </div>
                                         <div>
                                             <div class="font-bold text-gray-900">{{ prod.ten_san_pham }}</div>

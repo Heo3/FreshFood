@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Client\AccountController;
 use App\Http\Controllers\Client\CartController;
+use App\Http\Controllers\Client\ChatController;
 use App\Http\Controllers\Client\CheckoutController;
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\ProductController;
@@ -35,9 +36,19 @@ Route::post('/api/cart/refresh-prices', [CartController::class, 'refreshPrices']
 
 Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::post('/thanh-toan', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('/thanh-toan/vnpay-callback', [CheckoutController::class, 'vnpayCallback'])->name('checkout.vnpay-callback');
+Route::post('/thanh-toan/vnpay-payment/{maDonHang}', [CheckoutController::class, 'retryVNPayPayment'])->name('checkout.vnpay-payment');
 Route::get('/thanh-toan/thanh-cong/{maDonHang}', [CheckoutController::class, 'success'])->name('checkout.success');
 
 Route::get('/tra-cuu-don-hang', [CheckoutController::class, 'tracking'])->name('orders.tracking');
+
+// ==========================================
+// CHAT AI & TƯ VẤN / KHIẾU NẠI KHÁCH HÀNG
+// ==========================================
+Route::post('/api/chat/session', [ChatController::class, 'getOrCreateSession'])->name('chat.session');
+Route::post('/api/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+Route::post('/api/chat/switch-mode', [ChatController::class, 'switchMode'])->name('chat.switch-mode');
+Route::get('/api/chat/messages/{phienChatId}', [ChatController::class, 'getMessages'])->name('chat.messages');
 
 // ==========================================
 // LEGAL & POLICIES (Chính sách & Điều khoản)

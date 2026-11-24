@@ -12,11 +12,13 @@ use App\Models\LichSuTichDiem;
 use App\Models\MaGiamGia;
 use App\Models\SanPham;
 use App\Models\User;
+use App\Services\VNPayService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class CheckoutController extends Controller
 {
@@ -82,7 +84,7 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|SymfonyResponse
     {
         $request->validate([
             'ten_nguoi_nhan' => ['required', 'string', 'max:100'],
@@ -262,7 +264,60 @@ class CheckoutController extends Controller
         // Xóa mã giảm giá đã dùng khỏi session
         $request->session()->forget('applied_coupon_code');
 
+        if ($donHang->phuong_thuc_thanh_toan === 'vnpay') {
+            $vnpayService = app(VNPayService::class);
+            $paymentUrl = $vnpayService->createPaymentUrl($donHang, $request->ip());
+
+            return Inertia::location($paymentUrl);
+        }
+
         return redirect()->route('checkout.success', ['maDonHang' => $donHang->ma_don_hang]);
+    }
+
+    /**
+     * Nhận phản hồi thanh toán trả về từ cổng VNPay Sandbox.
+     */
+    public function vnpayCallback(Request $request, VNPayService $vnpayService): RedirectResponse
+    {
+        $result = $vnpayService->verifyReturn($request->all());
+
+        if (! $result['is_valid'] || empty($result['order_code'])) {
+            return redirect()->route('home')->with('error', $result['message']);
+        }
+
+        $order = DonHang::where('ma_don_hang', $result['order_code'])->first();
+        if (! $order) {
+            return redirect()->route('home')->with('error', 'Không tìm thấy thông tin đơn hàng tương ứng.');
+        }
+
+        if ($result['success']) {
+            $order->update([
+                'trang_thai_thanh_toan' => 'da_thanh_toan',
+            ]);
+
+            return redirect()->route('checkout.success', ['maDonHang' => $order->ma_don_hang])
+                ->with('success', 'Thanh toán đơn hàng qua VNPay Sandbox thành công!');
+        }
+
+        return redirect()->route('checkout.success', ['maDonHang' => $order->ma_don_hang])
+            ->with('error', 'Thanh toán VNPay chưa hoàn tất: '.$result['message']);
+    }
+
+    /**
+     * Tạo liên kết để thanh toán lại bằng VNPay Sandbox.
+     */
+    public function retryVNPayPayment(string $maDonHang, Request $request, VNPayService $vnpayService): SymfonyResponse|RedirectResponse
+    {
+        $order = DonHang::where('ma_don_hang', $maDonHang)->firstOrFail();
+
+        if ($order->trang_thai_thanh_toan === 'da_thanh_toan') {
+            return redirect()->route('checkout.success', ['maDonHang' => $order->ma_don_hang])
+                ->with('info', 'Đơn hàng này đã được thanh toán thành công.');
+        }
+
+        $paymentUrl = $vnpayService->createPaymentUrl($order, $request->ip());
+
+        return Inertia::location($paymentUrl);
     }
 
     public function success(string $maDonHang): Response

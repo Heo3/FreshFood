@@ -607,9 +607,76 @@ function formatPrice(value: number): string {
             </div>
         </div>
 
+        <!-- MOBILE STORE SELECTOR BAR -->
+        <div class="border-t border-emerald-100 bg-emerald-50/70 px-4 py-2 lg:hidden">
+            <button
+                @click="isStoreSelectOpen = !isStoreSelectOpen"
+                class="flex w-full items-center justify-between text-xs font-medium text-emerald-950"
+            >
+                <div class="flex items-center space-x-2 truncate">
+                    <MapPin class="h-4 w-4 shrink-0 text-emerald-600" />
+                    <span class="text-[11px] text-gray-500 shrink-0">Chi nhánh:</span>
+                    <span class="truncate font-bold text-emerald-900">
+                        {{ stores?.find((s) => s.id === selectedStoreId)?.ten_cua_hang || 'Chọn chi nhánh gần bạn' }}
+                    </span>
+                </div>
+                <div class="flex items-center space-x-1 shrink-0 text-[11px] font-bold text-emerald-700">
+                    <span>Đổi</span>
+                    <ChevronDown class="h-3.5 w-3.5" />
+                </div>
+            </button>
+        </div>
+
+        <!-- MOBILE STORE SELECT MODAL -->
+        <div
+            v-if="isStoreSelectOpen"
+            class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4 backdrop-blur-xs lg:hidden"
+            @click.self="isStoreSelectOpen = false"
+        >
+            <div class="w-full max-w-md rounded-t-3xl sm:rounded-3xl bg-white p-4 shadow-2xl duration-200 animate-in slide-in-from-bottom">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <MapPin class="h-5 w-5 text-emerald-600" />
+                        <h3 class="text-sm font-bold text-gray-900">Chọn Chi Nhánh Gần Bạn</h3>
+                    </div>
+                    <button @click="isStoreSelectOpen = false" class="rounded-full p-1 text-gray-400 hover:bg-gray-100">
+                        <X class="h-5 w-5" />
+                    </button>
+                </div>
+
+                <button
+                    type="button"
+                    @click="autoLocateHeader(); isStoreSelectOpen = false"
+                    :disabled="isHeaderLocating"
+                    class="my-3 flex w-full items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-left text-xs font-bold text-emerald-800 transition-colors hover:bg-emerald-100"
+                >
+                    <div class="flex items-center space-x-2">
+                        <LocateFixed class="h-4 w-4 text-emerald-600" :class="{ 'animate-spin': isHeaderLocating }" />
+                        <span>{{ isHeaderLocating ? 'Đang xác định vị trí...' : '📍 Tự động chọn chi nhánh gần nhất' }}</span>
+                    </div>
+                </button>
+
+                <div class="max-h-72 space-y-1.5 overflow-y-auto pr-1">
+                    <button
+                        v-for="store in stores"
+                        :key="store.id"
+                        @click="handleStoreChange(store); isStoreSelectOpen = false"
+                        class="flex w-full items-start space-x-3 rounded-2xl p-3 text-left text-xs transition-colors hover:bg-emerald-50 border border-transparent"
+                        :class="{ 'border-emerald-500 bg-emerald-50/80 ring-2 ring-emerald-500/20': store.id === selectedStoreId }"
+                    >
+                        <MapPin class="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                        <div class="min-w-0 flex-1">
+                            <p class="font-bold text-gray-800">{{ store.ten_cua_hang }}</p>
+                            <p class="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-gray-500">{{ store.dia_chi }}</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- QUICK NAV CATEGORIES -->
-        <nav class="hidden border-t border-gray-100 bg-gray-50/60 sm:block">
-            <div class="no-scrollbar mx-auto flex max-w-7xl items-center space-x-6 overflow-x-auto px-4 py-2.5 text-xs font-semibold text-gray-700">
+        <nav class="border-t border-gray-100 bg-gray-50/70">
+            <div class="no-scrollbar mx-auto flex max-w-7xl items-center space-x-5 overflow-x-auto px-4 py-2 text-xs font-semibold text-gray-700 whitespace-nowrap">
                 <Link :href="route('home')" class="shrink-0 transition-colors hover:text-emerald-600"> Trang chủ </Link>
                 <Link :href="route('products.index')" class="shrink-0 transition-colors hover:text-emerald-600"> Tất cả sản phẩm </Link>
                 <Link :href="route('categories.show', { slug: 'rau-cu-huu-co' })" class="shrink-0 transition-colors hover:text-emerald-600">

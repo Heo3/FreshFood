@@ -46,9 +46,21 @@ class UserController extends Controller
         $users = $query->orderBy('id', 'desc')->paginate(15)->withQueryString();
         $stores = CuaHang::where('trang_thai', 1)->get(['id', 'ten_cua_hang']);
 
+        $stats = [
+            'total' => User::count(),
+            'admins' => User::where('role', 'admin')->count(),
+            'managers' => User::where('role', 'quan_ly')->count(),
+            'staff' => User::where('role', 'nhan_vien')->count(),
+            'delivery' => User::where('role', 'giao_hang')->count(),
+            'customers' => User::where('role', 'khach_hang')->count(),
+            'active' => User::where('status', 1)->count(),
+            'locked' => User::where('status', 0)->count(),
+        ];
+
         return Inertia::render('admin/users/Index', [
             'users' => $users,
             'stores' => $stores,
+            'stats' => $stats,
             'filters' => [
                 'search' => $search,
                 'role' => $role,
@@ -64,10 +76,14 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:20', 'unique:users,phone'],
-            'role' => ['required', 'in:admin,quan_ly,nhan_vien,khach_hang'],
+            'role' => ['required', 'in:admin,quan_ly,nhan_vien,giao_hang,khach_hang'],
             'store_id' => ['nullable', 'exists:cua_hang,id'],
             'password' => ['required', Password::defaults()],
             'status' => ['integer', 'in:0,1'],
+            'loai_phuong_tien' => ['nullable', 'in:xe_may,xe_tai'],
+            'bien_so_xe' => ['nullable', 'string', 'max:30'],
+            'tai_trong_kg' => ['nullable', 'integer', 'min:1'],
+            'trang_thai_giao' => ['nullable', 'in:san_sang,dang_giao,nghi'],
         ]);
 
         User::create([
@@ -78,6 +94,10 @@ class UserController extends Controller
             'store_id' => ! empty($validated['store_id']) ? (int) $validated['store_id'] : null,
             'password' => Hash::make($validated['password']),
             'status' => isset($validated['status']) ? (int) $validated['status'] : 1,
+            'loai_phuong_tien' => $validated['role'] === 'giao_hang' ? ($validated['loai_phuong_tien'] ?? 'xe_may') : null,
+            'bien_so_xe' => $validated['role'] === 'giao_hang' ? ($validated['bien_so_xe'] ?? null) : null,
+            'tai_trong_kg' => $validated['role'] === 'giao_hang' ? ($validated['tai_trong_kg'] ?? null) : null,
+            'trang_thai_giao' => $validated['role'] === 'giao_hang' ? ($validated['trang_thai_giao'] ?? 'san_sang') : 'san_sang',
         ]);
 
         return back()->with('success', "Đã tạo tài khoản {$validated['name']} thành công!");
@@ -89,9 +109,13 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'phone' => ['nullable', 'string', 'max:20', 'unique:users,phone,'.$user->id],
-            'role' => ['required', 'in:admin,quan_ly,nhan_vien,khach_hang'],
+            'role' => ['required', 'in:admin,quan_ly,nhan_vien,giao_hang,khach_hang'],
             'store_id' => ['nullable', 'exists:cua_hang,id'],
             'status' => ['integer', 'in:0,1'],
+            'loai_phuong_tien' => ['nullable', 'in:xe_may,xe_tai'],
+            'bien_so_xe' => ['nullable', 'string', 'max:30'],
+            'tai_trong_kg' => ['nullable', 'integer', 'min:1'],
+            'trang_thai_giao' => ['nullable', 'in:san_sang,dang_giao,nghi'],
         ];
 
         if ($request->filled('password')) {
@@ -107,6 +131,10 @@ class UserController extends Controller
             'role' => $validated['role'],
             'store_id' => ! empty($validated['store_id']) ? (int) $validated['store_id'] : null,
             'status' => isset($validated['status']) ? (int) $validated['status'] : 1,
+            'loai_phuong_tien' => $validated['role'] === 'giao_hang' ? ($validated['loai_phuong_tien'] ?? null) : null,
+            'bien_so_xe' => $validated['role'] === 'giao_hang' ? ($validated['bien_so_xe'] ?? null) : null,
+            'tai_trong_kg' => $validated['role'] === 'giao_hang' ? ($validated['tai_trong_kg'] ?? null) : null,
+            'trang_thai_giao' => $validated['role'] === 'giao_hang' ? ($validated['trang_thai_giao'] ?? 'san_sang') : 'san_sang',
         ];
 
         if (! empty($validated['password'])) {

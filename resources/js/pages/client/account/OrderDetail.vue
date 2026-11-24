@@ -3,7 +3,7 @@ import AccountSidebar from '@/components/storefront/AccountSidebar.vue';
 import { useToast } from '@/composables/useToast';
 import StoreLayout from '@/layouts/StoreLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, Ban, Calendar, ChevronRight, Clock, RotateCcw, Star, X } from 'lucide-vue-next';
+import { ArrowLeft, Ban, Calendar, ChevronRight, Clock, CreditCard, RotateCcw, Star, X } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -328,6 +328,15 @@ const statusMap: Record<string, { label: string; class: string }> = {
                                 <p class="text-[11px] text-slate-500">
                                     Nội dung chuyển khoản: <strong class="font-mono text-blue-700">VNPAY {{ order.ma_don_hang }}</strong>
                                 </p>
+                                <button
+                                    v-if="order.phuong_thuc_thanh_toan === 'vnpay'"
+                                    @click="router.post(route('checkout.vnpay-payment', order.ma_don_hang))"
+                                    type="button"
+                                    class="mt-2 inline-flex items-center space-x-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700 cursor-pointer"
+                                >
+                                    <CreditCard class="h-3.5 w-3.5" />
+                                    <span>Mở Cổng Thanh Toán VNPay Sandbox</span>
+                                </button>
                             </div>
                         </div>
 

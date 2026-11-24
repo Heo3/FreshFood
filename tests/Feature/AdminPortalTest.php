@@ -5,9 +5,12 @@ use App\Models\CuaHang;
 use App\Models\DanhGiaSanPham;
 use App\Models\DanhMuc;
 use App\Models\DonHang;
+use App\Models\HinhAnhSanPham;
 use App\Models\SanPham;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -156,6 +159,32 @@ test('admin can manage staff personnel and roles', function () {
     ]);
     $resp->assertRedirect();
     $this->assertDatabaseHas('users', ['email' => 'thungan@freshfood.vn', 'role' => 'nhan_vien']);
+});
+
+test('admin can create delivery staff with vehicle and fleet assignment', function () {
+    $admin = createAdminUser();
+    $store = CuaHang::first();
+
+    $resp = $this->actingAs($admin)->post(route('admin.users.store'), [
+        'name' => 'Lê Văn Tài Xế',
+        'email' => 'taixe.le@freshfood.vn',
+        'phone' => '0933998877',
+        'role' => 'giao_hang',
+        'store_id' => $store->id,
+        'loai_phuong_tien' => 'xe_tai',
+        'bien_so_xe' => '51D-998.88',
+        'tai_trong_kg' => 1500,
+        'password' => 'Password123!',
+        'status' => 1,
+    ]);
+    $resp->assertRedirect();
+    $this->assertDatabaseHas('users', [
+        'email' => 'taixe.le@freshfood.vn',
+        'role' => 'giao_hang',
+        'loai_phuong_tien' => 'xe_tai',
+        'bien_so_xe' => '51D-998.88',
+        'tai_trong_kg' => 1500,
+    ]);
 });
 
 test('admin can update staff personnel information', function () {
@@ -347,4 +376,79 @@ test('admin can view and moderate customer reviews', function () {
     $delResp = $this->actingAs($admin)->delete(route('admin.reviews.destroy', $review->id));
     $delResp->assertSessionHas('success');
     $this->assertDatabaseMissing('danh_gia_san_pham', ['id' => $review->id]);
+});
+
+test('admin can upload multiple images when creating product and manage gallery', function () {
+    Storage::fake('public');
+
+    $admin = createAdminUser();
+    $cat = DanhMuc::create(['ten_danh_muc' => 'Rau Củ Quả', 'duong_dan_seo' => 'rau-cu-qua']);
+
+    $image1 = UploadedFile::fake()->create('carrot1.jpg', 100, 'image/jpeg');
+    $image2 = UploadedFile::fake()->create('carrot2.jpg', 100, 'image/jpeg');
+
+    // 1. Create product with multiple images and image 1 as primary (anh_chinh_index = 0)
+    $resp = $this->actingAs($admin)->post(route('admin.products.store'), [
+        'ten_san_pham' => 'Cà Rốt Đà Lạt Chuẩn GAP',
+        'danh_muc_id' => $cat->id,
+        'gia_ban' => 35000,
+        'don_vi_tinh' => 'Kg',
+        'la_tuoi_song' => true,
+        'trang_thai' => 1,
+        'anh_chinh_index' => 0,
+        'hinh_anh_phu' => [$image1, $image2],
+    ]);
+
+    $resp->assertRedirect(route('admin.products.index'));
+
+    $product = SanPham::where('ten_san_pham', 'Cà Rốt Đà Lạt Chuẩn GAP')->first();
+    $this->assertNotNull($product);
+    $this->assertNotNull($product->hinh_anh_chinh);
+
+    // Assert gallery items were created
+    $gallery = HinhAnhSanPham::where('san_pham_id', $product->id)->get();
+    $this->assertCount(2, $gallery);
+
+    $primaryImg = $gallery->firstWhere('la_anh_chinh', true);
+    $secondaryImg = $gallery->firstWhere('la_anh_chinh', false);
+    $this->assertNotNull($primaryImg);
+    $this->assertNotNull($secondaryImg);
+
+    // 2. Set the secondary image as primary
+    $setPrimaryResp = $this->actingAs($admin)->post(route('admin.products.set-primary-image', $secondaryImg->id));
+    $setPrimaryResp->assertSessionHas('success');
+
+    $this->assertTrue((bool) $secondaryImg->fresh()->la_anh_chinh);
+    $this->assertFalse((bool) $primaryImg->fresh()->la_anh_chinh);
+    $this->assertEquals($secondaryImg->duong_dan_anh, $product->fresh()->hinh_anh_chinh);
+
+    // 3. Delete an image
+    $delImgResp = $this->actingAs($admin)->delete(route('admin.products.delete-image', $primaryImg->id));
+    $delImgResp->assertSessionHas('success');
+    $this->assertDatabaseMissing('hinh_anh_san_pham', ['id' => $primaryImg->id]);
+    $this->assertCount(1, HinhAnhSanPham::where('san_pham_id', $product->id)->get());
+});
+
+test('admin can create product with descriptive preservation condition and it normalizes safely', function () {
+    $admin = createAdminUser();
+    $cat = DanhMuc::create(['ten_danh_muc' => 'Gia Vị', 'duong_dan_seo' => 'gia-vi-test']);
+
+    $resp = $this->actingAs($admin)->post(route('admin.products.store'), [
+        'ten_san_pham' => 'Tỏi Lý Sơn',
+        'danh_muc_id' => $cat->id,
+        'gia_ban' => 50000,
+        'gia_giam' => 45000,
+        'don_vi_tinh' => 'Túi',
+        'quy_cach' => 'Túi 500g',
+        'dieu_kien_bao_quan' => 'Nhiệt độ phòng (thoáng mát, tránh ánh nắng)',
+        'han_su_dung_ngay' => 30,
+        'la_tuoi_song' => true,
+        'trang_thai' => 1,
+    ]);
+
+    $resp->assertRedirect(route('admin.products.index'));
+
+    $product = SanPham::where('ten_san_pham', 'Tỏi Lý Sơn')->first();
+    $this->assertNotNull($product);
+    $this->assertEquals('thuong', $product->dieu_kien_bao_quan);
 });

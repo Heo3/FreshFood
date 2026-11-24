@@ -136,4 +136,3 @@ it('allows checkout when delivery address matches the store region', function ()
     $response->assertSessionHasNoErrors();
     $response->assertRedirect();
 });
-

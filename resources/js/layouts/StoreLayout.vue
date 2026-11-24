@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import MobileBottomNav from '@/components/storefront/MobileBottomNav.vue';
 import StoreFooter from '@/components/storefront/StoreFooter.vue';
 import StoreHeader from '@/components/storefront/StoreHeader.vue';
+import FloatingChatWidget from '@/components/chat/FloatingChatWidget.vue';
 import ToastContainer from '@/components/ui/ToastContainer.vue';
 import { useCart } from '@/composables/useCart';
 import { Head, usePage } from '@inertiajs/vue3';
@@ -44,12 +46,15 @@ onMounted(() => {
         <StoreHeader :stores="stores" />
 
         <!-- MAIN BODY CONTENT -->
-        <main class="flex-1">
+        <main class="flex-1 pb-16 lg:pb-0">
             <slot />
         </main>
 
         <!-- FOOTER -->
         <StoreFooter />
+
+        <!-- MOBILE BOTTOM NAVIGATION BAR -->
+        <MobileBottomNav />
 
         <!-- TOAST NOTIFICATION POPUP -->
         <div
@@ -65,5 +70,8 @@ onMounted(() => {
 
         <!-- GLOBAL TOAST NOTIFICATION CONTAINER -->
         <ToastContainer />
+
+        <!-- SMART AI & CSKH FLOATING CHAT WIDGET -->
+        <FloatingChatWidget />
     </div>
 </template>

@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\StoreController;
 use App\Http\Controllers\Admin\SupplierController;
+use App\Http\Controllers\Admin\SupportChatController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +24,8 @@ Route::middleware(['auth', 'role:admin,quan_ly'])->prefix('admin')->as('admin.')
     // 2. Sản phẩm & Bảng giá chi nhánh
     Route::resource('san-pham', ProductController::class)->names('products');
     Route::post('san-pham/{sanPham}/gia-chi-nhanh', [ProductController::class, 'updateBranchPrice'])->name('products.branch-price');
+    Route::delete('san-pham/hinh-anh/{hinhAnh}', [ProductController::class, 'deleteImage'])->name('products.delete-image');
+    Route::post('san-pham/hinh-anh/{hinhAnh}/chinh', [ProductController::class, 'setPrimaryImage'])->name('products.set-primary-image');
 
     // 3. Danh mục
     Route::resource('danh-muc', CategoryController::class)->except(['create', 'show', 'edit'])->names('categories');
@@ -48,6 +51,11 @@ Route::middleware(['auth', 'role:admin,quan_ly'])->prefix('admin')->as('admin.')
     // 9. Banner & Quảng cáo trang chủ
     Route::resource('banners', BannerController::class)->except(['create', 'show', 'edit'])->names('banners');
     Route::post('banners/{banner}/toggle', [BannerController::class, 'toggle'])->name('banners.toggle');
+
+    // 10. Chăm sóc khách hàng & Khiếu nại
+    Route::get('ho-tro', [SupportChatController::class, 'index'])->name('support.index');
+    Route::post('ho-tro/{session}/reply', [SupportChatController::class, 'reply'])->name('support.reply');
+    Route::post('ho-tro/{session}/status', [SupportChatController::class, 'updateStatus'])->name('support.update-status');
 
     // ==========================================
     // DÀNH RIÊNG CHO QUẢN TRỊ VIÊN CẤP CAO (ADMIN)
