@@ -9,6 +9,7 @@ use App\Models\GioHang;
 use App\Models\MaGiamGia;
 use App\Models\PhieuDoiTra;
 use App\Models\SanPham;
+use App\Models\TonKho;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -593,4 +594,80 @@ test('cart items are automatically transitioned when selecting new store or addi
 
     $this->actingAs($user)->postJson('/api/cart/clear')->assertSuccessful();
     expect(GioHang::where('user_id', $user->id)->count())->toBe(0);
+});
+
+test('out of stock products are hidden from catalog and cannot be ordered', function () {
+    $data = setupStorefrontPrerequisites();
+
+    // Sản phẩm còn hàng trong kho
+    $inStockProduct = $data['product'];
+    TonKho::create([
+        'cua_hang_id' => $data['store']->id,
+        'san_pham_id' => $inStockProduct->id,
+        'so_luong_ton' => 50,
+        'so_luong_tam_giu' => 0,
+        'nguong_canh_bao_thap' => 5,
+    ]);
+
+    // Sản phẩm đã hết hàng trong kho (tồn = 0)
+    $outOfStockProduct = SanPham::create([
+        'danh_muc_id' => $data['category']->id,
+        'ma_va_vach' => '893600000888',
+        'ten_san_pham' => 'Rau Cần Tây Hết Hàng',
+        'duong_dan_seo' => 'rau-can-tay-het-hang',
+        'don_vi_tinh' => 'kg',
+        'gia_ban' => 45000,
+        'trang_thai' => 1,
+    ]);
+
+    TonKho::create([
+        'cua_hang_id' => $data['store']->id,
+        'san_pham_id' => $outOfStockProduct->id,
+        'so_luong_ton' => 0,
+        'so_luong_tam_giu' => 0,
+        'nguong_canh_bao_thap' => 5,
+    ]);
+
+    // 1. Kiểm tra danh mục sản phẩm: Không hiển thị sản phẩm hết hàng
+    $response = $this->withSession(['current_store_id' => $data['store']->id])
+        ->get('/san-pham');
+
+    $response->assertSuccessful();
+    $response->assertInertia(function (Assert $page) use ($inStockProduct, $outOfStockProduct) {
+        $page->component('client/Products')
+            ->where('products.data', function ($items) use ($inStockProduct, $outOfStockProduct) {
+                $ids = collect($items)->pluck('id')->all();
+
+                return in_array($inStockProduct->id, $ids) && ! in_array($outOfStockProduct->id, $ids);
+            });
+    });
+
+    // 2. Chặn thêm vào giỏ hàng
+    $cartResponse = $this->postJson('/api/cart/add', [
+        'san_pham_id' => $outOfStockProduct->id,
+        'so_luong' => 1,
+        'store_id' => $data['store']->id,
+    ]);
+    $cartResponse->assertStatus(422);
+    $cartResponse->assertJsonFragment([
+        'success' => false,
+        'message' => 'Sản phẩm này tạm thời đã hết hàng trong kho tại chi nhánh đã chọn.',
+    ]);
+
+    // 3. Chặn đặt hàng khi thanh toán
+    $user = User::factory()->create(['role' => 'khach_hang', 'status' => 1]);
+    $checkoutResponse = $this->actingAs($user)->post('/thanh-toan', [
+        'ten_nguoi_nhan' => 'Nguyen Van A',
+        'so_dien_thoai_nhan' => '0987654321',
+        'dia_chi_giao' => '120 Hai Bà Trưng, Quận 1, TP Hồ Chí Minh',
+        'cua_hang_id' => $data['store']->id,
+        'phuong_thuc_thanh_toan' => 'cod',
+        'items' => [
+            [
+                'san_pham_id' => $outOfStockProduct->id,
+                'so_luong' => 2,
+            ],
+        ],
+    ]);
+    $checkoutResponse->assertSessionHasErrors('items');
 });

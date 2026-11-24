@@ -11,11 +11,13 @@ use App\Models\GioHang;
 use App\Models\LichSuTichDiem;
 use App\Models\MaGiamGia;
 use App\Models\SanPham;
+use App\Models\TonKho;
 use App\Models\User;
 use App\Services\VNPayService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -122,6 +124,17 @@ class CheckoutController extends Controller
                 $product = SanPham::with(['giaTheoCuaHang' => function ($q) use ($cuaHangId) {
                     $q->where('cua_hang_id', $cuaHangId);
                 }])->findOrFail($item['san_pham_id']);
+
+                // Kiểm tra tồn kho tại chi nhánh trước khi tạo đơn
+                $tonKho = TonKho::where('cua_hang_id', $cuaHangId)
+                    ->where('san_pham_id', $product->id)
+                    ->first();
+
+                if ($tonKho && $tonKho->so_luong_kha_dung < $item['so_luong']) {
+                    throw ValidationException::withMessages([
+                        'items' => "Sản phẩm '{$product->ten_san_pham}' đã hết hoặc không đủ số lượng trong kho tại chi nhánh đã chọn (còn {$tonKho->so_luong_kha_dung}).",
+                    ]);
+                }
 
                 // Ưu tiên chọn giá ở table gia_san_pham_cua_hang theo chi nhánh được chọn
                 $storeGia = $product->giaTheoCuaHang->first();

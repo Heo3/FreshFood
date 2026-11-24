@@ -528,8 +528,8 @@ TEXT;
             return null;
         }
 
-        // 3. Tìm các nguyên liệu CÓ BÁN tại siêu thị Fresh Food trong cơ sở dữ liệu
-        $allProducts = SanPham::where('trang_thai', 1)->get();
+        // 3. Tìm các nguyên liệu CÓ BÁN tại siêu thị Fresh Food trong cơ sở dữ liệu (chỉ lấy hàng còn tồn kho)
+        $allProducts = SanPham::where('trang_thai', 1)->conHang()->get();
         $availableProducts = $allProducts->filter(function ($p) use ($matchedDish) {
             $pName = mb_strtolower($p->ten_san_pham);
             foreach ($matchedDish['available_keywords'] as $kw) {
@@ -802,7 +802,7 @@ TEXT;
             }
         }
 
-        $allProducts = SanPham::where('trang_thai', 1)->get();
+        $allProducts = SanPham::where('trang_thai', 1)->conHang()->get();
 
         if (! empty($matchedPhrases)) {
             $filtered = $allProducts->filter(function ($p) use ($matchedPhrases) {

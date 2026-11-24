@@ -96,6 +96,30 @@ class SanPham extends Model
     }
 
     /**
+     * Scope lọc sản phẩm còn hàng trong kho (loại bỏ các sản phẩm đã hết hàng).
+     * Sản phẩm bị coi là hết hàng nếu có bản ghi tồn kho với số lượng khả dụng (so_luong_ton - so_luong_tam_giu) <= 0.
+     */
+    public function scopeConHang(Builder $query, ?int $cuaHangId = null): Builder
+    {
+        return $query->where(function (Builder $q) use ($cuaHangId) {
+            if ($cuaHangId) {
+                $q->where(function ($sub) use ($cuaHangId) {
+                    $sub->whereHas('tonKhos', function (Builder $tk) use ($cuaHangId) {
+                        $tk->where('cua_hang_id', $cuaHangId)
+                            ->whereRaw('(so_luong_ton - so_luong_tam_giu) > 0');
+                    })->orWhereDoesntHave('tonKhos');
+                });
+            } else {
+                $q->where(function ($sub) {
+                    $sub->whereHas('tonKhos', function (Builder $tk) {
+                        $tk->whereRaw('(so_luong_ton - so_luong_tam_giu) > 0');
+                    })->orWhereDoesntHave('tonKhos');
+                });
+            }
+        });
+    }
+
+    /**
      * Scope ưu tiên chọn giá từ bảng gia_san_pham_cua_hang theo chi nhánh.
      * Nếu chi nhánh không có giá cấu hình riêng thì fallback về giá mặc định ở bảng san_pham.
      */

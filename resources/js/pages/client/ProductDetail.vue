@@ -104,6 +104,16 @@ const discountPercent = computed(() => {
     return Math.round(((currentStorePricing.value.gia_ban - currentStorePricing.value.gia_giam) / currentStorePricing.value.gia_ban) * 100);
 });
 
+const isOutOfStock = computed(() => {
+    if (!props.product.ton_khos || props.product.ton_khos.length === 0) return false;
+    const storeTk = props.product.ton_khos.find(
+        (tk: any) => Number(tk.cua_hang_id) === Number(selectedStoreId.value)
+    );
+    if (!storeTk) return false;
+    const available = Number(storeTk.so_luong_ton ?? 0) - Number(storeTk.so_luong_tam_giu ?? 0);
+    return available <= 0;
+});
+
 function switchToStore(store: any) {
     if (Number(selectedStoreId.value) === Number(store.id)) return;
 
@@ -148,11 +158,19 @@ function switchToStore(store: any) {
 }
 
 function handleAddToCart() {
+    if (isOutOfStock.value) {
+        toast.error('Sản phẩm này tạm thời đã hết hàng tại chi nhánh đã chọn!');
+        return;
+    }
     addToCart(props.product, quantity.value);
     toast.success(`Đã thêm ${quantity.value} ${props.product.don_vi_tinh} vào giỏ hàng!`);
 }
 
 function handleBuyNow() {
+    if (isOutOfStock.value) {
+        toast.error('Sản phẩm này tạm thời đã hết hàng tại chi nhánh đã chọn!');
+        return;
+    }
     addToCart(props.product, quantity.value);
     router.visit(route('checkout.index'));
 }
@@ -385,8 +403,14 @@ function submitReview() {
                             </div>
                         </div>
 
+                        <!-- OUT OF STOCK NOTICE -->
+                        <div v-if="isOutOfStock" class="rounded-2xl border border-red-200 bg-red-50 p-4 text-center">
+                            <p class="text-sm font-bold text-red-700">⚠️ Sản phẩm tạm thời hết hàng tại chi nhánh này</p>
+                            <p class="mt-1 text-xs text-red-600">Quý khách vui lòng chuyển sang chi nhánh khác ở trên hoặc chọn sản phẩm tương tự bên dưới nhé!</p>
+                        </div>
+
                         <!-- QUANTITY PICKER & ACTION BUTTONS -->
-                        <div class="space-y-4 border-t border-gray-100 pt-4">
+                        <div v-else class="space-y-4 border-t border-gray-100 pt-4">
                             <div class="flex items-center space-x-4">
                                 <span class="text-xs font-bold text-gray-700">Số lượng:</span>
                                 <div class="flex items-center rounded-xl border border-gray-200 bg-gray-50 p-1">

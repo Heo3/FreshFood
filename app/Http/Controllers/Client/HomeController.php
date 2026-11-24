@@ -24,27 +24,30 @@ class HomeController extends Controller
             ->with(['danhMucCon'])
             ->get();
 
-        // Sản phẩm Flash Sale có giá giảm (ưu tiên giá của chi nhánh được chọn)
+        // Sản phẩm Flash Sale có giá giảm (ưu tiên giá của chi nhánh được chọn, còn hàng trong kho)
         $flashSales = SanPham::dangKinhDoanh()
             ->voiGiaCuaHang($storeId)
+            ->conHang($storeId)
             ->coGiamGia($storeId)
             ->with(['danhMuc'])
             ->latest('san_pham.created_at')
             ->limit(8)
             ->get();
 
-        // Sản phẩm tươi mới về sáng nay (ưu tiên hàng tươi sống)
+        // Sản phẩm tươi mới về sáng nay (ưu tiên hàng tươi sống, còn hàng trong kho)
         $freshToday = SanPham::dangKinhDoanh()
             ->voiGiaCuaHang($storeId)
+            ->conHang($storeId)
             ->tuoiSong()
             ->with(['danhMuc'])
             ->latest('san_pham.created_at')
             ->limit(8)
             ->get();
 
-        // Thịt cá tươi ngon tuyển chọn
+        // Thịt cá tươi ngon tuyển chọn (còn hàng trong kho)
         $meatsAndSeafood = SanPham::dangKinhDoanh()
             ->voiGiaCuaHang($storeId)
+            ->conHang($storeId)
             ->whereHas('danhMuc', function ($q) {
                 $q->whereIn('duong_dan_seo', [
                     'thit-tuoi-trung-sach',
@@ -61,9 +64,10 @@ class HomeController extends Controller
             ->limit(8)
             ->get();
 
-        // Trái cây tươi & Rau củ
+        // Trái cây tươi & Rau củ (còn hàng trong kho)
         $fruitsAndVeggies = SanPham::dangKinhDoanh()
             ->voiGiaCuaHang($storeId)
+            ->conHang($storeId)
             ->whereHas('danhMuc', function ($q) {
                 $q->whereIn('duong_dan_seo', [
                     'rau-cu-huu-co',

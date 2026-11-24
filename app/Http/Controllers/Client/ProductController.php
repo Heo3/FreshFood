@@ -21,6 +21,7 @@ class ProductController extends Controller
 
         $query = SanPham::dangKinhDoanh()
             ->voiGiaCuaHang($storeId)
+            ->conHang($storeId)
             ->with(['danhMuc', 'giaTheoCuaHang']);
 
         // Tìm kiếm theo từ khóa
@@ -108,9 +109,10 @@ class ProductController extends Controller
 
         $product->apDungGiaCuaHang($storeId);
 
-        // Sản phẩm liên quan cùng danh mục
+        // Sản phẩm liên quan cùng danh mục (còn hàng trong kho)
         $relatedProducts = SanPham::dangKinhDoanh()
             ->voiGiaCuaHang($storeId)
+            ->conHang($storeId)
             ->where('san_pham.danh_muc_id', $product->danh_muc_id)
             ->where('san_pham.id', '!=', $product->id)
             ->with(['danhMuc'])

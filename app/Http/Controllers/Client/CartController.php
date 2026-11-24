@@ -7,6 +7,7 @@ use App\Models\CuaHang;
 use App\Models\GioHang;
 use App\Models\MaGiamGia;
 use App\Models\SanPham;
+use App\Models\TonKho;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -221,6 +222,18 @@ class CartController extends Controller
         $productId = (int) $request->input('san_pham_id');
         $quantity = (float) $request->input('so_luong');
 
+        // Kiểm tra tồn kho tại chi nhánh được chọn
+        $tonKho = TonKho::where('cua_hang_id', $storeId)
+            ->where('san_pham_id', $productId)
+            ->first();
+
+        if ($tonKho && $tonKho->so_luong_kha_dung <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sản phẩm này tạm thời đã hết hàng trong kho tại chi nhánh đã chọn.',
+            ], 422);
+        }
+
         // Luôn đồng nhất toàn bộ sản phẩm trong giỏ hàng về cùng một chi nhánh
         $existingCartQuery = GioHang::query();
         if ($user) {
@@ -298,6 +311,18 @@ class CartController extends Controller
         if ($quantity <= 0) {
             $query->delete();
         } else {
+            // Kiểm tra tồn kho tại chi nhánh khi tăng số lượng
+            $tonKho = TonKho::where('cua_hang_id', $storeId)
+                ->where('san_pham_id', $productId)
+                ->first();
+
+            if ($tonKho && $tonKho->so_luong_kha_dung < $quantity) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Kho chỉ còn {$tonKho->so_luong_kha_dung} sản phẩm khả dụng.",
+                ], 422);
+            }
+
             $cartItem = $query->first();
             if ($cartItem) {
                 $cartItem->update(['so_luong' => $quantity]);
