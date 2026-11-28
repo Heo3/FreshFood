@@ -38,33 +38,33 @@ defineProps<{
         </div>
 
         <!-- CATEGORY HERO HEADER -->
-        <section class="mx-auto max-w-7xl px-4 py-6">
+        <section class="mx-auto max-w-7xl px-3 sm:px-4 py-3 sm:py-6">
             <div
-                class="relative flex items-center justify-between overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-800 to-teal-800 p-6 text-white shadow-lg sm:p-10"
+                class="relative flex items-center justify-between overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-emerald-800 to-teal-800 p-4 sm:p-10 text-white shadow-lg"
             >
                 <div>
-                    <span class="mb-1 block text-xs font-bold uppercase tracking-widest text-emerald-300"> Danh Mục Thực Phẩm </span>
-                    <h1 class="text-2xl font-black sm:text-4xl">{{ currentCategory.ten_danh_muc }}</h1>
-                    <p class="mt-2 max-w-xl text-xs text-emerald-100/90 sm:text-sm">
+                    <span class="mb-1 block text-[10px] sm:text-xs font-bold uppercase tracking-widest text-emerald-300"> Danh Mục Thực Phẩm </span>
+                    <h1 class="text-xl font-black sm:text-4xl">{{ currentCategory.ten_danh_muc }}</h1>
+                    <p class="mt-1.5 sm:mt-2 max-w-xl text-xs text-emerald-100/90 sm:text-sm">
                         Tuyển chọn các mặt hàng đạt tiêu chuẩn cao nhất từ các nông trại sạch và nhà phân phối uy tín.
                     </p>
                 </div>
                 <div
                     v-if="currentCategory.hinh_anh"
-                    class="hidden h-32 w-32 shrink-0 overflow-hidden rounded-2xl border border-white/20 shadow-md sm:block"
+                    class="hidden h-28 w-28 sm:h-32 sm:w-32 shrink-0 overflow-hidden rounded-2xl border border-white/20 shadow-md sm:block"
                 >
                     <img :src="currentCategory.hinh_anh" :alt="currentCategory.ten_danh_muc" class="h-full w-full object-cover" />
                 </div>
             </div>
 
             <!-- SUBCATEGORIES CHIPS -->
-            <div v-if="currentCategory.danh_muc_con?.length > 0" class="mt-4 flex items-center space-x-2 overflow-x-auto pb-2">
+            <div v-if="currentCategory.danh_muc_con?.length > 0" class="mt-3 sm:mt-4 flex items-center space-x-2 overflow-x-auto pb-2">
                 <span class="shrink-0 text-xs font-bold text-gray-400">Danh mục con:</span>
                 <Link
                     v-for="sub in currentCategory.danh_muc_con"
                     :key="sub.id"
                     :href="'/danh-muc/' + sub.duong_dan_seo"
-                    class="shrink-0 rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-bold text-gray-700 shadow-sm transition-colors hover:bg-emerald-50 hover:text-emerald-700"
+                    class="shrink-0 rounded-full border border-gray-200 bg-white px-3 py-1 sm:px-3.5 sm:py-1.5 text-xs font-bold text-gray-700 shadow-sm transition-colors hover:bg-emerald-50 hover:text-emerald-700"
                 >
                     {{ sub.ten_danh_muc }}
                 </Link>
@@ -72,22 +72,22 @@ defineProps<{
         </section>
 
         <!-- PRODUCT GRID -->
-        <section class="mx-auto max-w-7xl px-4 pb-12">
-            <div class="mb-6 flex items-center justify-between">
+        <section class="mx-auto max-w-7xl px-3 sm:px-4 pb-8 sm:pb-12">
+            <div class="mb-4 sm:mb-6 flex items-center justify-between">
                 <span class="text-xs font-medium text-gray-500">
                     Hiển thị <strong class="text-gray-900">{{ products.total }}</strong> sản phẩm
                 </span>
             </div>
 
-            <div v-if="products.data.length > 0" class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            <div v-if="products.data.length > 0" class="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 <ProductCard v-for="p in products.data" :key="p.id" :product="p" />
             </div>
 
-            <div v-else class="rounded-3xl border border-gray-100 bg-white p-12 text-center shadow-sm">
-                <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 text-gray-400">
-                    <PackageX class="h-8 w-8" />
+            <div v-else class="rounded-2xl sm:rounded-3xl border border-gray-100 bg-white p-8 sm:p-12 text-center shadow-sm">
+                <div class="mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl sm:rounded-2xl bg-gray-100 text-gray-400">
+                    <PackageX class="h-6 w-6 sm:h-8 sm:w-8" />
                 </div>
-                <h3 class="mb-1 text-base font-bold text-gray-900">Chưa có sản phẩm trong danh mục này</h3>
+                <h3 class="mb-1 text-sm sm:text-base font-bold text-gray-900">Chưa có sản phẩm trong danh mục này</h3>
                 <p class="mx-auto mb-4 max-w-sm text-xs text-gray-500">Vui lòng quay lại sau hoặc duyệt các danh mục thực phẩm tươi sống khác.</p>
                 <Link
                     :href="route('products.index')"
@@ -98,12 +98,12 @@ defineProps<{
             </div>
 
             <!-- PAGINATION -->
-            <div v-if="products.last_page > 1" class="mt-8 flex justify-center space-x-1">
+            <div v-if="products.last_page > 1" class="mt-6 sm:mt-8 flex justify-center space-x-1 overflow-x-auto pb-2">
                 <Link
                     v-for="(link, i) in products.links"
                     :key="i"
                     :href="link.url || '#'"
-                    class="rounded-xl px-3.5 py-2 text-xs font-bold transition-colors"
+                    class="rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-bold transition-colors"
                     :class="{
                         'bg-emerald-600 text-white shadow-sm': link.active,
                         'border border-gray-100 bg-white text-gray-700 hover:bg-gray-100': !link.active && link.url,

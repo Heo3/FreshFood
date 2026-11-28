@@ -47,6 +47,7 @@ class SanPham extends Model
             'han_su_dung_ngay' => 'integer',
             'la_tuoi_song' => 'boolean',
             'trang_thai' => 'integer',
+            'da_het_hang' => 'boolean',
         ];
     }
 
@@ -145,11 +146,25 @@ class SanPham extends Model
             });
         }
 
+        $hetHangSubquery = "(CASE 
+            WHEN (
+                SELECT (tk.so_luong_ton - tk.so_luong_tam_giu) 
+                FROM ton_kho tk 
+                WHERE tk.san_pham_id = san_pham.id 
+                  AND tk.cua_hang_id = {$cuaHangId} 
+                LIMIT 1
+            ) > 0 THEN 0 
+            WHEN EXISTS (SELECT 1 FROM ton_kho WHERE cua_hang_id = {$cuaHangId}) THEN 1
+            WHEN EXISTS (SELECT 1 FROM ton_kho WHERE san_pham_id = san_pham.id) THEN 1
+            ELSE 0 
+        END)";
+
         return $query->select([
             'san_pham.*',
             DB::raw('COALESCE(gch.gia_ban, san_pham.gia_ban) as gia_ban'),
             DB::raw('CASE WHEN gch.id IS NOT NULL THEN gch.gia_giam ELSE san_pham.gia_giam END as gia_giam'),
             DB::raw('CASE WHEN gch.id IS NOT NULL THEN 1 ELSE 0 END as co_gia_chi_nhanh'),
+            DB::raw("{$hetHangSubquery} as da_het_hang"),
         ]);
     }
 
@@ -205,6 +220,23 @@ class SanPham extends Model
             $this->gia_ban = $gia['gia_ban'];
             $this->gia_giam = $gia['gia_giam'];
             $this->setAttribute('co_gia_chi_nhanh', $gia['co_gia_chi_nhanh']);
+
+            $tonKho = $this->relationLoaded('tonKhos')
+                ? $this->tonKhos->firstWhere('cua_hang_id', $cuaHangId)
+                : $this->tonKhos()->where('cua_hang_id', $cuaHangId)->first();
+
+            $hasStoreInventory = TonKho::where('cua_hang_id', $cuaHangId)->exists();
+            $hasProductInventory = TonKho::where('san_pham_id', $this->id)->exists();
+
+            if ($tonKho) {
+                $daHetHang = ($tonKho->so_luong_kha_dung <= 0);
+            } elseif ($hasStoreInventory || $hasProductInventory) {
+                $daHetHang = true;
+            } else {
+                $daHetHang = false;
+            }
+
+            $this->setAttribute('da_het_hang', $daHetHang);
         }
 
         return $this;

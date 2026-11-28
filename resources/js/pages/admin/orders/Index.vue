@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
-import { Eye, Filter, Search } from 'lucide-vue-next';
+import { Eye, FileDown, Filter, Search } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -22,6 +22,17 @@ const props = defineProps<{
             cua_hang?: {
                 id: number;
                 ten_cua_hang: string;
+            };
+            nhan_vien_len_don?: {
+                id: number;
+                name: string;
+                phone?: string;
+                role?: string;
+            };
+            nguoi_giao_hang?: {
+                id: number;
+                name: string;
+                phone?: string;
             };
             chi_tiet_don_hangs?: Array<any>;
         }>;
@@ -135,6 +146,15 @@ function getStatusBadge(st: string) {
                         <Filter class="h-3 w-3" />
                         <span>Lọc Đơn Hàng</span>
                     </button>
+
+                    <a
+                        :href="route('admin.orders.export', { search, trang_thai_don_hang: status, cua_hang_id: storeId, trang_thai_thanh_toan: paymentStatus })"
+                        class="flex items-center space-x-1 rounded-sm bg-[#28a745] px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#218838]"
+                        title="Xuất danh sách đơn hàng ra file Excel / CSV"
+                    >
+                        <FileDown class="h-3 w-3" />
+                        <span>Xuất Excel / CSV</span>
+                    </a>
                 </div>
             </div>
 
@@ -152,6 +172,7 @@ function getStatusBadge(st: string) {
                                 <th class="px-3 py-2.5">Mã Đơn / Thời Gian</th>
                                 <th class="px-3 py-2.5">Khách Hàng / SĐT</th>
                                 <th class="px-3 py-2.5">Chi Nhánh Xử Lý</th>
+                                <th class="px-3 py-2.5">Người Chuẩn Bị & Giao</th>
                                 <th class="px-3 py-2.5">Tổng Thanh Toán</th>
                                 <th class="px-3 py-2.5 text-center">Thanh Toán</th>
                                 <th class="px-3 py-2.5 text-center">Trạng Thái Đơn</th>
@@ -174,6 +195,20 @@ function getStatusBadge(st: string) {
                                 </td>
                                 <td class="px-3 py-2.5 text-gray-600">
                                     {{ order.cua_hang?.ten_cua_hang || 'N/A' }}
+                                </td>
+                                <td class="px-3 py-2.5">
+                                    <div class="text-[11px] leading-tight">
+                                        <span class="text-gray-400">Chuẩn bị: </span>
+                                        <span :class="order.nhan_vien_len_don ? 'font-semibold text-blue-700' : 'text-amber-600 italic'">
+                                            {{ order.nhan_vien_len_don?.name || 'Chờ chuẩn bị' }}
+                                        </span>
+                                    </div>
+                                    <div class="mt-0.5 text-[11px] leading-tight">
+                                        <span class="text-gray-400">Giao hàng: </span>
+                                        <span :class="order.nguoi_giao_hang ? 'font-semibold text-emerald-700' : 'text-gray-400 italic'">
+                                            {{ order.nguoi_giao_hang?.name ? (order.nguoi_giao_hang.name + (order.nguoi_giao_hang.phone ? ` (${order.nguoi_giao_hang.phone})` : '')) : 'Chưa phân công' }}
+                                        </span>
+                                    </div>
                                 </td>
                                 <td class="px-3 py-2.5 font-bold text-gray-900">
                                     {{ formatCurrency(order.tong_thanhtoan) }}
@@ -211,7 +246,7 @@ function getStatusBadge(st: string) {
                                 </td>
                             </tr>
                             <tr v-if="orders.data.length === 0">
-                                <td colspan="7" class="py-8 text-center italic text-gray-400">Không tìm thấy đơn hàng nào.</td>
+                                <td colspan="8" class="py-8 text-center italic text-gray-400">Không tìm thấy đơn hàng nào.</td>
                             </tr>
                         </tbody>
                     </table>

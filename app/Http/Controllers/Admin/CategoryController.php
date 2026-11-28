@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\DanhMuc;
+use App\Services\CloudinaryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -41,9 +43,14 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'ten_danh_muc' => ['required', 'string', 'max:255'],
             'duong_dan_seo' => ['nullable', 'string', 'max:255', 'unique:danh_muc,duong_dan_seo'],
-            'hinh_anh' => ['nullable', 'string', 'max:500'],
+            'hinh_anh' => ['nullable'],
             'danh_muc_cha_id' => ['nullable', 'exists:danh_muc,id'],
         ]);
+
+        if ($request->hasFile('hinh_anh')) {
+            $validated['hinh_anh'] = app(CloudinaryService::class)->upload($request->file('hinh_anh'), 'categories')
+                ?? Storage::url($request->file('hinh_anh')->store('categories', 'public'));
+        }
 
         if (empty($validated['duong_dan_seo'])) {
             $validated['duong_dan_seo'] = Str::slug($validated['ten_danh_muc']).'-'.time();
@@ -59,9 +66,14 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'ten_danh_muc' => ['required', 'string', 'max:255'],
             'duong_dan_seo' => ['nullable', 'string', 'max:255', 'unique:danh_muc,duong_dan_seo,'.$danhMuc->id],
-            'hinh_anh' => ['nullable', 'string', 'max:500'],
+            'hinh_anh' => ['nullable'],
             'danh_muc_cha_id' => ['nullable', 'different:id', 'exists:danh_muc,id'],
         ]);
+
+        if ($request->hasFile('hinh_anh')) {
+            $validated['hinh_anh'] = app(CloudinaryService::class)->upload($request->file('hinh_anh'), 'categories')
+                ?? Storage::url($request->file('hinh_anh')->store('categories', 'public'));
+        }
 
         if (empty($validated['duong_dan_seo'])) {
             $validated['duong_dan_seo'] = Str::slug($validated['ten_danh_muc']);

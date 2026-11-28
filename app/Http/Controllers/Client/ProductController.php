@@ -17,11 +17,20 @@ class ProductController extends Controller
 {
     public function index(Request $request): Response
     {
+        return Inertia::render('client/Products', $this->getProductListData($request));
+    }
+
+    /**
+     * Lấy dữ liệu danh sách sản phẩm dùng chung cho cả trang tất cả sản phẩm và trang danh mục.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getProductListData(Request $request): array
+    {
         $storeId = CuaHang::layIdCuaHangHienTai($request);
 
         $query = SanPham::dangKinhDoanh()
             ->voiGiaCuaHang($storeId)
-            ->conHang($storeId)
             ->with(['danhMuc', 'giaTheoCuaHang']);
 
         // Tìm kiếm theo từ khóa
@@ -84,13 +93,13 @@ class ProductController extends Controller
 
         $stores = CuaHang::where('trang_thai', 1)->get();
 
-        return Inertia::render('client/Products', [
+        return [
             'products' => $products,
             'categories' => $categories,
             'stores' => $stores,
             'selectedStoreId' => $storeId,
             'filters' => $request->only(['q', 'category', 'min_price', 'max_price', 'is_fresh', 'preservation', 'sort']),
-        ]);
+        ];
     }
 
     public function show(string $slug, Request $request): Response
@@ -109,10 +118,9 @@ class ProductController extends Controller
 
         $product->apDungGiaCuaHang($storeId);
 
-        // Sản phẩm liên quan cùng danh mục (còn hàng trong kho)
+        // Sản phẩm liên quan cùng danh mục
         $relatedProducts = SanPham::dangKinhDoanh()
             ->voiGiaCuaHang($storeId)
-            ->conHang($storeId)
             ->where('san_pham.danh_muc_id', $product->danh_muc_id)
             ->where('san_pham.id', '!=', $product->id)
             ->with(['danhMuc'])
@@ -146,15 +154,13 @@ class ProductController extends Controller
             ->with(['danhMucCha', 'danhMucCon'])
             ->firstOrFail();
 
-        // Gán tham số category và gọi hàm index
+        // Gán tham số category và lấy dữ liệu sản phẩm
         $request->merge(['category' => $slug]);
 
-        $response = $this->index($request);
+        $data = $this->getProductListData($request);
+        $data['currentCategory'] = $category;
 
-        return Inertia::render('client/Category', array_merge(
-            $response->toResponse($request)->getOriginalContent()['page']['props'],
-            ['currentCategory' => $category]
-        ));
+        return Inertia::render('client/Category', $data);
     }
 
     /**

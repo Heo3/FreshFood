@@ -112,10 +112,10 @@ function setPricePreset(min: number | '', max: number | '') {
             </div>
         </div>
 
-        <div class="mx-auto max-w-7xl px-4 py-8">
-            <div class="flex flex-col gap-8 lg:flex-row">
+        <div class="mx-auto max-w-7xl px-3 sm:px-4 py-4 sm:py-8">
+            <div class="flex flex-col gap-6 lg:flex-row lg:gap-8">
                 <!-- 1. FILTER SIDEBAR (DESKTOP) -->
-                <aside class="w-full shrink-0 lg:w-72">
+                <aside class="hidden shrink-0 lg:block lg:w-72">
                     <div class="sticky top-28 space-y-6 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
                         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                             <span class="flex items-center text-sm font-black text-gray-900">
@@ -248,25 +248,31 @@ function setPricePreset(min: number | '', max: number | '') {
 
                 <!-- 2. PRODUCT LISTING AREA -->
                 <div class="min-w-0 flex-1">
-                    <!-- Top control bar: count, active chips, sorting, grid/list view -->
-                    <div class="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
+                    <!-- Top control bar: count, filter trigger on mobile, sorting, grid/list view -->
+                    <div class="mb-4 sm:mb-6 flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 rounded-2xl sm:rounded-3xl border border-gray-100 bg-white p-3 sm:p-4 shadow-sm">
                         <div class="flex items-center space-x-2">
-                            <span class="text-xs font-medium text-gray-500">Tìm thấy:</span>
-                            <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-black text-emerald-700">
-                                {{ products.total }} sản phẩm
+                            <button
+                                @click="isMobileFilterOpen = true"
+                                class="flex items-center space-x-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800 transition-colors hover:bg-emerald-100 lg:hidden"
+                            >
+                                <Filter class="h-3.5 w-3.5 text-emerald-600" />
+                                <span>Bộ lọc</span>
+                            </button>
+                            <span class="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] sm:text-xs font-bold text-gray-700">
+                                {{ products.total }} <span class="hidden sm:inline">sản phẩm</span>
                             </span>
                         </div>
 
-                        <div class="ml-auto flex items-center space-x-3">
+                        <div class="ml-auto flex items-center space-x-2 sm:space-x-3">
                             <!-- Sort selector -->
                             <select
                                 v-model="localFilters.sort"
                                 @change="applyFilters"
-                                class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                class="rounded-xl border border-gray-200 bg-gray-50 px-2.5 sm:px-3 py-1.5 sm:py-2 text-[11px] sm:text-xs font-semibold text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                             >
-                                <option value="">Sắp xếp: Mới nhất</option>
-                                <option value="price_asc">Giá: Thấp đến Cao</option>
-                                <option value="price_desc">Giá: Cao đến Thấp</option>
+                                <option value="">Mới nhất</option>
+                                <option value="price_asc">Giá: Thấp -> Cao</option>
+                                <option value="price_desc">Giá: Cao -> Thấp</option>
                                 <option value="name_asc">Tên: A - Z</option>
                             </select>
 
@@ -293,16 +299,16 @@ function setPricePreset(min: number | '', max: number | '') {
                     </div>
 
                     <!-- PRODUCTS GRID -->
-                    <div v-if="products.data.length > 0" :class="isGridView ? 'grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3' : 'space-y-4'">
+                    <div v-if="products.data.length > 0" :class="isGridView ? 'grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-3 xl:grid-cols-4' : 'space-y-3 sm:space-y-4'">
                         <ProductCard v-for="p in products.data" :key="p.id" :product="p" />
                     </div>
 
                     <!-- EMPTY STATE -->
-                    <div v-else class="rounded-3xl border border-gray-100 bg-white p-12 text-center shadow-sm">
-                        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 text-gray-400">
-                            <PackageX class="h-8 w-8" />
+                    <div v-else class="rounded-2xl sm:rounded-3xl border border-gray-100 bg-white p-8 sm:p-12 text-center shadow-sm">
+                        <div class="mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl sm:rounded-2xl bg-gray-100 text-gray-400">
+                            <PackageX class="h-6 w-6 sm:h-8 sm:w-8" />
                         </div>
-                        <h3 class="mb-1 text-base font-bold text-gray-900">Không tìm thấy sản phẩm phù hợp</h3>
+                        <h3 class="mb-1 text-sm sm:text-base font-bold text-gray-900">Không tìm thấy sản phẩm phù hợp</h3>
                         <p class="mx-auto mb-4 max-w-sm text-xs text-gray-500">
                             Vui lòng thử tìm kiếm với từ khóa khác hoặc bỏ bớt các tiêu chí lọc giá và danh mục.
                         </p>
@@ -315,12 +321,12 @@ function setPricePreset(min: number | '', max: number | '') {
                     </div>
 
                     <!-- PAGINATION -->
-                    <div v-if="products.last_page > 1" class="mt-8 flex justify-center space-x-1">
+                    <div v-if="products.last_page > 1" class="mt-6 sm:mt-8 flex justify-center space-x-1 overflow-x-auto pb-2">
                         <Link
                             v-for="(link, i) in products.links"
                             :key="i"
                             :href="link.url || '#'"
-                            class="rounded-xl px-3.5 py-2 text-xs font-bold transition-colors"
+                            class="rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-bold transition-colors"
                             :class="{
                                 'bg-emerald-600 text-white shadow-sm': link.active,
                                 'border border-gray-100 bg-white text-gray-700 hover:bg-gray-100': !link.active && link.url,
@@ -330,6 +336,145 @@ function setPricePreset(min: number | '', max: number | '') {
                         />
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- MOBILE FILTER SHEET / DRAWER -->
+        <div
+            v-if="isMobileFilterOpen"
+            class="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-xs lg:hidden"
+            @click.self="isMobileFilterOpen = false"
+        >
+            <div class="max-h-[85vh] w-full overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl animate-in slide-in-from-bottom duration-200">
+                <div class="mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
+                    <span class="flex items-center text-sm font-black text-gray-900">
+                        <Filter class="mr-1.5 h-4 w-4 text-emerald-600" /> Bộ Lọc Tìm Kiếm
+                    </span>
+                    <div class="flex items-center space-x-3">
+                        <button @click="resetFilters" class="text-xs font-bold text-gray-400 hover:text-red-500">
+                            Xóa tất cả
+                        </button>
+                        <button @click="isMobileFilterOpen = false" class="rounded-lg p-1 text-gray-400 hover:bg-gray-100">
+                            <X class="h-5 w-5" />
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-5">
+                    <!-- Từ khóa -->
+                    <div>
+                        <h4 class="mb-2 text-xs font-bold uppercase tracking-wider text-gray-700">Từ khóa tìm kiếm</h4>
+                        <div class="relative">
+                            <input
+                                v-model="localFilters.q"
+                                type="text"
+                                placeholder="Nhập tên sản phẩm để lọc..."
+                                class="w-full rounded-xl border border-gray-200 py-2 pl-8 pr-7 text-xs focus:border-emerald-500 focus:outline-none"
+                            />
+                            <Search class="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                            <button
+                                v-if="localFilters.q"
+                                @click="localFilters.q = ''"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                                <X class="h-3.5 w-3.5" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Danh mục -->
+                    <div>
+                        <h4 class="mb-2 text-xs font-bold uppercase tracking-wider text-gray-700">Danh mục</h4>
+                        <div class="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pr-1">
+                            <button
+                                @click="localFilters.category = ''; applyFilters();"
+                                class="truncate rounded-xl px-2.5 py-2 text-left text-xs font-medium transition-colors"
+                                :class="!localFilters.category ? 'bg-emerald-50 font-bold text-emerald-700 border border-emerald-200' : 'bg-gray-50 text-gray-600'"
+                            >
+                                Tất cả danh mục
+                            </button>
+                            <button
+                                v-for="cat in categories"
+                                :key="cat.id"
+                                @click="localFilters.category = cat.duong_dan_seo; applyFilters();"
+                                class="truncate rounded-xl px-2.5 py-2 text-left text-xs font-medium transition-colors"
+                                :class="localFilters.category === cat.duong_dan_seo ? 'bg-emerald-50 font-bold text-emerald-700 border border-emerald-200' : 'bg-gray-50 text-gray-600'"
+                            >
+                                {{ cat.ten_danh_muc }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mức giá -->
+                    <div>
+                        <h4 class="mb-2 text-xs font-bold uppercase tracking-wider text-gray-700">Mức giá</h4>
+                        <div class="mb-2 grid grid-cols-2 gap-2">
+                            <input
+                                v-model="localFilters.min_price"
+                                type="number"
+                                placeholder="Từ (đ)"
+                                @change="applyFilters"
+                                class="w-full rounded-xl border border-gray-200 px-2.5 py-1.5 text-xs focus:border-emerald-500 focus:outline-none"
+                            />
+                            <input
+                                v-model="localFilters.max_price"
+                                type="number"
+                                placeholder="Đến (đ)"
+                                @change="applyFilters"
+                                class="w-full rounded-xl border border-gray-200 px-2.5 py-1.5 text-xs focus:border-emerald-500 focus:outline-none"
+                            />
+                        </div>
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <button
+                                @click="setPricePreset(0, 50000)"
+                                class="rounded-lg border border-gray-100 bg-gray-50 py-1.5 text-center text-[11px] text-gray-600 hover:bg-emerald-50"
+                            >
+                                Dưới 50K
+                            </button>
+                            <button
+                                @click="setPricePreset(50000, 150000)"
+                                class="rounded-lg border border-gray-100 bg-gray-50 py-1.5 text-center text-[11px] text-gray-600 hover:bg-emerald-50"
+                            >
+                                50K - 150K
+                            </button>
+                            <button
+                                @click="setPricePreset(150000, 300000)"
+                                class="rounded-lg border border-gray-100 bg-gray-50 py-1.5 text-center text-[11px] text-gray-600 hover:bg-emerald-50"
+                            >
+                                150K - 300K
+                            </button>
+                            <button
+                                @click="setPricePreset(300000, '')"
+                                class="rounded-lg border border-gray-100 bg-gray-50 py-1.5 text-center text-[11px] text-gray-600 hover:bg-emerald-50"
+                            >
+                                Trên 300K
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tươi sống -->
+                    <div>
+                        <label class="flex cursor-pointer items-center space-x-2 text-xs font-bold text-gray-700">
+                            <input
+                                type="checkbox"
+                                v-model="localFilters.is_fresh"
+                                @change="applyFilters"
+                                class="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                            />
+                            <span class="flex items-center">
+                                <Sparkles class="mr-1 h-3.5 w-3.5 text-emerald-600" />
+                                Hàng tươi sống trong ngày
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <button
+                    @click="isMobileFilterOpen = false"
+                    class="mt-6 w-full rounded-2xl bg-emerald-600 py-3 text-center text-xs font-black text-white shadow-lg shadow-emerald-600/30"
+                >
+                    Áp dụng bộ lọc ({{ products.total }} sản phẩm)
+                </button>
             </div>
         </div>
     </StoreLayout>

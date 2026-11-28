@@ -8,6 +8,7 @@ use App\Models\DanhMuc;
 use App\Models\GiaSanPhamCuaHang;
 use App\Models\HinhAnhSanPham;
 use App\Models\SanPham;
+use App\Services\CloudinaryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -293,6 +294,11 @@ class ProductController extends Controller
         }
 
         $wasPrimary = $hinhAnh->la_anh_chinh;
+
+        if ($hinhAnh->duong_dan_anh) {
+            app(CloudinaryService::class)->deleteByUrl($hinhAnh->duong_dan_anh);
+        }
+
         $hinhAnh->delete();
 
         if ($wasPrimary) {
@@ -329,6 +335,15 @@ class ProductController extends Controller
         }
 
         if ($imageSource instanceof UploadedFile) {
+            /** @var CloudinaryService $cloudinary */
+            $cloudinary = app(CloudinaryService::class);
+            if ($cloudinary->isConfigured()) {
+                $cloudUrl = $cloudinary->upload($imageSource, 'products');
+                if ($cloudUrl) {
+                    return $cloudUrl;
+                }
+            }
+
             $path = $imageSource->store('products', 'public');
 
             return Storage::url($path);

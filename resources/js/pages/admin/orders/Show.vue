@@ -18,7 +18,26 @@ const props = defineProps<{
         phuong_thuc_thanh_toan: string;
         trang_thai_thanh_toan: string;
         trang_thai_don_hang: string;
+        nhan_vien_len_don_id?: number | null;
+        nguoi_giao_hang_id?: number | null;
+        loai_phuong_tien_giao?: string | null;
+        bien_so_xe_giao?: string | null;
+        thoi_gian_bat_dau_giao?: string | null;
+        thoi_gian_giao_thanh_cong?: string | null;
         created_at: string;
+        nhan_vien_len_don?: {
+            id: number;
+            name: string;
+            phone?: string;
+            role?: string;
+        };
+        nguoi_giao_hang?: {
+            id: number;
+            name: string;
+            phone?: string;
+            bien_so_xe?: string;
+            loai_phuong_tien?: string;
+        };
         user?: {
             id: number;
             name: string;
@@ -47,11 +66,27 @@ const props = defineProps<{
             };
         }>;
     };
+    staffList?: Array<{
+        id: number;
+        name: string;
+        phone?: string;
+        role?: string;
+    }>;
+    driverList?: Array<{
+        id: number;
+        name: string;
+        phone?: string;
+        loai_phuong_tien?: string;
+        bien_so_xe?: string;
+        trang_thai_giao?: string;
+    }>;
 }>();
 
 const form = useForm({
     trang_thai_don_hang: props.order.trang_thai_don_hang,
     trang_thai_thanh_toan: props.order.trang_thai_thanh_toan,
+    nhan_vien_len_don_id: props.order.nhan_vien_len_don_id ?? null,
+    nguoi_giao_hang_id: props.order.nguoi_giao_hang_id ?? null,
     ghi_chu: props.order.ghi_chu || '',
 });
 
@@ -180,6 +215,42 @@ function formatCurrency(val: number): string {
                                 <span class="block text-[11px] text-gray-400">Địa chỉ giao:</span>
                                 <span class="text-gray-800">{{ order.dia_chi_giao }}</span>
                             </div>
+
+                            <div class="border-t border-gray-100 pt-2 sm:col-span-2">
+                                <span class="block text-[11px] font-semibold text-gray-500">Nhân viên chuẩn bị đơn / Soạn hàng:</span>
+                                <div v-if="order.nhan_vien_len_don" class="mt-0.5 flex flex-wrap items-center gap-1.5">
+                                    <span class="rounded bg-blue-50 px-2 py-0.5 font-bold text-blue-700">
+                                        {{ order.nhan_vien_len_don.name }}
+                                    </span>
+                                    <span v-if="order.nhan_vien_len_don.phone" class="font-mono text-gray-600">
+                                        ({{ order.nhan_vien_len_don.phone }})
+                                    </span>
+                                    <span v-if="order.nhan_vien_len_don.role" class="text-[10px] uppercase text-gray-400">
+                                        [{{ order.nhan_vien_len_don.role }}]
+                                    </span>
+                                </div>
+                                <div v-else class="mt-0.5 font-medium text-amber-700">
+                                    <span>Khách tự đặt online - </span>
+                                    <span class="italic text-gray-500">Chưa có nhân viên tiếp nhận chuẩn bị</span>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-gray-100 pt-2 sm:col-span-2">
+                                <span class="block text-[11px] font-semibold text-gray-500">Nhân viên giao hàng (Shipper):</span>
+                                <div v-if="order.nguoi_giao_hang" class="mt-0.5 flex flex-wrap items-center gap-1.5">
+                                    <span class="rounded bg-emerald-50 px-2 py-0.5 font-bold text-emerald-700">
+                                        {{ order.nguoi_giao_hang.name }}
+                                    </span>
+                                    <span v-if="order.bien_so_xe_giao || order.nguoi_giao_hang.bien_so_xe" class="font-mono font-semibold text-gray-700">
+                                        - Biển số: {{ order.bien_so_xe_giao || order.nguoi_giao_hang.bien_so_xe }}
+                                    </span>
+                                    <span v-if="order.nguoi_giao_hang.phone" class="font-mono text-gray-600">
+                                        ({{ order.nguoi_giao_hang.phone }})
+                                    </span>
+                                </div>
+                                <span v-else class="text-gray-400 italic">Chưa phân công nhân viên giao hàng</span>
+                            </div>
+
                             <div v-if="order.ghi_chu" class="rounded-sm border border-amber-200 bg-amber-50 p-2 text-amber-900 sm:col-span-2">
                                 <b>Ghi chú:</b> {{ order.ghi_chu }}
                             </div>
@@ -218,6 +289,32 @@ function formatCurrency(val: number): string {
                                     <option value="chua_thanh_toan">Chưa thanh toán</option>
                                     <option value="da_thanh_toan">Đã thanh toán</option>
                                     <option value="hoan_tien">Đã hoàn tiền</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="mb-1 block font-bold text-gray-700">Nhân Viên Chuẩn Bị Đơn / Soạn Hàng</label>
+                                <select
+                                    v-model="form.nhan_vien_len_don_id"
+                                    class="focus:outline-hidden w-full rounded-sm border border-gray-300 bg-white px-2.5 py-1.5 focus:border-[#28a745]"
+                                >
+                                    <option :value="null">-- Chưa phân công nhân viên chuẩn bị --</option>
+                                    <option v-for="staff in staffList" :key="staff.id" :value="staff.id">
+                                        {{ staff.name }} ({{ staff.role === 'admin' ? 'Quản trị viên' : (staff.role === 'quan_ly' ? 'Quản lý' : 'Nhân viên') }})
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="mb-1 block font-bold text-gray-700">Nhân Viên Giao Hàng (Shipper)</label>
+                                <select
+                                    v-model="form.nguoi_giao_hang_id"
+                                    class="focus:outline-hidden w-full rounded-sm border border-gray-300 bg-white px-2.5 py-1.5 focus:border-[#28a745]"
+                                >
+                                    <option :value="null">-- Chưa phân công shipper --</option>
+                                    <option v-for="driver in driverList" :key="driver.id" :value="driver.id">
+                                        {{ driver.name }} - {{ driver.bien_so_xe || driver.loai_phuong_tien || 'Xe máy' }} ({{ driver.phone || 'N/A' }})
+                                    </option>
                                 </select>
                             </div>
 

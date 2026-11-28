@@ -237,11 +237,11 @@ const filteredAdminNav = computed(() => {
             <!-- BRAND LOGO -->
             <div class="flex h-16 items-center justify-between border-b border-slate-800/80 px-4">
                 <Link :href="route('admin.dashboard')" class="flex items-center space-x-3 overflow-hidden">
-                    <div
-                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-sm font-extrabold text-white shadow-md shadow-emerald-500/20"
-                    >
-                        FF
-                    </div>
+                    <img
+                        src="/logo.png"
+                        alt="FreshFood Admin"
+                        class="h-9 w-9 shrink-0 rounded-xl object-contain bg-white p-0.5 shadow-md shadow-emerald-500/20"
+                    />
                     <div v-show="!isDesktopSidebarCollapsed" class="whitespace-nowrap transition-opacity duration-200">
                         <span class="text-base font-bold tracking-tight text-white">FreshFood</span>
                         <span

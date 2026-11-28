@@ -88,6 +88,11 @@ class User extends Authenticatable
         return $this->hasMany(DonHang::class, 'user_id');
     }
 
+    public function donHangsLenDon(): HasMany
+    {
+        return $this->hasMany(DonHang::class, 'nhan_vien_len_don_id');
+    }
+
     public function gioHangs(): HasMany
     {
         return $this->hasMany(GioHang::class, 'user_id');

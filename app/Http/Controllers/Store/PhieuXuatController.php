@@ -274,6 +274,7 @@ class PhieuXuatController extends Controller
 
             $donHang->update([
                 'trang_thai_don_hang' => 'dang_chuan_bi',
+                'nhan_vien_len_don_id' => $donHang->nhan_vien_len_don_id ?? $user?->id,
             ]);
 
             return redirect()

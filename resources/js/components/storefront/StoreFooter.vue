@@ -55,7 +55,7 @@ import { Award, Clock, Mail, MapPin, PhoneCall, RefreshCw, ShieldCheck, Truck } 
             <!-- BRAND INFO -->
             <div>
                 <div class="mb-4 flex items-center space-x-3">
-                    <img src="/images/logo.png" alt="Fresh Food" class="h-9 w-auto rounded-lg object-contain" />
+                    <img src="/images/logo.png" alt="Fresh Food" class="h-9 w-auto rounded-lg object-contain bg-white p-0.5" />
                     <span class="text-xl font-black text-white">Fresh<span class="text-emerald-400">Food</span></span>
                 </div>
                 <p class="mb-4 text-xs leading-relaxed text-gray-400">

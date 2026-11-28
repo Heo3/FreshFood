@@ -73,6 +73,7 @@ Route::middleware(['auth'])->prefix('tai-khoan')->as('account.')->group(function
     Route::get('/don-hang', [AccountController::class, 'orders'])->name('orders');
     Route::get('/don-hang/{maDonHang}', [AccountController::class, 'orderDetail'])->name('orders.show');
     Route::post('/don-hang/{donHang}/huy', [AccountController::class, 'cancelOrder'])->name('orders.cancel');
+    Route::post('/don-hang/{donHang}/mua-lai', [AccountController::class, 'reorder'])->name('orders.reorder');
     Route::get('/dia-chi', [AccountController::class, 'addresses'])->name('addresses');
     Route::post('/dia-chi', [AccountController::class, 'storeAddress'])->name('addresses.store');
     Route::delete('/dia-chi/{id}', [AccountController::class, 'deleteAddress'])->name('addresses.destroy');

@@ -87,3 +87,23 @@ it('clears authenticated user cart after successful checkout', function () {
     // Cart for this user should be empty
     expect(GioHang::where('user_id', $user->id)->count())->toBe(0);
 });
+
+/**
+ * @test
+ */
+it('redirects unauthenticated guest accessing checkout page to login', function () {
+    $this->get(route('checkout.index'))
+        ->assertRedirect(route('login'));
+});
+
+/**
+ * @test
+ */
+it('allows authenticated user to view checkout page', function () {
+    $user = User::factory()->create();
+    CuaHang::factory()->create(['trang_thai' => 1]);
+
+    $this->actingAs($user)
+        ->get(route('checkout.index'))
+        ->assertSuccessful();
+});

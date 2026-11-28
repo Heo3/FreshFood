@@ -199,6 +199,7 @@ class StoreOpsController extends Controller
                 $donHang = DonHang::create([
                     'ma_don_hang' => $maDon,
                     'user_id' => $customer ? $customer->id : $user->id,
+                    'nhan_vien_len_don_id' => $user->id,
                     'cua_hang_id' => $storeId,
                     'tong_tien_hang' => $tongTien,
                     'phi_giao_hang' => 0,

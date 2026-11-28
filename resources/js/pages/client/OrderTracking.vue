@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import StoreLayout from '@/layouts/StoreLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
-import { AlertCircle, ChevronRight, Clock, PhoneCall, Search } from 'lucide-vue-next';
+import { AlertCircle, Bike, ChevronRight, Clock, PhoneCall, Search } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -148,6 +148,43 @@ const statusMap: Record<string, { label: string; class: string }> = {
                         <span class="mb-1 block text-gray-400">Chi nhánh xuất kho:</span>
                         <strong class="block text-emerald-800">{{ order.cua_hang?.ten_cua_hang || 'Chi nhánh Fresh Food' }}</strong>
                         <span class="text-[11px] text-gray-500">Giao siêu tốc trong 2 giờ</span>
+                    </div>
+                </div>
+
+                <!-- THÔNG TIN SHIPPER GIAO HÀNG -->
+                <div
+                    v-if="order.nguoi_giao_hang"
+                    class="flex flex-col items-start justify-between gap-4 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-xs shadow-xs sm:flex-row sm:items-center"
+                >
+                    <div class="flex items-center space-x-3.5">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-xs">
+                            <Bike class="h-6 w-6" />
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm font-black text-gray-900">{{ order.nguoi_giao_hang.name }}</span>
+                                <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                                    Tài xế giao hàng
+                                </span>
+                            </div>
+                            <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-gray-600">
+                                <span v-if="order.bien_so_xe_giao || order.nguoi_giao_hang.bien_so_xe" class="font-mono text-gray-800">
+                                    Biển số: <strong>{{ order.bien_so_xe_giao || order.nguoi_giao_hang.bien_so_xe }}</strong>
+                                </span>
+                                <span>
+                                    Phương tiện: {{ (order.loai_phuong_tien_giao || order.nguoi_giao_hang.loai_phuong_tien) === 'xe_tai' ? 'Xe tải' : 'Xe máy' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="order.nguoi_giao_hang.phone" class="w-full sm:w-auto">
+                        <a
+                            :href="`tel:${order.nguoi_giao_hang.phone}`"
+                            class="flex items-center justify-center space-x-2 rounded-xl bg-emerald-600 px-4 py-2.5 font-bold text-white shadow-sm transition-all hover:bg-emerald-700"
+                        >
+                            <PhoneCall class="h-4 w-4" />
+                            <span>Liên hệ tài xế: {{ order.nguoi_giao_hang.phone }}</span>
+                        </a>
                     </div>
                 </div>
 

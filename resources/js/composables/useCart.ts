@@ -1,3 +1,4 @@
+import { router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 export interface CartItem {
@@ -216,6 +217,12 @@ function syncWithServer(serverCartItems?: any[]) {
 }
 
 export function useCart() {
+    let page: any = null;
+    try {
+        page = usePage();
+    } catch {
+        // Outside component setup
+    }
     const totalItems = computed(() => {
         return cartItems.value.reduce((sum, item) => sum + item.so_luong, 0);
     });
@@ -235,6 +242,19 @@ export function useCart() {
     }
 
     async function addToCart(product: any, quantity: number = 1, storeId?: number) {
+        if (typeof window !== 'undefined') {
+            const authUser = page?.props?.auth?.user || (router as any)?.page?.props?.auth?.user;
+            if (!authUser) {
+                router.visit(route('login'));
+                return false;
+            }
+        }
+
+        if (product?.da_het_hang) {
+            showToast('Sản phẩm này tạm thời đã hết hàng trong kho tại chi nhánh đã chọn!', 'error');
+            return false;
+        }
+
         const targetStoreId = Number(storeId || selectedStoreId.value);
         const qtyToAdd = Math.max(0.1, quantity);
 

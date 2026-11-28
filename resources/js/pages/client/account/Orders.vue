@@ -2,7 +2,7 @@
 import AccountSidebar from '@/components/storefront/AccountSidebar.vue';
 import StoreLayout from '@/layouts/StoreLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
-import { Ban, ChevronRight, Clock, PackageX, X } from 'lucide-vue-next';
+import { Ban, Bike, ChevronRight, Clock, PackageX, RotateCcw, X } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -14,6 +14,10 @@ const props = defineProps<{
     };
     currentStatus: string;
 }>();
+
+function reorder(order: any) {
+    router.post(route('account.orders.reorder', order.id));
+}
 
 const tabs = [
     { key: 'all', label: 'Tất cả' },
@@ -161,9 +165,15 @@ function submitCancel() {
                             </div>
 
                             <div class="flex flex-col justify-between gap-3 border-t border-gray-100 pt-3 sm:flex-row sm:items-center">
-                                <span class="text-gray-500">
-                                    Chi nhánh: <strong class="text-gray-800">{{ order.cua_hang?.ten_cua_hang || 'Fresh Food' }}</strong>
-                                </span>
+                                <div class="space-y-1">
+                                    <span class="text-gray-500">
+                                        Chi nhánh: <strong class="text-gray-800">{{ order.cua_hang?.ten_cua_hang || 'Fresh Food' }}</strong>
+                                    </span>
+                                    <div v-if="order.nguoi_giao_hang" class="flex items-center space-x-1.5 text-[11px] font-semibold text-emerald-700">
+                                        <Bike class="h-3.5 w-3.5" />
+                                        <span>Shipper: {{ order.nguoi_giao_hang.name }} ({{ order.nguoi_giao_hang.phone || 'SĐT: N/A' }})</span>
+                                    </div>
+                                </div>
                                 <div class="flex flex-wrap items-center justify-between gap-3 sm:justify-end">
                                     <div class="text-right">
                                         <span class="text-[11px] text-gray-500">Tổng đơn: </span>
@@ -189,6 +199,15 @@ function submitCancel() {
                                         <Clock class="h-3.5 w-3.5 text-blue-600" />
                                         <span>Đang chuẩn bị (Không thể hủy)</span>
                                     </span>
+
+                                    <button
+                                        v-if="order.trang_thai_don_hang === 'da_giao' || order.trang_thai_don_hang === 'hoan_thanh'"
+                                        @click="reorder(order)"
+                                        class="flex items-center space-x-1 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800 transition-colors hover:bg-emerald-100"
+                                    >
+                                        <RotateCcw class="h-3.5 w-3.5 text-emerald-600" />
+                                        <span>Mua lại</span>
+                                    </button>
 
                                     <Link
                                         :href="route('account.orders.show', { maDonHang: order.ma_don_hang })"

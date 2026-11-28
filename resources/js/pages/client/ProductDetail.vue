@@ -105,13 +105,16 @@ const discountPercent = computed(() => {
 });
 
 const isOutOfStock = computed(() => {
-    if (!props.product.ton_khos || props.product.ton_khos.length === 0) return false;
-    const storeTk = props.product.ton_khos.find(
-        (tk: any) => Number(tk.cua_hang_id) === Number(selectedStoreId.value)
-    );
-    if (!storeTk) return false;
-    const available = Number(storeTk.so_luong_ton ?? 0) - Number(storeTk.so_luong_tam_giu ?? 0);
-    return available <= 0;
+    if (props.product.da_het_hang) return true;
+    if (props.product.ton_khos && props.product.ton_khos.length > 0) {
+        const storeTk = props.product.ton_khos.find(
+            (tk: any) => Number(tk.cua_hang_id) === Number(selectedStoreId.value)
+        );
+        if (!storeTk) return true;
+        const available = Number(storeTk.so_luong_ton ?? 0) - Number(storeTk.so_luong_tam_giu ?? 0);
+        return available <= 0;
+    }
+    return false;
 });
 
 function switchToStore(store: any) {
@@ -162,6 +165,10 @@ function handleAddToCart() {
         toast.error('Sản phẩm này tạm thời đã hết hàng tại chi nhánh đã chọn!');
         return;
     }
+    if (!page.props.auth?.user) {
+        router.visit(route('login'));
+        return;
+    }
     addToCart(props.product, quantity.value);
     toast.success(`Đã thêm ${quantity.value} ${props.product.don_vi_tinh} vào giỏ hàng!`);
 }
@@ -169,6 +176,10 @@ function handleAddToCart() {
 function handleBuyNow() {
     if (isOutOfStock.value) {
         toast.error('Sản phẩm này tạm thời đã hết hàng tại chi nhánh đã chọn!');
+        return;
+    }
+    if (!page.props.auth?.user) {
+        router.visit(route('login'));
         return;
     }
     addToCart(props.product, quantity.value);
@@ -239,9 +250,9 @@ function submitReview() {
             </div>
         </div>
 
-        <div class="mx-auto max-w-7xl px-4 py-8">
+        <div class="mx-auto max-w-7xl px-3 sm:px-4 py-4 sm:py-8 pb-24 lg:pb-8">
             <!-- MAIN PRODUCT OVERVIEW -->
-            <div class="mb-12 grid grid-cols-1 gap-8 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm sm:p-10 md:grid-cols-2 lg:gap-12">
+            <div class="mb-8 sm:mb-12 grid grid-cols-1 gap-6 sm:gap-8 rounded-2xl sm:rounded-3xl border border-gray-100 bg-white p-4 sm:p-10 shadow-sm md:grid-cols-2 lg:gap-12">
                 <!-- LEFT: IMAGE GALLERY -->
                 <div>
                     <!-- Main image view -->
@@ -404,9 +415,17 @@ function submitReview() {
                         </div>
 
                         <!-- OUT OF STOCK NOTICE -->
-                        <div v-if="isOutOfStock" class="rounded-2xl border border-red-200 bg-red-50 p-4 text-center">
+                        <div v-if="isOutOfStock" class="space-y-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-center">
                             <p class="text-sm font-bold text-red-700">⚠️ Sản phẩm tạm thời hết hàng tại chi nhánh này</p>
-                            <p class="mt-1 text-xs text-red-600">Quý khách vui lòng chuyển sang chi nhánh khác ở trên hoặc chọn sản phẩm tương tự bên dưới nhé!</p>
+                            <p class="text-xs text-red-600">Quý khách vẫn có thể xem chi tiết sản phẩm, hoặc chuyển sang chi nhánh khác ở trên để đặt hàng nhé!</p>
+                            <button
+                                type="button"
+                                disabled
+                                class="flex w-full cursor-not-allowed items-center justify-center space-x-2 rounded-2xl border border-gray-200 bg-gray-100 px-6 py-3.5 text-sm font-bold text-gray-400"
+                            >
+                                <ShoppingBag class="h-4 w-4 text-gray-400" />
+                                <span>Tạm hết hàng - Không thể đặt mua</span>
+                            </button>
                         </div>
 
                         <!-- QUANTITY PICKER & ACTION BUTTONS -->
@@ -695,11 +714,37 @@ function submitReview() {
             </div>
 
             <!-- RELATED PRODUCTS -->
-            <div v-if="relatedProducts?.length > 0" class="mb-12">
-                <h3 class="mb-6 text-xl font-black text-gray-900">Sản Phẩm Thường Được Mua Kèm</h3>
-                <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div v-if="relatedProducts?.length > 0" class="mb-8 sm:mb-12">
+                <h3 class="mb-4 sm:mb-6 text-lg sm:text-xl font-black text-gray-900">Sản Phẩm Thường Được Mua Kèm</h3>
+                <div class="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-4">
                     <ProductCard v-for="rel in relatedProducts" :key="rel.id" :product="rel" />
                 </div>
+            </div>
+        </div>
+
+        <!-- MOBILE FLOATING ACTION BAR -->
+        <div
+            v-if="!isOutOfStock"
+            class="fixed bottom-14 left-0 right-0 z-30 flex items-center justify-between border-t border-slate-200/90 bg-white/95 px-4 py-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] backdrop-blur-md lg:hidden"
+        >
+            <div>
+                <span class="text-[10px] text-gray-500">Đơn giá:</span>
+                <p class="text-base font-black text-emerald-700 leading-tight">{{ formatPrice(currentPrice) }}</p>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button
+                    @click="handleAddToCart"
+                    class="flex items-center space-x-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 transition-colors active:scale-95"
+                >
+                    <ShoppingBag class="h-3.5 w-3.5 text-emerald-600" />
+                    <span>Thêm giỏ</span>
+                </button>
+                <button
+                    @click="handleBuyNow"
+                    class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black text-white shadow-md shadow-emerald-600/30 transition-colors active:scale-95"
+                >
+                    Mua ngay
+                </button>
             </div>
         </div>
     </StoreLayout>

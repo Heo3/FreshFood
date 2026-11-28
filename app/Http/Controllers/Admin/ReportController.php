@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
 {
@@ -107,5 +108,77 @@ class ReportController extends Controller
             ],
             'is_scoped_manager' => $isManager,
         ]);
+    }
+
+    /**
+     * Xuất báo cáo doanh thu ra file CSV (Excel UTF-8).
+     */
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $user = $request->user();
+        $isManager = $user && $user->isQuanLy() && $user->store_id;
+
+        $storeId = $isManager ? (int) $user->store_id : $request->input('cua_hang_id');
+        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $toDate = $request->input('to_date', Carbon::now()->format('Y-m-d'));
+
+        $orderQuery = DonHang::with('cuaHang')
+            ->whereIn('trang_thai_don_hang', ['hoan_thanh', 'da_giao', 'dang_giao'])
+            ->whereDate('created_at', '>=', $fromDate)
+            ->whereDate('created_at', '<=', $toDate);
+
+        if ($storeId) {
+            $orderQuery->where('cua_hang_id', $storeId);
+        }
+
+        $orders = $orderQuery->orderBy('id', 'desc')->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="bao-cao-doanh-thu-'.$fromDate.'-den-'.$toDate.'.csv"',
+        ];
+
+        return response()->stream(function () use ($orders, $fromDate, $toDate) {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, ['BÁO CÁO DOANH THU FRESHFOOD', "Từ ngày {$fromDate} đến ngày {$toDate}"]);
+            fputcsv($handle, []);
+            fputcsv($handle, [
+                'Mã đơn hàng',
+                'Chi nhánh',
+                'Khách hàng',
+                'Số điện thoại',
+                'Tiền hàng',
+                'Phí vận chuyển',
+                'Giảm giá',
+                'Thực thu',
+                'Phương thức TT',
+                'Trạng thái đơn',
+                'Thời gian đặt',
+            ]);
+
+            $totalRevenue = 0;
+            foreach ($orders as $o) {
+                $totalRevenue += (float) $o->tong_thanhtoan;
+                fputcsv($handle, [
+                    $o->ma_don_hang,
+                    $o->cuaHang?->ten_cua_hang ?? 'N/A',
+                    $o->ten_nguoi_nhan,
+                    $o->so_dien_thoai_nhan,
+                    $o->tong_tien_hang,
+                    $o->phi_giao_hang,
+                    $o->tien_giam_gia,
+                    $o->tong_thanhtoan,
+                    $o->phuong_thuc_thanh_toan,
+                    $o->trang_thai_don_hang,
+                    $o->created_at?->format('d/m/Y H:i:s'),
+                ]);
+            }
+
+            fputcsv($handle, []);
+            fputcsv($handle, ['TỔNG DOANH THU', '', '', '', '', '', '', $totalRevenue]);
+
+            fclose($handle);
+        }, 200, $headers);
     }
 }

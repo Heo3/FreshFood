@@ -263,16 +263,16 @@ function formatPrice(value: number): string {
         </div>
 
         <!-- MAIN HEADER -->
-        <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3.5">
+        <div class="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3.5">
             <!-- BRAND LOGO -->
-            <Link :href="route('home')" class="group flex shrink-0 items-center space-x-3">
+            <Link :href="route('home')" class="group flex shrink-0 items-center space-x-2 sm:space-x-3">
                 <img
                     src="/images/logo.png"
                     alt="Fresh Food"
-                    class="h-11 w-auto rounded-xl object-contain shadow-sm transition-transform duration-300 group-hover:scale-105"
+                    class="h-9 sm:h-11 w-auto rounded-xl object-contain shadow-sm transition-transform duration-300 group-hover:scale-105"
                 />
                 <div>
-                    <span class="text-2xl font-black tracking-tight text-gray-900 transition-colors group-hover:text-emerald-600">
+                    <span class="text-xl sm:text-2xl font-black tracking-tight text-gray-900 transition-colors group-hover:text-emerald-600">
                         Fresh<span class="text-emerald-600">Food</span>
                     </span>
                     <p class="-mt-1 text-[10px] font-bold uppercase tracking-widest text-emerald-700">Tươi Sạch Mỗi Ngày</p>

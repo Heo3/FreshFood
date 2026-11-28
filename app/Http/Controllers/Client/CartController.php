@@ -227,7 +227,17 @@ class CartController extends Controller
             ->where('san_pham_id', $productId)
             ->first();
 
-        if ($tonKho && $tonKho->so_luong_kha_dung <= 0) {
+        $hasStoreInventory = TonKho::where('cua_hang_id', $storeId)->exists();
+        $hasProductInventory = TonKho::where('san_pham_id', $productId)->exists();
+
+        $isOutOfStock = false;
+        if ($tonKho) {
+            $isOutOfStock = ($tonKho->so_luong_kha_dung <= 0);
+        } elseif ($hasStoreInventory || $hasProductInventory) {
+            $isOutOfStock = true;
+        }
+
+        if ($isOutOfStock) {
             return response()->json([
                 'success' => false,
                 'message' => 'Sản phẩm này tạm thời đã hết hàng trong kho tại chi nhánh đã chọn.',
@@ -316,10 +326,18 @@ class CartController extends Controller
                 ->where('san_pham_id', $productId)
                 ->first();
 
+            $hasStoreInventory = TonKho::where('cua_hang_id', $storeId)->exists();
+            $hasProductInventory = TonKho::where('san_pham_id', $productId)->exists();
+
             if ($tonKho && $tonKho->so_luong_kha_dung < $quantity) {
                 return response()->json([
                     'success' => false,
                     'message' => "Kho chỉ còn {$tonKho->so_luong_kha_dung} sản phẩm khả dụng.",
+                ], 422);
+            } elseif (! $tonKho && ($hasStoreInventory || $hasProductInventory)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sản phẩm này tạm thời đã hết hàng trong kho tại chi nhánh đã chọn.',
                 ], 422);
             }
 

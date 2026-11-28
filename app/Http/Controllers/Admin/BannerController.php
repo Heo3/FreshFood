@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
+use App\Services\CloudinaryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -46,13 +48,22 @@ class BannerController extends Controller
         $validated = $request->validate([
             'tieu_de' => ['required', 'string', 'max:255'],
             'phu_de' => ['nullable', 'string', 'max:255'],
-            'hinh_anh' => ['required', 'string', 'max:1000'],
+            'hinh_anh' => ['nullable'],
             'duong_dan' => ['nullable', 'string', 'max:500'],
             'nhan_nut' => ['nullable', 'string', 'max:50'],
             'vi_tri' => ['nullable', 'string', 'max:50'],
             'thu_tu' => ['nullable', 'integer', 'min:0'],
             'trang_thai' => ['required', 'in:0,1'],
         ]);
+
+        if ($request->hasFile('hinh_anh')) {
+            $validated['hinh_anh'] = app(CloudinaryService::class)->upload($request->file('hinh_anh'), 'banners')
+                ?? Storage::url($request->file('hinh_anh')->store('banners', 'public'));
+        }
+
+        if (empty($validated['hinh_anh'])) {
+            return back()->withErrors(['hinh_anh' => 'Vui lòng cung cấp link ảnh hoặc tải ảnh lên.']);
+        }
 
         Banner::create([
             'tieu_de' => $validated['tieu_de'],
@@ -76,13 +87,22 @@ class BannerController extends Controller
         $validated = $request->validate([
             'tieu_de' => ['required', 'string', 'max:255'],
             'phu_de' => ['nullable', 'string', 'max:255'],
-            'hinh_anh' => ['required', 'string', 'max:1000'],
+            'hinh_anh' => ['nullable'],
             'duong_dan' => ['nullable', 'string', 'max:500'],
             'nhan_nut' => ['nullable', 'string', 'max:50'],
             'vi_tri' => ['nullable', 'string', 'max:50'],
             'thu_tu' => ['nullable', 'integer', 'min:0'],
             'trang_thai' => ['required', 'in:0,1'],
         ]);
+
+        if ($request->hasFile('hinh_anh')) {
+            $validated['hinh_anh'] = app(CloudinaryService::class)->upload($request->file('hinh_anh'), 'banners')
+                ?? Storage::url($request->file('hinh_anh')->store('banners', 'public'));
+        }
+
+        if (empty($validated['hinh_anh'])) {
+            $validated['hinh_anh'] = $banner->hinh_anh;
+        }
 
         $banner->update([
             'tieu_de' => $validated['tieu_de'],

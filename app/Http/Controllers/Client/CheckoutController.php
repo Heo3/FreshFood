@@ -24,8 +24,12 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class CheckoutController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): Response|RedirectResponse
     {
+        if (! $request->user()) {
+            return redirect()->guest(route('login'))->with('info', 'Vui lòng đăng nhập để tiến hành đặt mua hàng.');
+        }
+
         $stores = CuaHang::where('trang_thai', 1)->get();
         $storeId = CuaHang::layIdCuaHangHienTai($request);
         $user = $request->user();
@@ -99,6 +103,7 @@ class CheckoutController extends Controller
             'items.*.so_luong' => ['required', 'numeric', 'min:0.1'],
             'ma_giam_gia_code' => ['nullable', 'string'],
             'use_points' => ['nullable', 'boolean'],
+            'khung_gio_giao' => ['nullable', 'string', 'max:50'],
         ]);
 
         $user = $request->user();
@@ -130,9 +135,20 @@ class CheckoutController extends Controller
                     ->where('san_pham_id', $product->id)
                     ->first();
 
+                $hasStoreInventory = TonKho::where('cua_hang_id', $cuaHangId)->exists();
+                $hasProductInventory = TonKho::where('san_pham_id', $product->id)->exists();
+
+                $isOutOfStock = false;
                 if ($tonKho && $tonKho->so_luong_kha_dung < $item['so_luong']) {
+                    $isOutOfStock = true;
+                } elseif (! $tonKho && ($hasStoreInventory || $hasProductInventory)) {
+                    $isOutOfStock = true;
+                }
+
+                if ($isOutOfStock) {
+                    $remain = $tonKho ? $tonKho->so_luong_kha_dung : 0;
                     throw ValidationException::withMessages([
-                        'items' => "Sản phẩm '{$product->ten_san_pham}' đã hết hoặc không đủ số lượng trong kho tại chi nhánh đã chọn (còn {$tonKho->so_luong_kha_dung}).",
+                        'items' => "Sản phẩm '{$product->ten_san_pham}' đã hết hoặc không đủ số lượng trong kho tại chi nhánh đã chọn (còn {$remain}).",
                     ]);
                 }
 
@@ -219,6 +235,7 @@ class CheckoutController extends Controller
                 'so_dien_thoai_nhan' => $request->input('so_dien_thoai_nhan'),
                 'dia_chi_giao' => $request->input('dia_chi_giao'),
                 'ghi_chu' => $request->input('ghi_chu'),
+                'khung_gio_giao' => $request->input('khung_gio_giao'),
             ]);
 
             // Ghi nhật ký tiêu điểm
@@ -336,7 +353,7 @@ class CheckoutController extends Controller
     public function success(string $maDonHang): Response
     {
         $order = DonHang::where('ma_don_hang', $maDonHang)
-            ->with(['chiTiets.sanPham', 'cuaHang', 'maGiamGia'])
+            ->with(['chiTiets.sanPham', 'cuaHang', 'maGiamGia', 'nguoiGiaoHang'])
             ->firstOrFail();
 
         return Inertia::render('client/OrderSuccess', [
@@ -352,7 +369,7 @@ class CheckoutController extends Controller
                 ->when($request->filled('phone'), function ($q) use ($request) {
                     $q->where('so_dien_thoai_nhan', trim($request->input('phone')));
                 })
-                ->with(['chiTiets', 'cuaHang'])
+                ->with(['chiTiets', 'cuaHang', 'nguoiGiaoHang'])
                 ->first();
         }
 

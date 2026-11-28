@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import { router } from '@inertiajs/vue3';
-import { AlertOctagon, Boxes, DollarSign, Filter, Store } from 'lucide-vue-next';
+import { AlertOctagon, Boxes, DollarSign, FileDown, Filter, Store } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -96,6 +96,15 @@ function formatCurrency(val: number): string {
                         <Filter class="h-3.5 w-3.5" />
                         <span>Xem Báo Cáo</span>
                     </button>
+
+                    <a
+                        :href="route('admin.reports.export', { cua_hang_id: storeId, from_date: fromDate, to_date: toDate })"
+                        class="flex items-center space-x-1 rounded-sm bg-[#28a745] px-4 py-1.5 font-semibold text-white transition-colors hover:bg-[#218838]"
+                        title="Xuất báo cáo doanh thu ra file Excel / CSV"
+                    >
+                        <FileDown class="h-3.5 w-3.5" />
+                        <span>Xuất Báo Cáo CSV</span>
+                    </a>
                 </div>
             </div>
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useCart } from '@/composables/useCart';
 import StoreLayout from '@/layouts/StoreLayout.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { ArrowRight, Check, ChevronRight, MapPin, ShieldAlert, ShoppingBag, Sparkles, Tag, TicketPercent, Trash2, Truck } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
@@ -32,6 +32,20 @@ const {
     saveCart,
     syncWithServer,
 } = useCart();
+
+const page = usePage();
+const authUser = computed(() => page.props.auth?.user);
+
+function handleProceedCheckout() {
+    if (!authUser.value) {
+        router.visit(route('login'));
+        return;
+    }
+    const targetUrl = props.appliedCoupon
+        ? `${route('checkout.index')}?coupon=${encodeURIComponent(props.appliedCoupon.code)}`
+        : route('checkout.index');
+    router.visit(targetUrl);
+}
 
 const currentStoreName = computed(() => {
     return props.stores?.find((s) => s.id === selectedStoreId.value)?.ten_cua_hang || 'Chi nhánh đã chọn';
@@ -160,19 +174,19 @@ function formatPrice(val: number): string {
             </div>
         </div>
 
-        <div class="mx-auto max-w-7xl px-4 py-8">
-            <h1 class="mb-6 flex items-center text-2xl font-black tracking-tight text-gray-900 sm:text-3xl">
+        <div class="mx-auto max-w-7xl px-3 sm:px-4 py-4 sm:py-8 pb-28 lg:pb-8">
+            <h1 class="mb-4 sm:mb-6 flex items-center text-xl font-black tracking-tight text-gray-900 sm:text-3xl">
                 Giỏ Hàng Của Bạn
-                <span class="ml-3 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700"> {{ totalItems }} sản phẩm </span>
+                <span class="ml-3 rounded-full bg-emerald-50 px-2.5 sm:px-3 py-0.5 sm:py-1 text-xs font-bold text-emerald-700"> {{ totalItems }} sản phẩm </span>
             </h1>
 
             <!-- IF CART HAS ITEMS -->
-            <div v-if="cartItems.length > 0" class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div v-if="cartItems.length > 0" class="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
                 <!-- CART ITEMS LIST (LEFT) -->
                 <div class="space-y-4 lg:col-span-2">
                     <!-- Branch Notice -->
                     <div
-                        class="shadow-xs flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-4 py-3"
+                        class="shadow-xs flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-emerald-200/80 bg-emerald-50/80 p-3 sm:px-4 sm:py-3"
                     >
                         <div class="flex items-center space-x-2 text-xs text-emerald-950">
                             <MapPin class="h-4 w-4 shrink-0 text-emerald-600" />
@@ -185,9 +199,9 @@ function formatPrice(val: number): string {
                         </span>
                     </div>
 
-                    <div class="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+                    <div class="rounded-2xl sm:rounded-3xl border border-gray-100 bg-white p-4 sm:p-6 shadow-sm">
                         <!-- Free shipping progress bar -->
-                        <div class="mb-6 flex items-center space-x-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-xs">
+                        <div class="mb-4 sm:mb-6 flex items-center space-x-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-3 sm:p-4 text-xs">
                             <Truck class="h-5 w-5 shrink-0 text-emerald-600" />
                             <div class="flex-1">
                                 <p v-if="subtotal >= 300000" class="font-bold text-emerald-800">
@@ -211,34 +225,34 @@ function formatPrice(val: number): string {
                             <div
                                 v-for="item in cartItems"
                                 :key="item.san_pham_id"
-                                class="flex flex-col justify-between gap-4 py-4 sm:flex-row sm:items-center"
+                                class="flex flex-col justify-between gap-3 py-3.5 sm:flex-row sm:items-center sm:gap-4 sm:py-4"
                             >
-                                <div class="flex min-w-0 items-center space-x-3.5">
+                                <div class="flex min-w-0 items-center space-x-3">
                                     <img
                                         :src="item.hinh_anh_chinh"
                                         :alt="item.ten_san_pham"
-                                        class="h-16 w-16 shrink-0 rounded-2xl border border-gray-100 bg-gray-50 object-cover"
+                                        class="h-14 w-14 sm:h-16 sm:w-16 shrink-0 rounded-xl sm:rounded-2xl border border-gray-100 bg-gray-50 object-cover"
                                     />
                                     <div class="min-w-0">
                                         <Link
                                             :href="'/san-pham/' + item.duong_dan_seo"
-                                            class="line-clamp-1 text-sm font-bold text-gray-900 transition-colors hover:text-emerald-600"
+                                            class="line-clamp-1 text-xs sm:text-sm font-bold text-gray-900 transition-colors hover:text-emerald-600"
                                         >
                                             {{ item.ten_san_pham }}
                                         </Link>
-                                        <p class="mt-0.5 text-xs text-gray-400">
+                                        <p class="mt-0.5 text-[11px] sm:text-xs text-gray-400">
                                             {{ item.quy_cach || 'Đơn vị: ' + item.don_vi_tinh }}
                                         </p>
                                         <div class="mt-1 text-xs font-bold text-emerald-700">
                                             {{ formatPrice(item.gia_giam || item.gia_ban) }}
-                                            <span v-if="item.gia_giam" class="ml-1 text-[11px] font-normal text-gray-400 line-through">
+                                            <span v-if="item.gia_giam" class="ml-1 text-[10px] sm:text-[11px] font-normal text-gray-400 line-through">
                                                 {{ formatPrice(item.gia_ban) }}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="flex items-center justify-between space-x-6 sm:justify-end">
+                                <div class="flex items-center justify-between space-x-4 sm:justify-end sm:space-x-6">
                                     <!-- Quantity Stepper -->
                                     <div class="flex items-center rounded-xl border border-gray-200 bg-gray-50 p-1">
                                         <button
@@ -262,8 +276,8 @@ function formatPrice(val: number): string {
                                     </div>
 
                                     <!-- Line total -->
-                                    <div class="min-w-[90px] text-right">
-                                        <span class="text-sm font-black text-gray-900">
+                                    <div class="min-w-[80px] sm:min-w-[90px] text-right">
+                                        <span class="text-xs sm:text-sm font-black text-gray-900">
                                             {{ formatPrice((item.gia_giam || item.gia_ban) * item.so_luong) }}
                                         </span>
                                     </div>
@@ -271,7 +285,7 @@ function formatPrice(val: number): string {
                                     <!-- Remove button -->
                                     <button
                                         @click="removeFromCart(item.san_pham_id)"
-                                        class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                                        class="rounded-lg p-1.5 sm:p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
                                         title="Xóa khỏi giỏ"
                                     >
                                         <Trash2 class="h-4 w-4" />
@@ -282,17 +296,17 @@ function formatPrice(val: number): string {
 
                         <div class="flex items-center justify-between border-t border-gray-100 pt-4 text-xs">
                             <Link :href="route('products.index')" class="flex items-center font-bold text-emerald-700 hover:underline">
-                                ← Tiếp tục mua sắm thực phẩm khác
+                                ← Tiếp tục mua sắm
                             </Link>
-                            <button @click="handleClearCart" class="font-medium text-gray-400 hover:text-red-500">Xóa tất cả giỏ hàng</button>
+                            <button @click="handleClearCart" class="font-medium text-gray-400 hover:text-red-500">Xóa tất cả</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- ORDER SUMMARY & CHECKOUT (RIGHT) -->
                 <div class="space-y-4">
-                    <div class="space-y-5 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-                        <h3 class="border-b border-gray-100 pb-3 text-base font-black text-gray-900">Tóm Tắt Đơn Hàng</h3>
+                    <div class="space-y-4 sm:space-y-5 rounded-2xl sm:rounded-3xl border border-gray-100 bg-white p-4 sm:p-6 shadow-sm">
+                        <h3 class="border-b border-gray-100 pb-3 text-sm sm:text-base font-black text-gray-900">Tóm Tắt Đơn Hàng</h3>
 
                         <!-- Voucher Code Form -->
                         <div class="space-y-2">
@@ -436,28 +450,24 @@ function formatPrice(val: number): string {
                         </div>
 
                         <!-- Proceed to Checkout -->
-                        <Link
-                            :href="
-                                appliedCoupon
-                                    ? `${route('checkout.index')}?coupon=${encodeURIComponent(appliedCoupon.code)}`
-                                    : route('checkout.index')
-                            "
+                        <button
+                            @click="handleProceedCheckout"
                             class="hover:scale-102 active:scale-98 flex w-full items-center justify-center space-x-2 rounded-2xl bg-emerald-600 px-6 py-4 text-sm font-black text-white shadow-lg shadow-emerald-600/30 transition-all hover:bg-emerald-700"
                             id="checkout-cta-btn"
                         >
-                            <span>Tiến Hành Đặt Hàng</span>
+                            <span>{{ !authUser ? 'Đăng Nhập Để Mua Hàng' : 'Tiến Hành Đặt Hàng' }}</span>
                             <ArrowRight class="h-4 w-4" />
-                        </Link>
+                        </button>
                     </div>
                 </div>
             </div>
 
             <!-- EMPTY CART STATE -->
-            <div v-else class="mx-auto max-w-xl rounded-3xl border border-gray-100 bg-white p-16 text-center shadow-sm">
-                <div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-50 text-emerald-600">
-                    <ShoppingBag class="h-10 w-10" />
+            <div v-else class="mx-auto max-w-xl rounded-2xl sm:rounded-3xl border border-gray-100 bg-white p-8 sm:p-16 text-center shadow-sm">
+                <div class="mx-auto mb-4 flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl sm:rounded-3xl bg-emerald-50 text-emerald-600">
+                    <ShoppingBag class="h-8 w-8 sm:h-10 sm:w-10" />
                 </div>
-                <h3 class="mb-2 text-xl font-black text-gray-900">Giỏ hàng của bạn đang trống</h3>
+                <h3 class="mb-2 text-lg sm:text-xl font-black text-gray-900">Giỏ hàng của bạn đang trống</h3>
                 <p class="mb-6 text-xs text-gray-500">Hãy dạo quanh cửa hàng và chọn những món thực phẩm tươi ngon, bổ dưỡng cho gia đình nhé!</p>
                 <Link
                     :href="route('products.index')"
@@ -467,6 +477,24 @@ function formatPrice(val: number): string {
                     <ArrowRight class="h-4 w-4" />
                 </Link>
             </div>
+        </div>
+
+        <!-- MOBILE STICKY CHECKOUT BAR -->
+        <div
+            v-if="cartItems.length > 0"
+            class="fixed bottom-14 left-0 right-0 z-30 flex items-center justify-between border-t border-slate-200/90 bg-white/95 px-4 py-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] backdrop-blur-md lg:hidden"
+        >
+            <div>
+                <span class="text-[10px] text-gray-500">Tổng thanh toán:</span>
+                <p class="text-base font-black text-emerald-700 leading-tight">{{ formatPrice(grandTotal) }}</p>
+            </div>
+            <button
+                @click="handleProceedCheckout"
+                class="flex items-center space-x-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-black text-white shadow-md shadow-emerald-600/30 active:scale-95"
+            >
+                <span>{{ !authUser ? 'Đăng nhập để mua' : 'Đặt hàng' }}</span>
+                <ArrowRight class="h-3.5 w-3.5" />
+            </button>
         </div>
     </StoreLayout>
 </template>

@@ -2,7 +2,7 @@
 import { useCart } from '@/composables/useCart';
 import StoreLayout from '@/layouts/StoreLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
-import { AlertTriangle, CheckCircle2, ChevronRight, Clock, Coins, CreditCard, LocateFixed, QrCode, Sparkles, TicketPercent, X } from 'lucide-vue-next';
+import { AlertTriangle, ArrowRight, CheckCircle2, ChevronRight, Clock, Coins, CreditCard, LocateFixed, QrCode, Sparkles, TicketPercent, X } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 const props = withDefaults(
@@ -44,7 +44,7 @@ const form = ref({
         ? `${props.addresses[0].dia_chi_chi_tiet}, ${props.addresses[0].phuong_xa}, ${props.addresses[0].quan_huyen}, ${props.addresses[0].tinh_thanh}`
         : '',
     dia_chi_giao_hang_id: props.addresses?.[0]?.id || null,
-    time_slot: '8h - 10h',
+    time_slot: 'Giao hỏa tốc 2h',
     phuong_thuc_thanh_toan: 'cod',
     ghi_chu: '',
     ma_giam_gia_code: props.appliedCoupon?.code || '',
@@ -289,6 +289,7 @@ function handlePlaceOrder() {
         route('checkout.store'),
         {
             ...form.value,
+            khung_gio_giao: form.value.time_slot,
             items: cartItems.value.map((i) => ({
                 san_pham_id: i.san_pham_id,
                 so_luong: i.so_luong,
@@ -327,14 +328,14 @@ function formatPrice(val: number): string {
             </div>
         </div>
 
-        <div class="mx-auto max-w-7xl px-4 py-8">
-            <h1 class="mb-8 text-2xl font-black tracking-tight text-gray-900 sm:text-3xl">Xác Nhận & Đặt Hàng</h1>
+        <div class="mx-auto max-w-7xl px-3 sm:px-4 py-4 sm:py-8 pb-28 lg:pb-8">
+            <h1 class="mb-4 sm:mb-8 text-xl sm:text-3xl font-black tracking-tight text-gray-900">Xác Nhận & Đặt Hàng</h1>
 
-            <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
                 <!-- FORM SECTIONS (LEFT 2 COLS) -->
-                <div class="space-y-6 lg:col-span-2">
+                <div class="space-y-4 sm:space-y-6 lg:col-span-2">
                     <!-- 1. HÌNH THỨC NHẬN HÀNG -->
-                    <div class="space-y-4 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+                    <div class="space-y-4 rounded-2xl sm:rounded-3xl border border-gray-100 bg-white p-4 sm:p-6 shadow-sm">
                         <h3 class="flex items-center text-sm font-black text-gray-900">
                             <span class="mr-2 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-xs text-white">1</span>
                             Hình thức nhận hàng
@@ -501,7 +502,7 @@ function formatPrice(val: number): string {
                             </label>
                             <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
                                 <button
-                                    v-for="slot in ['8h - 10h', '10h - 12h', '14h - 16h', '16h - 18h']"
+                                    v-for="slot in ['Giao hỏa tốc 2h', '8h - 10h', '10h - 12h', '14h - 16h', '16h - 18h', '18h30 - 20h30']"
                                     :key="slot"
                                     type="button"
                                     @click="form.time_slot = slot"
@@ -803,6 +804,27 @@ function formatPrice(val: number): string {
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- MOBILE STICKY PLACE ORDER BAR -->
+        <div
+            v-if="cartItems.length > 0"
+            class="fixed bottom-14 left-0 right-0 z-30 flex items-center justify-between border-t border-slate-200/90 bg-white/95 px-4 py-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] backdrop-blur-md lg:hidden"
+        >
+            <div>
+                <span class="text-[10px] text-gray-500">Tổng thanh toán:</span>
+                <p class="text-base font-black text-emerald-700 leading-tight">{{ formatPrice(finalTotal) }}</p>
+            </div>
+            <button
+                type="button"
+                @click="handlePlaceOrder"
+                :disabled="isSubmitting"
+                class="flex items-center space-x-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-black text-white shadow-md shadow-emerald-600/30 active:scale-95 disabled:opacity-50"
+            >
+                <span v-if="isSubmitting">Đang xử lý...</span>
+                <span v-else>Đặt hàng ngay</span>
+                <ArrowRight v-if="!isSubmitting" class="h-3.5 w-3.5" />
+            </button>
         </div>
     </StoreLayout>
 </template>

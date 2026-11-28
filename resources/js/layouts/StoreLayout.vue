@@ -46,7 +46,7 @@ onMounted(() => {
         <StoreHeader :stores="stores" />
 
         <!-- MAIN BODY CONTENT -->
-        <main class="flex-1 pb-16 lg:pb-0">
+        <main class="flex-1 pb-20 lg:pb-0">
             <slot />
         </main>
 

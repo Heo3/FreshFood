@@ -31,6 +31,7 @@ Route::middleware(['auth', 'role:admin,quan_ly'])->prefix('admin')->as('admin.')
     Route::resource('danh-muc', CategoryController::class)->except(['create', 'show', 'edit'])->names('categories');
 
     // 4. Đơn hàng
+    Route::get('don-hang/export', [OrderController::class, 'exportCsv'])->name('orders.export');
     Route::resource('don-hang', OrderController::class)->only(['index', 'show'])->names('orders');
     Route::post('don-hang/{donHang}/trang-thai', [OrderController::class, 'updateStatus'])->name('orders.update-status');
 
@@ -41,6 +42,7 @@ Route::middleware(['auth', 'role:admin,quan_ly'])->prefix('admin')->as('admin.')
     Route::resource('nha-cung-cap', SupplierController::class)->except(['create', 'show', 'edit'])->names('suppliers');
 
     // 7. Báo cáo thống kê
+    Route::get('bao-cao/export', [ReportController::class, 'exportCsv'])->name('reports.export');
     Route::get('bao-cao', [ReportController::class, 'index'])->name('reports.index');
 
     // 8. Đánh giá & Phản hồi khách hàng

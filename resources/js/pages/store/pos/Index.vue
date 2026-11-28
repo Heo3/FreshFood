@@ -19,8 +19,11 @@ import {
     Trash2,
     UserCheck,
     X,
+    BookmarkCheck,
+    Clock,
+    FileText,
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 interface ProductItem {
     id: number;
@@ -70,6 +73,105 @@ const isSearchingCustomer = ref(false);
 const customerSearchMsg = ref('');
 const usePoints = ref(false);
 const pointsToUse = ref<number>(0);
+
+// Multi-cart Hold Orders State
+interface HoldCart {
+    id: number;
+    time: string;
+    customerPhone: string;
+    customerName: string;
+    customerData: any;
+    cart: CartItem[];
+    note: string;
+}
+
+const savedCarts = ref<HoldCart[]>([]);
+const isHoldModalOpen = ref(false);
+
+function loadSavedCarts() {
+    try {
+        const raw = localStorage.getItem('pos_saved_carts');
+        if (raw) savedCarts.value = JSON.parse(raw);
+    } catch {}
+}
+
+function persistSavedCarts() {
+    try {
+        localStorage.setItem('pos_saved_carts', JSON.stringify(savedCarts.value));
+    } catch {}
+}
+
+function holdCurrentCart() {
+    if (cart.value.length === 0) {
+        toast.info('Giỏ hàng đang trống, không thể tạm lưu.');
+        return;
+    }
+    savedCarts.value.push({
+        id: Date.now(),
+        time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+        customerPhone: customerPhone.value,
+        customerName: customerName.value,
+        customerData: customerData.value,
+        cart: [...cart.value],
+        note: note.value,
+    });
+    persistSavedCarts();
+    cart.value = [];
+    clearCustomer();
+    note.value = '';
+    cashGiven.value = null;
+    toast.success('Đã tạm lưu đơn hàng. Có thể mở lại bất cứ lúc nào!');
+}
+
+function restoreHoldCart(item: HoldCart) {
+    if (cart.value.length > 0 && !confirm('Giỏ hàng hiện tại đang có món, bạn có muốn thay thế bằng đơn tạm lưu này không?')) {
+        return;
+    }
+    cart.value = [...item.cart];
+    customerPhone.value = item.customerPhone;
+    customerName.value = item.customerName;
+    customerData.value = item.customerData;
+    note.value = item.note;
+    savedCarts.value = savedCarts.value.filter((c) => c.id !== item.id);
+    persistSavedCarts();
+    isHoldModalOpen.value = false;
+    toast.success('Đã khôi phục đơn hàng thành công!');
+}
+
+function removeHoldCart(id: number) {
+    savedCarts.value = savedCarts.value.filter((c) => c.id !== id);
+    persistSavedCarts();
+    toast.info('Đã xóa đơn tạm lưu.');
+}
+
+function handleGlobalKeydown(e: KeyboardEvent) {
+    if (e.key === 'F2') {
+        e.preventDefault();
+        const searchEl = document.getElementById('pos-search-input');
+        searchEl?.focus();
+    } else if (e.key === 'F4') {
+        e.preventDefault();
+        const phoneEl = document.getElementById('pos-phone-input');
+        phoneEl?.focus();
+    } else if (e.key === 'F7') {
+        e.preventDefault();
+        holdCurrentCart();
+    } else if (e.key === 'F9') {
+        e.preventDefault();
+        if (cart.value.length > 0 && !isSubmitting.value) {
+            handleCheckout();
+        }
+    }
+}
+
+onMounted(() => {
+    loadSavedCarts();
+    window.addEventListener('keydown', handleGlobalKeydown);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleGlobalKeydown);
+});
 
 async function handleCheckCustomer() {
     const phone = customerPhone.value.trim();
@@ -365,9 +467,10 @@ function printReceipt() {
                     <div class="relative flex-1">
                         <Search class="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                         <input
+                            id="pos-search-input"
                             v-model="searchQuery"
                             type="text"
-                            placeholder="Tìm tên sản phẩm..."
+                            placeholder="Tìm tên sản phẩm (F2)..."
                             class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-xs outline-none transition focus:bg-white focus:ring-2 focus:ring-emerald-500"
                         />
                     </div>
@@ -463,7 +566,27 @@ function printReceipt() {
                                 {{ totalQuantity.toFixed(1) }} SP
                             </span>
                         </div>
-                        <div class="flex items-center space-x-2">
+                        <div class="flex items-center space-x-1.5">
+                            <button
+                                v-if="savedCarts.length > 0"
+                                @click="isHoldModalOpen = true"
+                                type="button"
+                                class="flex items-center space-x-1 rounded-xl border border-amber-600/50 bg-amber-500/20 px-2.5 py-1 text-xs font-bold text-amber-300 transition hover:bg-amber-500/30"
+                                title="Mở danh sách đơn hàng tạm lưu"
+                            >
+                                <Clock class="h-3.5 w-3.5 text-amber-400" />
+                                <span>Đơn chờ ({{ savedCarts.length }})</span>
+                            </button>
+                            <button
+                                v-if="cart.length > 0"
+                                @click="holdCurrentCart"
+                                type="button"
+                                class="flex items-center space-x-1 rounded-xl border border-slate-700 bg-slate-800 px-2.5 py-1 text-xs font-bold text-emerald-400 transition hover:bg-slate-700"
+                                title="Tạm lưu đơn này để tính cho khách khác (F7)"
+                            >
+                                <BookmarkCheck class="h-3.5 w-3.5" />
+                                <span>Tạm lưu (F7)</span>
+                            </button>
                             <button
                                 @click="showQrModal = true"
                                 type="button"
@@ -542,10 +665,11 @@ function printReceipt() {
                             <!-- PHONE SEARCH INPUT -->
                             <div class="flex items-center space-x-2">
                                 <input
+                                    id="pos-phone-input"
                                     v-model="customerPhone"
                                     @keydown.enter.prevent="handleCheckCustomer"
                                     type="text"
-                                    placeholder="Nhập SĐT khách hàng..."
+                                    placeholder="Nhập SĐT khách hàng (F4)..."
                                     class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 font-mono text-xs outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500"
                                 />
                                 <button
@@ -974,5 +1098,137 @@ function printReceipt() {
                 </div>
             </div>
         </div>
+
+        <!-- HOLD ORDERS MODAL -->
+        <div v-if="isHoldModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+            <div class="w-full max-w-lg space-y-4 rounded-3xl bg-white p-6 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <Clock class="h-5 w-5 text-amber-500" />
+                        <h3 class="text-sm font-black text-slate-900">DANH SÁCH ĐƠN HÀNG TẠM LƯU</h3>
+                    </div>
+                    <button @click="isHoldModalOpen = false" class="rounded-lg bg-slate-100 p-1.5 text-slate-400 hover:text-slate-600">
+                        <X class="h-4 w-4" />
+                    </button>
+                </div>
+
+                <div v-if="savedCarts.length === 0" class="py-8 text-center text-xs text-slate-400">
+                    Không có đơn hàng nào đang tạm lưu.
+                </div>
+
+                <div v-else class="max-h-80 space-y-3 overflow-y-auto">
+                    <div
+                        v-for="item in savedCarts"
+                        :key="item.id"
+                        class="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-slate-50 p-3.5 text-xs"
+                    >
+                        <div class="space-y-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="rounded-md bg-amber-100 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-800">{{ item.time }}</span>
+                                <strong class="text-slate-900">{{ item.customerName || (item.customerPhone ? 'Khách ' + item.customerPhone : 'Khách vãng lai') }}</strong>
+                            </div>
+                            <p class="text-[11px] text-slate-500">
+                                {{ item.cart.length }} mặt hàng: {{ item.cart.map((c) => c.ten_san_pham).slice(0, 2).join(', ') }}{{ item.cart.length > 2 ? '...' : '' }}
+                            </p>
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <button
+                                @click="restoreHoldCart(item)"
+                                class="rounded-xl bg-emerald-600 px-3 py-1.5 font-bold text-white transition hover:bg-emerald-700"
+                            >
+                                Mở lại
+                            </button>
+                            <button
+                                @click="removeHoldCart(item.id)"
+                                class="rounded-xl bg-red-50 p-1.5 text-red-600 transition hover:bg-red-100"
+                            >
+                                <Trash2 class="h-4 w-4" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRINTABLE THERMAL RECEIPT (FOR THERMAL BILL PRINTER 80MM) -->
+        <div id="pos-receipt-print" class="hidden font-mono text-black print:block">
+            <div class="mx-auto w-[80mm] p-2 leading-relaxed">
+                <div class="border-b border-dashed border-black pb-2 text-center">
+                    <h2 class="text-base font-black uppercase tracking-wider">{{ currentStore?.ten_cua_hang || 'FRESHFOOD' }}</h2>
+                    <p class="text-[11px]">{{ currentStore?.dia_chi }}</p>
+                    <p class="text-[11px]">Hotline: {{ currentStore?.so_dien_thoai || '1900 6868' }}</p>
+                    <h3 class="mt-2 text-sm font-black">HÓA ĐƠN BÁN HÀNG</h3>
+                    <p class="text-[10px]">Mã đơn: #{{ completedOrder?.don_hang?.ma_don_hang || 'POS' }}</p>
+                    <p class="text-[10px]">Ngày: {{ new Date().toLocaleString('vi-VN') }}</p>
+                </div>
+
+                <div class="border-b border-dashed border-black py-2 text-[11px]">
+                    <p v-if="completedOrder?.don_hang?.ten_nguoi_nhan">Khách hàng: {{ completedOrder.don_hang.ten_nguoi_nhan }}</p>
+                    <p v-if="completedOrder?.don_hang?.so_dien_thoai_nhan">SĐT: {{ completedOrder.don_hang.so_dien_thoai_nhan }}</p>
+                </div>
+
+                <table class="my-2 w-full text-left text-[11px]">
+                    <thead>
+                        <tr class="border-b border-black">
+                            <th class="py-1">Mặt hàng</th>
+                            <th class="py-1 text-center">SL</th>
+                            <th class="py-1 text-right">Đơn giá</th>
+                            <th class="py-1 text-right">T.Tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="item in completedOrder?.chi_tiets || cart" :key="item.id || item.san_pham_id" class="border-b border-gray-200">
+                            <td class="py-1">{{ item.ten_san_pham }}</td>
+                            <td class="py-1 text-center">{{ item.so_luong }}</td>
+                            <td class="py-1 text-right">{{ formatPrice(item.don_gia) }}</td>
+                            <td class="py-1 text-right font-bold">{{ formatPrice(item.thanh_tien || item.don_gia * item.so_luong) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="space-y-1 border-t border-dashed border-black pt-2 text-right text-[11px]">
+                    <div class="flex justify-between">
+                        <span>Tổng tiền hàng:</span>
+                        <span>{{ formatPrice(completedOrder?.don_hang?.tong_tien_hang || subtotal) }}</span>
+                    </div>
+                    <div v-if="(completedOrder?.don_hang?.tien_giam_gia || pointsDiscount) > 0" class="flex justify-between text-red-600">
+                        <span>Giảm giá / Điểm:</span>
+                        <span>-{{ formatPrice(completedOrder?.don_hang?.tien_giam_gia || pointsDiscount) }}</span>
+                    </div>
+                    <div class="flex justify-between border-t border-black pt-1 text-sm font-black">
+                        <span>THANH TOÁN:</span>
+                        <span>{{ formatPrice(completedOrder?.don_hang?.tong_thanhtoan || finalTotal) }}</span>
+                    </div>
+                </div>
+
+                <div class="mt-3 border-t border-dashed border-black pt-3 text-center text-[10px]">
+                    <p class="font-bold">CẢM ƠN QUÝ KHÁCH VÀ HẸN GẶP LẠI!</p>
+                    <p>Thực phẩm tươi sạch mỗi ngày - FreshFood</p>
+                </div>
+            </div>
+        </div>
     </StoreOpsLayout>
 </template>
+
+<style>
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+    #pos-receipt-print,
+    #pos-receipt-print * {
+        visibility: visible !important;
+    }
+    #pos-receipt-print {
+        display: block !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 80mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+    }
+}
+</style>

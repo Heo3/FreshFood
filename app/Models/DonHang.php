@@ -42,10 +42,12 @@ class DonHang extends Model
         'ma_giao_dich',
         'trang_thai_thanh_toan',
         'trang_thai_don_hang',
+        'nhan_vien_len_don_id',
         'nguoi_giao_hang_id',
         'loai_phuong_tien_giao',
         'bien_so_xe_giao',
         'ghi_chu_giao_hang',
+        'khung_gio_giao',
         'thoi_gian_bat_dau_giao',
         'thoi_gian_giao_thanh_cong',
         'ten_nguoi_nhan',
@@ -77,6 +79,11 @@ class DonHang extends Model
     public function cuaHang(): BelongsTo
     {
         return $this->belongsTo(CuaHang::class, 'cua_hang_id');
+    }
+
+    public function nhanVienLenDon(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'nhan_vien_len_don_id');
     }
 
     public function nguoiGiaoHang(): BelongsTo

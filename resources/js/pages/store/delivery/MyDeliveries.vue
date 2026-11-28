@@ -2,7 +2,7 @@
 import ToastContainer from '@/components/ui/ToastContainer.vue';
 import { useToast } from '@/composables/useToast';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeftRight, Bike, Check, CheckCircle2, Clock, LogOut, MapPin, Package, Phone, Truck } from 'lucide-vue-next';
+import { ArrowLeftRight, Bike, Check, CheckCircle2, Clock, LogOut, MapPin, Navigation, Package, Phone, Truck } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -181,15 +181,31 @@ function reportIssue(orderId: number, orderCode: string) {
 
                     <!-- CUSTOMER INFO CARD -->
                     <div class="space-y-2 rounded-2xl border border-slate-100 bg-slate-50 p-3.5 text-xs">
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
                             <span class="text-sm font-bold text-slate-900">{{ order.ten_nguoi_nhan }}</span>
-                            <a
-                                :href="`tel:${order.so_dien_thoai_nhan}`"
-                                class="shadow-xs inline-flex items-center space-x-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 font-bold text-white transition hover:bg-emerald-700"
-                            >
-                                <Phone class="h-3.5 w-3.5" />
-                                <span>Gọi: {{ order.so_dien_thoai_nhan }}</span>
-                            </a>
+                            <div class="flex items-center gap-1.5">
+                                <a
+                                    :href="`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.dia_chi_giao)}`"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="shadow-xs inline-flex items-center space-x-1 rounded-xl border border-sky-300 bg-sky-50 px-2.5 py-1.5 font-bold text-sky-800 transition hover:bg-sky-100"
+                                >
+                                    <Navigation class="h-3.5 w-3.5 text-sky-600" />
+                                    <span>Chỉ đường</span>
+                                </a>
+                                <a
+                                    :href="`tel:${order.so_dien_thoai_nhan}`"
+                                    class="shadow-xs inline-flex items-center space-x-1 rounded-xl bg-emerald-600 px-3 py-1.5 font-bold text-white transition hover:bg-emerald-700"
+                                >
+                                    <Phone class="h-3.5 w-3.5" />
+                                    <span>Gọi: {{ order.so_dien_thoai_nhan }}</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div v-if="order.khung_gio_giao" class="flex items-center space-x-1.5 rounded-xl border border-indigo-200 bg-indigo-50 p-2 text-[11px] font-bold text-indigo-900">
+                            <Clock class="h-3.5 w-3.5 text-indigo-600" />
+                            <span>Khung giờ hẹn: {{ order.khung_gio_giao }}</span>
                         </div>
 
                         <div class="flex items-start space-x-1.5 text-slate-700">

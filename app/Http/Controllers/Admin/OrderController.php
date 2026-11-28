@@ -7,12 +7,14 @@ use App\Http\Controllers\Controller;
 use App\Models\CuaHang;
 use App\Models\DonHang;
 use App\Models\LichSuTichDiem;
+use App\Models\User;
 use App\Services\InventoryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OrderController extends Controller
 {
@@ -32,7 +34,7 @@ class OrderController extends Controller
         $storeId = $isManager ? (int) $user->store_id : $request->input('cua_hang_id');
         $paymentStatus = $request->input('trang_thai_thanh_toan');
 
-        $query = DonHang::with(['user', 'cuaHang', 'chiTietDonHangs']);
+        $query = DonHang::with(['user', 'cuaHang', 'chiTietDonHangs', 'nhanVienLenDon', 'nguoiGiaoHang']);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -84,10 +86,28 @@ class OrderController extends Controller
             abort(403, 'Bạn không có quyền truy cập vào đơn hàng của chi nhánh khác.');
         }
 
-        $donHang->load(['user', 'cuaHang', 'chiTietDonHangs.sanPham', 'maGiamGia']);
+        $donHang->load(['user', 'cuaHang', 'chiTietDonHangs.sanPham', 'maGiamGia', 'nhanVienLenDon', 'nguoiGiaoHang']);
+
+        $staffList = User::whereIn('role', ['admin', 'quan_ly', 'nhan_vien'])
+            ->when($user && $user->isQuanLy() && $user->store_id, function ($q) use ($user) {
+                $q->where('store_id', $user->store_id);
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone', 'role']);
+
+        $driverList = User::where('role', 'giao_hang')
+            ->when($user && $user->isQuanLy() && $user->store_id, function ($q) use ($user) {
+                $q->where(function ($sq) use ($user) {
+                    $sq->where('store_id', $user->store_id)->orWhereNull('store_id');
+                });
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone', 'loai_phuong_tien', 'bien_so_xe', 'trang_thai_giao']);
 
         return Inertia::render('admin/orders/Show', [
             'order' => $donHang,
+            'staffList' => $staffList,
+            'driverList' => $driverList,
         ]);
     }
 
@@ -101,12 +121,38 @@ class OrderController extends Controller
         $validated = $request->validate([
             'trang_thai_don_hang' => ['required', 'in:cho_xac_nhan,dang_chuan_bi,dang_giao,da_giao,hoan_thanh,da_huy'],
             'trang_thai_thanh_toan' => ['nullable', 'in:chua_thanh_toan,da_thanh_toan,hoan_tien'],
+            'nhan_vien_len_don_id' => ['nullable', 'exists:users,id'],
+            'nguoi_giao_hang_id' => ['nullable', 'exists:users,id'],
             'ghi_chu' => ['nullable', 'string', 'max:500'],
         ]);
 
         $updateData = [
             'trang_thai_don_hang' => $validated['trang_thai_don_hang'],
         ];
+
+        if ($request->has('nhan_vien_len_don_id')) {
+            $updateData['nhan_vien_len_don_id'] = $validated['nhan_vien_len_don_id'];
+        } elseif (! $donHang->nhan_vien_len_don_id && $user) {
+            $updateData['nhan_vien_len_don_id'] = $user->id;
+        }
+
+        if ($request->has('nguoi_giao_hang_id')) {
+            $updateData['nguoi_giao_hang_id'] = $validated['nguoi_giao_hang_id'];
+            if (! empty($validated['nguoi_giao_hang_id'])) {
+                $driver = User::find($validated['nguoi_giao_hang_id']);
+                if ($driver) {
+                    $updateData['loai_phuong_tien_giao'] = $driver->loai_phuong_tien;
+                    $updateData['bien_so_xe_giao'] = $driver->bien_so_xe;
+                }
+            }
+        }
+
+        if ($validated['trang_thai_don_hang'] === 'dang_giao' && empty($donHang->thoi_gian_bat_dau_giao)) {
+            $updateData['thoi_gian_bat_dau_giao'] = now();
+        }
+        if (in_array($validated['trang_thai_don_hang'], ['da_giao', 'hoan_thanh']) && empty($donHang->thoi_gian_giao_thanh_cong)) {
+            $updateData['thoi_gian_giao_thanh_cong'] = now();
+        }
 
         if (! empty($validated['trang_thai_thanh_toan'])) {
             $updateData['trang_thai_thanh_toan'] = $validated['trang_thai_thanh_toan'];
@@ -200,5 +246,98 @@ class OrderController extends Controller
         $donHang->update($updateData);
 
         return back()->with('success', "Đã cập nhật trạng thái đơn hàng {$donHang->ma_don_hang} thành công!{$fefoWarning}");
+    }
+
+    /**
+     * Xuất danh sách đơn hàng ra file CSV (Excel UTF-8).
+     */
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $user = $request->user();
+        $isManager = $user && $user->isQuanLy() && $user->store_id;
+
+        $search = $request->input('search');
+        $status = $request->input('trang_thai_don_hang');
+        $storeId = $isManager ? (int) $user->store_id : $request->input('cua_hang_id');
+        $paymentStatus = $request->input('trang_thai_thanh_toan');
+
+        $query = DonHang::with(['user', 'cuaHang', 'nhanVienLenDon', 'nguoiGiaoHang']);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('ma_don_hang', 'like', "%{$search}%")
+                    ->orWhere('ten_nguoi_nhan', 'like', "%{$search}%")
+                    ->orWhere('so_dien_thoai_nhan', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status) {
+            if (in_array($status, ['hoan_thanh', 'da_giao'])) {
+                $query->whereIn('trang_thai_don_hang', ['hoan_thanh', 'da_giao']);
+            } else {
+                $query->where('trang_thai_don_hang', $status);
+            }
+        }
+
+        if ($storeId) {
+            $query->where('cua_hang_id', $storeId);
+        }
+
+        if ($paymentStatus) {
+            $query->where('trang_thai_thanh_toan', $paymentStatus);
+        }
+
+        $orders = $query->orderBy('id', 'desc')->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="danh-sach-don-hang-'.date('YmdHis').'.csv"',
+        ];
+
+        return response()->stream(function () use ($orders) {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, [
+                'Mã đơn hàng',
+                'Khách hàng',
+                'Số điện thoại',
+                'Địa chỉ giao',
+                'Chi nhánh',
+                'Tổng tiền hàng',
+                'Phí vận chuyển',
+                'Giảm giá',
+                'Tổng thanh toán',
+                'Phương thức TT',
+                'Trạng thái TT',
+                'Trạng thái đơn',
+                'Khung giờ giao',
+                'Nhân viên lên đơn',
+                'Shipper giao',
+                'Ngày đặt hàng',
+            ]);
+
+            foreach ($orders as $o) {
+                fputcsv($handle, [
+                    $o->ma_don_hang,
+                    $o->ten_nguoi_nhan,
+                    $o->so_dien_thoai_nhan,
+                    $o->dia_chi_giao,
+                    $o->cuaHang?->ten_cua_hang ?? 'N/A',
+                    $o->tong_tien_hang,
+                    $o->phi_giao_hang,
+                    $o->tien_giam_gia,
+                    $o->tong_thanhtoan,
+                    $o->phuong_thuc_thanh_toan,
+                    $o->trang_thai_thanh_toan,
+                    $o->trang_thai_don_hang,
+                    $o->khung_gio_giao ?? 'N/A',
+                    $o->nhanVienLenDon?->name ?? 'N/A',
+                    $o->nguoiGiaoHang?->name ?? 'N/A',
+                    $o->created_at?->format('d/m/Y H:i:s'),
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, $headers);
     }
 }

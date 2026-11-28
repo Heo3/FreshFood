@@ -104,6 +104,10 @@ class InventoryService
             }
 
             // 2. Tạo chứng từ Phiếu Xuất Kho
+            if (! $donHang->nhan_vien_len_don_id && $nguoiThucHienId) {
+                $donHang->update(['nhan_vien_len_don_id' => $nguoiThucHienId]);
+            }
+
             $maPhieu = $this->sinhMaPhieu('PX');
             $phieuXuat = PhieuXuat::create([
                 'ma_phieu' => $maPhieu,

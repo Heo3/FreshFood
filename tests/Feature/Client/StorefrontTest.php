@@ -596,7 +596,7 @@ test('cart items are automatically transitioned when selecting new store or addi
     expect(GioHang::where('user_id', $user->id)->count())->toBe(0);
 });
 
-test('out of stock products are hidden from catalog and cannot be ordered', function () {
+test('out of stock products are visible in catalog but marked out of stock and cannot be ordered', function () {
     $data = setupStorefrontPrerequisites();
 
     // Sản phẩm còn hàng trong kho
@@ -628,7 +628,7 @@ test('out of stock products are hidden from catalog and cannot be ordered', func
         'nguong_canh_bao_thap' => 5,
     ]);
 
-    // 1. Kiểm tra danh mục sản phẩm: Không hiển thị sản phẩm hết hàng
+    // 1. Kiểm tra danh mục sản phẩm: Vẫn hiển thị sản phẩm hết hàng nhưng đánh dấu da_het_hang = true
     $response = $this->withSession(['current_store_id' => $data['store']->id])
         ->get('/san-pham');
 
@@ -636,13 +636,21 @@ test('out of stock products are hidden from catalog and cannot be ordered', func
     $response->assertInertia(function (Assert $page) use ($inStockProduct, $outOfStockProduct) {
         $page->component('client/Products')
             ->where('products.data', function ($items) use ($inStockProduct, $outOfStockProduct) {
-                $ids = collect($items)->pluck('id')->all();
+                $itemsColl = collect($items);
+                $inStock = $itemsColl->firstWhere('id', $inStockProduct->id);
+                $outOfStock = $itemsColl->firstWhere('id', $outOfStockProduct->id);
 
-                return in_array($inStockProduct->id, $ids) && ! in_array($outOfStockProduct->id, $ids);
+                return $inStock && ! $inStock['da_het_hang']
+                    && $outOfStock && (bool) $outOfStock['da_het_hang'];
             });
     });
 
-    // 2. Chặn thêm vào giỏ hàng
+    // 2. Vẫn xem được trang chi tiết sản phẩm hết hàng
+    $detailResponse = $this->withSession(['current_store_id' => $data['store']->id])
+        ->get('/san-pham/'.$outOfStockProduct->duong_dan_seo);
+    $detailResponse->assertSuccessful();
+
+    // 3. Chặn thêm vào giỏ hàng
     $cartResponse = $this->postJson('/api/cart/add', [
         'san_pham_id' => $outOfStockProduct->id,
         'so_luong' => 1,
@@ -654,7 +662,7 @@ test('out of stock products are hidden from catalog and cannot be ordered', func
         'message' => 'Sản phẩm này tạm thời đã hết hàng trong kho tại chi nhánh đã chọn.',
     ]);
 
-    // 3. Chặn đặt hàng khi thanh toán
+    // 4. Chặn đặt hàng khi thanh toán
     $user = User::factory()->create(['role' => 'khach_hang', 'status' => 1]);
     $checkoutResponse = $this->actingAs($user)->post('/thanh-toan', [
         'ten_nguoi_nhan' => 'Nguyen Van A',

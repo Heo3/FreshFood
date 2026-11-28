@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChiTietDoiTra;
+use App\Models\CuaHang;
 use App\Models\DiaChiGiaoHang;
 use App\Models\DonHang;
+use App\Models\GioHang;
 use App\Models\LichSuTichDiem;
 use App\Models\PhieuDoiTra;
 use Illuminate\Http\RedirectResponse;
@@ -48,7 +50,7 @@ class AccountController extends Controller
         $status = $request->input('status');
 
         $query = DonHang::where('user_id', $user->id)
-            ->with(['chiTiets', 'cuaHang'])
+            ->with(['chiTiets', 'cuaHang', 'nguoiGiaoHang'])
             ->latest();
 
         if ($status && $status !== 'all') {
@@ -73,7 +75,7 @@ class AccountController extends Controller
 
         $order = DonHang::where('user_id', $user->id)
             ->where('ma_don_hang', $maDonHang)
-            ->with(['chiTiets.sanPham', 'cuaHang', 'maGiamGia', 'phieuDoiTras.chiTiets'])
+            ->with(['chiTiets.sanPham', 'cuaHang', 'maGiamGia', 'phieuDoiTras.chiTiets', 'nguoiGiaoHang'])
             ->firstOrFail();
 
         return Inertia::render('client/account/OrderDetail', [
@@ -289,5 +291,36 @@ class AccountController extends Controller
         });
 
         return back()->with('success', "Đơn hàng #{$donHang->ma_don_hang} đã được hủy thành công.");
+    }
+
+    /**
+     * Mua lại các sản phẩm từ đơn hàng cũ (Re-order).
+     */
+    public function reorder(Request $request, DonHang $donHang): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ((int) $donHang->user_id !== (int) $user->id) {
+            abort(403, 'Bạn không có quyền thao tác trên đơn hàng này.');
+        }
+
+        $donHang->load('chiTietDonHangs');
+        $storeId = $donHang->cua_hang_id ?? CuaHang::layIdCuaHangHienTai($request);
+
+        $addedCount = 0;
+        foreach ($donHang->chiTietDonHangs as $item) {
+            if ($item->san_pham_id && $item->so_luong > 0) {
+                $cart = GioHang::firstOrNew([
+                    'user_id' => $user->id,
+                    'cua_hang_id' => $storeId,
+                    'san_pham_id' => $item->san_pham_id,
+                ]);
+                $cart->so_luong = ($cart->exists ? $cart->so_luong : 0) + (float) $item->so_luong;
+                $cart->save();
+                $addedCount++;
+            }
+        }
+
+        return redirect()->route('cart.index')->with('success', "Đã thêm {$addedCount} sản phẩm từ đơn hàng #{$donHang->ma_don_hang} vào giỏ hàng của bạn!");
     }
 }

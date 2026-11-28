@@ -3,7 +3,7 @@ import AccountSidebar from '@/components/storefront/AccountSidebar.vue';
 import { useToast } from '@/composables/useToast';
 import StoreLayout from '@/layouts/StoreLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, Ban, Calendar, ChevronRight, Clock, CreditCard, RotateCcw, Star, X } from 'lucide-vue-next';
+import { ArrowLeft, Ban, Bike, Calendar, ChevronRight, Clock, CreditCard, PhoneCall, RotateCcw, Star, X } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -23,10 +23,24 @@ const props = defineProps<{
         ghi_chu?: string;
         created_at: string;
         cua_hang?: any;
+        nguoi_giao_hang?: {
+            id: number;
+            name: string;
+            phone?: string;
+            bien_so_xe?: string;
+            loai_phuong_tien?: string;
+        };
+        bien_so_xe_giao?: string;
+        loai_phuong_tien_giao?: string;
         chi_tiets?: Array<any>;
         phieu_doi_tras?: Array<any>;
+        khung_gio_giao?: string;
     };
 }>();
+
+function reorderOrder() {
+    router.post(route('account.orders.reorder', props.order.id));
+}
 
 const isReturnModalOpen = ref(false);
 const returnForm = ref({
@@ -219,6 +233,16 @@ const statusMap: Record<string, { label: string; class: string }> = {
                                 <span>Đang chuẩn bị (Không thể hủy)</span>
                             </div>
 
+                            <!-- MUA LẠI ĐƠN NÀY BUTTON -->
+                            <button
+                                v-if="order.trang_thai_don_hang === 'da_giao' || order.trang_thai_don_hang === 'hoan_thanh'"
+                                @click="reorderOrder"
+                                class="flex items-center space-x-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-800 shadow-sm transition-colors hover:bg-emerald-100"
+                            >
+                                <RotateCcw class="h-3.5 w-3.5 text-emerald-700" />
+                                <span>Mua lại đơn này</span>
+                            </button>
+
                             <!-- ĐỔI TRẢ BUTTON NẾU ĐÃ GIAO / HOÀN THÀNH -->
                             <button
                                 v-if="
@@ -253,6 +277,78 @@ const statusMap: Record<string, { label: string; class: string }> = {
                             >
                                 {{ statusMap[order.trang_thai_don_hang]?.label || order.trang_thai_don_hang }}
                             </span>
+                        </div>
+
+                        <!-- ORDER TIMELINE STEPPER -->
+                        <div class="rounded-2xl border border-gray-100 bg-gray-50/70 p-4 sm:p-5">
+                            <div class="mb-3 flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider text-gray-500">Tiến trình đơn hàng</span>
+                                <span v-if="order.khung_gio_giao" class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+                                    <Clock class="h-3 w-3" /> {{ order.khung_gio_giao }}
+                                </span>
+                            </div>
+
+                            <div v-if="order.trang_thai_don_hang === 'da_huy'" class="flex items-center space-x-3 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800">
+                                <Ban class="h-5 w-5 shrink-0 text-red-600" />
+                                <div>
+                                    <span class="font-bold">Đơn hàng đã bị hủy</span>
+                                    <p class="text-[11px] text-red-600">{{ order.ghi_chu || 'Đơn hàng không thể hoàn tất.' }}</p>
+                                </div>
+                            </div>
+
+                            <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                <div class="flex items-center space-x-2">
+                                    <div class="shadow-xs flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
+                                        ✓
+                                    </div>
+                                    <div class="text-[11px]">
+                                        <span class="block font-bold text-gray-900">1. Đã đặt hàng</span>
+                                        <span class="text-gray-400">Chờ xác nhận</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center space-x-2">
+                                    <div
+                                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors"
+                                        :class="['dang_chuan_bi', 'dang_giao', 'da_giao', 'hoan_thanh'].includes(order.trang_thai_don_hang) ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-200 text-gray-500'"
+                                    >
+                                        <span v-if="['dang_chuan_bi', 'dang_giao', 'da_giao', 'hoan_thanh'].includes(order.trang_thai_don_hang)">✓</span>
+                                        <span v-else>2</span>
+                                    </div>
+                                    <div class="text-[11px]">
+                                        <span class="block font-bold" :class="['dang_chuan_bi', 'dang_giao', 'da_giao', 'hoan_thanh'].includes(order.trang_thai_don_hang) ? 'text-gray-900' : 'text-gray-400'">2. Chuẩn bị</span>
+                                        <span class="text-gray-400">Đóng gói hàng</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center space-x-2">
+                                    <div
+                                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors"
+                                        :class="['dang_giao', 'da_giao', 'hoan_thanh'].includes(order.trang_thai_don_hang) ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-200 text-gray-500'"
+                                    >
+                                        <span v-if="['dang_giao', 'da_giao', 'hoan_thanh'].includes(order.trang_thai_don_hang)">✓</span>
+                                        <span v-else>3</span>
+                                    </div>
+                                    <div class="text-[11px]">
+                                        <span class="block font-bold" :class="['dang_giao', 'da_giao', 'hoan_thanh'].includes(order.trang_thai_don_hang) ? 'text-gray-900' : 'text-gray-400'">3. Đang giao</span>
+                                        <span class="text-gray-400">{{ order.nguoi_giao_hang ? order.nguoi_giao_hang.name : 'Shipper nhận' }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center space-x-2">
+                                    <div
+                                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors"
+                                        :class="['da_giao', 'hoan_thanh'].includes(order.trang_thai_don_hang) ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-200 text-gray-500'"
+                                    >
+                                        <span v-if="['da_giao', 'hoan_thanh'].includes(order.trang_thai_don_hang)">✓</span>
+                                        <span v-else>4</span>
+                                    </div>
+                                    <div class="text-[11px]">
+                                        <span class="block font-bold" :class="['da_giao', 'hoan_thanh'].includes(order.trang_thai_don_hang) ? 'text-gray-900' : 'text-gray-400'">4. Đã giao</span>
+                                        <span class="text-gray-400">Hoàn tất đơn</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- THÔNG BÁO RÕ RÀNG KHI ĐÃ DUYỆT VÀ ĐANG CHUẨN BỊ -->
@@ -298,6 +394,43 @@ const statusMap: Record<string, { label: string; class: string }> = {
                                               : order.phuong_thuc_thanh_toan.toUpperCase()
                                     }}</strong>
                                 </p>
+                            </div>
+                        </div>
+
+                        <!-- THÔNG TIN NGƯỜI GIAO HÀNG (SHIPPER) -->
+                        <div
+                            v-if="order.nguoi_giao_hang"
+                            class="flex flex-col items-start justify-between gap-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 text-xs shadow-xs sm:flex-row sm:items-center"
+                        >
+                            <div class="flex items-center space-x-3.5">
+                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-xs">
+                                    <Bike class="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-sm font-black text-gray-900">{{ order.nguoi_giao_hang.name }}</span>
+                                        <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                                            Nhân viên giao hàng (Shipper)
+                                        </span>
+                                    </div>
+                                    <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-gray-600">
+                                        <span v-if="order.bien_so_xe_giao || order.nguoi_giao_hang.bien_so_xe" class="font-mono text-gray-800">
+                                            Biển số xe: <strong>{{ order.bien_so_xe_giao || order.nguoi_giao_hang.bien_so_xe }}</strong>
+                                        </span>
+                                        <span>
+                                            Phương tiện: {{ (order.loai_phuong_tien_giao || order.nguoi_giao_hang.loai_phuong_tien) === 'xe_tai' ? 'Xe tải' : 'Xe máy' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="order.nguoi_giao_hang.phone" class="w-full sm:w-auto">
+                                <a
+                                    :href="`tel:${order.nguoi_giao_hang.phone}`"
+                                    class="flex items-center justify-center space-x-2 rounded-xl bg-emerald-600 px-4 py-2.5 font-bold text-white shadow-sm transition-all hover:bg-emerald-700"
+                                >
+                                    <PhoneCall class="h-4 w-4" />
+                                    <span>Gọi shipper: {{ order.nguoi_giao_hang.phone }}</span>
+                                </a>
                             </div>
                         </div>
 
