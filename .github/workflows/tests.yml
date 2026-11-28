@@ -60,4 +60,11 @@ jobs:
           CACHE_STORE: array
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
-        run: php artisan test --without-tty
+        run: |
+          php artisan test --without-tty > test_output.txt 2>&1 || true
+          cat test_output.txt
+          echo "### Test Run Output" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat test_output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          if grep -q "FAIL" test_output.txt; then exit 1; fi
