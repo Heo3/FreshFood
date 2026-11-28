@@ -10,9 +10,6 @@ on:
       - develop
       - main
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -25,7 +22,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite, bcmath, fileinfo
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite, bcmath, fileinfo, curl, zip, gd, dom
           tools: composer:v2
           coverage: none
 
@@ -57,4 +54,4 @@ jobs:
         run: npm run build
 
       - name: Tests
-        run: php artisan test --compact
+        run: php artisan test
