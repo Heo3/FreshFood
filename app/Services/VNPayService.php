@@ -21,9 +21,9 @@ class VNPayService
         ?string $url = null,
         ?string $returnUrl = null,
     ) {
-        $this->tmnCode = $tmnCode ?? (string) config('services.vnpay.tmn_code', '2QXUI4B4');
-        $this->hashSecret = $hashSecret ?? (string) config('services.vnpay.hash_secret', 'secret');
-        $this->url = $url ?? (string) config('services.vnpay.url', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
+        $this->tmnCode = $tmnCode ?: (string) (config('services.vnpay.tmn_code') ?: '2QXUI4B4');
+        $this->hashSecret = $hashSecret ?: (string) (config('services.vnpay.hash_secret') ?: 'secret');
+        $this->url = $url ?: (string) (config('services.vnpay.url') ?: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
         $this->returnUrl = $returnUrl ?? config('services.vnpay.return_url');
     }
 

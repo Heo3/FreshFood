@@ -60,18 +60,6 @@ jobs:
           CACHE_STORE: array
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
-        run: |
-          php artisan test --without-tty > test_output.txt 2>&1 || true
-          cat test_output.txt
-          FIRST_FAIL=$(grep -A 10 "FAILED" test_output.txt | head -n 10 | tr '\n' ' ' || true)
-          if [ -n "$FIRST_FAIL" ]; then
-            echo "::error title=Test Failure::$FIRST_FAIL"
-          fi
-          if grep -q "FAIL" test_output.txt; then exit 1; fi
-
-      - name: Upload Test Output
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-output
-          path: test_output.txt
+          VNPAY_TMN_CODE: '2QXUI4B4'
+          VNPAY_HASH_SECRET: 'secret'
+        run: php artisan test --compact
