@@ -63,8 +63,15 @@ jobs:
         run: |
           php artisan test --without-tty > test_output.txt 2>&1 || true
           cat test_output.txt
-          echo "### Test Run Output" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          cat test_output.txt >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          FIRST_FAIL=$(grep -A 10 "FAILED" test_output.txt | head -n 10 | tr '\n' ' ' || true)
+          if [ -n "$FIRST_FAIL" ]; then
+            echo "::error title=Test Failure::$FIRST_FAIL"
+          fi
           if grep -q "FAIL" test_output.txt; then exit 1; fi
+
+      - name: Upload Test Output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output
+          path: test_output.txt
