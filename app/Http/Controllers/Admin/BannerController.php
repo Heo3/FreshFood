@@ -57,12 +57,15 @@ class BannerController extends Controller
         ]);
 
         if ($request->hasFile('hinh_anh')) {
+            $request->validate([
+                'hinh_anh' => ['image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
+            ]);
             $validated['hinh_anh'] = app(CloudinaryService::class)->upload($request->file('hinh_anh'), 'banners')
                 ?? Storage::url($request->file('hinh_anh')->store('banners', 'public'));
         }
 
-        if (empty($validated['hinh_anh'])) {
-            return back()->withErrors(['hinh_anh' => 'Vui lòng cung cấp link ảnh hoặc tải ảnh lên.']);
+        if (empty($validated['hinh_anh']) || ! is_string($validated['hinh_anh'])) {
+            return back()->withErrors(['hinh_anh' => 'Vui lòng cung cấp link ảnh hoặc tải ảnh từ máy lên.']);
         }
 
         Banner::create([
@@ -96,11 +99,14 @@ class BannerController extends Controller
         ]);
 
         if ($request->hasFile('hinh_anh')) {
+            $request->validate([
+                'hinh_anh' => ['image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
+            ]);
             $validated['hinh_anh'] = app(CloudinaryService::class)->upload($request->file('hinh_anh'), 'banners')
                 ?? Storage::url($request->file('hinh_anh')->store('banners', 'public'));
         }
 
-        if (empty($validated['hinh_anh'])) {
+        if (empty($validated['hinh_anh']) || ! is_string($validated['hinh_anh'])) {
             $validated['hinh_anh'] = $banner->hinh_anh;
         }
 

@@ -1,7 +1,22 @@
 <script setup lang="ts">
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { Edit2, ExternalLink, Eye, EyeOff, Image as ImageIcon, Plus, Save, Search, Trash2, X } from 'lucide-vue-next';
+import {
+    CheckCircle2,
+    Edit2,
+    ExternalLink,
+    Eye,
+    EyeOff,
+    FileImage,
+    Image as ImageIcon,
+    Link as LinkIcon,
+    Plus,
+    Save,
+    Search,
+    Trash2,
+    UploadCloud,
+    X,
+} from 'lucide-vue-next';
 import { ref } from 'vue';
 
 interface BannerItem {
@@ -31,10 +46,18 @@ const search = ref(props.filters.search || '');
 const showModal = ref(false);
 const editingBanner = ref<BannerItem | null>(null);
 
+const imageMode = ref<'file' | 'url'>('file');
+const fileInputRef = ref<HTMLInputElement | null>(null);
+const filePreviewUrl = ref<string>('');
+const selectedFileName = ref<string>('');
+const selectedFileSize = ref<string>('');
+const isDragging = ref<boolean>(false);
+const urlInput = ref<string>('');
+
 const form = useForm({
     tieu_de: '',
     phu_de: '',
-    hinh_anh: '',
+    hinh_anh: null as File | string | null,
     duong_dan: '/san-pham',
     nhan_nut: 'Mua Ngay',
     vi_tri: 'home_slider',
@@ -61,6 +84,15 @@ function openCreateModal() {
     form.vi_tri = 'home_slider';
     form.thu_tu = (props.banners.data.length || 0) + 1;
     form.trang_thai = 1;
+    form.hinh_anh = null;
+    imageMode.value = 'file';
+    urlInput.value = '';
+    filePreviewUrl.value = '';
+    selectedFileName.value = '';
+    selectedFileSize.value = '';
+    if (fileInputRef.value) {
+        fileInputRef.value.value = '';
+    }
     showModal.value = true;
 }
 
@@ -75,13 +107,81 @@ function openEditModal(banner: BannerItem) {
     form.vi_tri = banner.vi_tri || 'home_slider';
     form.thu_tu = banner.thu_tu;
     form.trang_thai = banner.trang_thai;
+    urlInput.value = banner.hinh_anh || '';
+    filePreviewUrl.value = banner.hinh_anh || '';
+    selectedFileName.value = '';
+    selectedFileSize.value = '';
+    imageMode.value = banner.hinh_anh?.startsWith('http') ? 'url' : 'file';
+    if (fileInputRef.value) {
+        fileInputRef.value.value = '';
+    }
     showModal.value = true;
 }
 
-function submitForm() {
+function handleFileSelect(file: File) {
+    if (!file.type.startsWith('image/')) {
+        alert('Vui lòng chọn file hình ảnh hợp lệ (JPG, PNG, WEBP, GIF)');
+        return;
+    }
+    form.hinh_anh = file;
+    selectedFileName.value = file.name;
+    selectedFileSize.value = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+    if (filePreviewUrl.value && filePreviewUrl.value.startsWith('blob:')) {
+        URL.revokeObjectURL(filePreviewUrl.value);
+    }
+    filePreviewUrl.value = URL.createObjectURL(file);
+}
+
+function handleFileInputChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+        handleFileSelect(input.files[0]);
+    }
+}
+
+function handleDrop(e: DragEvent) {
+    isDragging.value = false;
+    if (e.dataTransfer?.files && e.dataTransfer.files[0]) {
+        handleFileSelect(e.dataTransfer.files[0]);
+    }
+}
+
+function handleUrlInput() {
+    const trimmed = urlInput.value.trim();
+    form.hinh_anh = trimmed;
+    filePreviewUrl.value = trimmed;
+}
+
+function removeSelectedFile() {
+    if (filePreviewUrl.value && filePreviewUrl.value.startsWith('blob:')) {
+        URL.revokeObjectURL(filePreviewUrl.value);
+    }
     if (editingBanner.value) {
-        form.put(route('admin.banners.update', editingBanner.value.id), {
+        form.hinh_anh = editingBanner.value.hinh_anh;
+        filePreviewUrl.value = editingBanner.value.hinh_anh;
+    } else {
+        form.hinh_anh = null;
+        filePreviewUrl.value = '';
+    }
+    selectedFileName.value = '';
+    selectedFileSize.value = '';
+    if (fileInputRef.value) {
+        fileInputRef.value.value = '';
+    }
+}
+
+function submitForm() {
+    if (imageMode.value === 'url') {
+        form.hinh_anh = urlInput.value.trim();
+    }
+
+    if (editingBanner.value) {
+        form.transform((data) => ({
+            ...data,
+            _method: 'put',
+        })).post(route('admin.banners.update', editingBanner.value.id), {
             preserveScroll: true,
+            forceFormData: true,
             onSuccess: () => {
                 showModal.value = false;
             },
@@ -89,6 +189,7 @@ function submitForm() {
     } else {
         form.post(route('admin.banners.store'), {
             preserveScroll: true,
+            forceFormData: true,
             onSuccess: () => {
                 showModal.value = false;
             },
@@ -289,6 +390,9 @@ function deleteBanner(banner: BannerItem) {
                             placeholder="VD: Đại Tiệc Rau Củ Hữu Cơ Đà Lạt"
                             class="w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-500"
                         />
+                        <div v-if="form.errors.tieu_de" class="mt-1 text-[11px] font-bold text-red-500">
+                            {{ form.errors.tieu_de }}
+                        </div>
                     </div>
 
                     <div>
@@ -299,20 +403,146 @@ function deleteBanner(banner: BannerItem) {
                             placeholder="VD: Giảm ngay 30% cho đơn từ 200k hôm nay"
                             class="w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-500"
                         />
+                        <div v-if="form.errors.phu_de" class="mt-1 text-[11px] font-bold text-red-500">
+                            {{ form.errors.phu_de }}
+                        </div>
                     </div>
 
+                    <!-- CHỌN HÌNH ẢNH BANNER -->
                     <div>
-                        <label class="mb-1 block font-bold text-slate-700">URL Hình ảnh Banner <span class="text-red-500">*</span></label>
-                        <input
-                            v-model="form.hinh_anh"
-                            type="url"
-                            required
-                            placeholder="https://images.unsplash.com/..."
-                            class="w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-500"
-                        />
-                        <!-- Preview -->
-                        <div v-if="form.hinh_anh" class="mt-2 h-24 w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
-                            <img :src="form.hinh_anh" class="h-full w-full object-cover" alt="Preview" />
+                        <div class="mb-2 flex items-center justify-between">
+                            <label class="font-bold text-slate-700">Hình ảnh Banner <span class="text-red-500">*</span></label>
+                            <!-- Tab chuyển đổi tải file hoặc nhập URL -->
+                            <div class="flex rounded-xl bg-slate-100 p-0.5 text-[11px] font-bold">
+                                <button
+                                    type="button"
+                                    @click="imageMode = 'file'"
+                                    :class="imageMode === 'file' ? 'bg-white text-emerald-700 shadow-xs' : 'text-slate-500 hover:text-slate-700'"
+                                    class="flex cursor-pointer items-center gap-1.5 rounded-lg px-2.5 py-1 transition"
+                                >
+                                    <UploadCloud class="h-3.5 w-3.5" />
+                                    <span>Tải file từ máy</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="imageMode = 'url'"
+                                    :class="imageMode === 'url' ? 'bg-white text-emerald-700 shadow-xs' : 'text-slate-500 hover:text-slate-700'"
+                                    class="flex cursor-pointer items-center gap-1.5 rounded-lg px-2.5 py-1 transition"
+                                >
+                                    <LinkIcon class="h-3.5 w-3.5" />
+                                    <span>Nhập link ảnh</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 1. TẢI FILE TỪ MÁY TÍNH -->
+                        <div v-if="imageMode === 'file'">
+                            <input
+                                ref="fileInputRef"
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp,image/gif"
+                                class="hidden"
+                                @change="handleFileInputChange"
+                            />
+
+                            <!-- Khung chọn file nếu chưa chọn file mới -->
+                            <div
+                                v-if="!selectedFileName"
+                                @click="fileInputRef?.click()"
+                                @dragover.prevent="isDragging = true"
+                                @dragleave.prevent="isDragging = false"
+                                @drop.prevent="handleDrop"
+                                :class="[
+                                    'group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-4 text-center transition',
+                                    isDragging ? 'border-emerald-500 bg-emerald-50/60' : 'border-slate-300 bg-slate-50 hover:border-emerald-400 hover:bg-emerald-50/30',
+                                ]"
+                            >
+                                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 transition group-hover:scale-110">
+                                    <UploadCloud class="h-5 w-5" />
+                                </div>
+                                <p class="mt-2 text-xs font-bold text-slate-800">
+                                    Nhấp để tải file ảnh lên <span class="font-normal text-slate-500">hoặc kéo thả vào đây</span>
+                                </p>
+                                <p class="mt-0.5 text-[10px] text-slate-400">
+                                    Hỗ trợ định dạng JPG, PNG, WEBP, GIF (Tối đa 5MB)
+                                </p>
+                            </div>
+
+                            <!-- Thẻ thông tin file đã chọn -->
+                            <div v-else class="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50/70 p-3">
+                                <div class="flex items-center gap-2.5 overflow-hidden">
+                                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-xs">
+                                        <FileImage class="h-5 w-5" />
+                                    </div>
+                                    <div class="truncate text-left">
+                                        <p class="truncate text-xs font-black text-slate-900">{{ selectedFileName }}</p>
+                                        <p class="text-[10px] font-semibold text-emerald-700">{{ selectedFileSize }} &bull; Đã sẵn sàng tải lên</p>
+                                    </div>
+                                </div>
+                                <div class="flex shrink-0 items-center gap-1.5">
+                                    <button
+                                        type="button"
+                                        @click="fileInputRef?.click()"
+                                        class="cursor-pointer rounded-lg bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 shadow-xs hover:bg-slate-100"
+                                    >
+                                        Đổi file
+                                    </button>
+                                    <button
+                                        type="button"
+                                        @click="removeSelectedFile"
+                                        class="cursor-pointer rounded-lg p-1 text-slate-400 hover:bg-red-50 hover:text-red-500"
+                                        title="Bỏ file đã chọn"
+                                    >
+                                        <X class="h-4 w-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. NHẬP LINK ẢNH TRỰC TIẾP -->
+                        <div v-else>
+                            <div class="relative">
+                                <LinkIcon class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                                <input
+                                    v-model="urlInput"
+                                    @input="handleUrlInput"
+                                    type="url"
+                                    placeholder="https://images.unsplash.com/photo-..."
+                                    class="w-full rounded-xl border border-slate-300 py-2 pl-9 pr-3 text-xs outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                                />
+                            </div>
+                        </div>
+
+                        <div v-if="form.errors.hinh_anh" class="mt-1 text-[11px] font-bold text-red-500">
+                            {{ form.errors.hinh_anh }}
+                        </div>
+
+                        <!-- LIVE PREVIEW BANNER -->
+                        <div v-if="filePreviewUrl" class="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-slate-900 shadow-inner">
+                            <div class="relative aspect-[21/9] w-full overflow-hidden">
+                                <img
+                                    :src="filePreviewUrl"
+                                    class="h-full w-full object-cover opacity-85"
+                                    alt="Banner Preview"
+                                    @error="filePreviewUrl = ''"
+                                />
+                                <div class="absolute inset-0 flex flex-col justify-center bg-gradient-to-r from-slate-950/80 via-slate-900/40 to-transparent p-4 text-white">
+                                    <span class="inline-block w-fit rounded-full bg-emerald-500/90 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white">
+                                        Xem trước Banner
+                                    </span>
+                                    <h4 class="mt-1 line-clamp-1 text-sm font-black drop-shadow-sm">
+                                        {{ form.tieu_de || 'Tiêu đề banner quảng cáo' }}
+                                    </h4>
+                                    <p class="drop-shadow-xs line-clamp-1 text-[11px] font-medium text-slate-200">
+                                        {{ form.phu_de || 'Phụ đề hoặc thông điệp khuyến mãi hấp dẫn' }}
+                                    </p>
+                                    <div class="mt-2">
+                                        <span class="shadow-xs rounded-lg bg-emerald-600 px-2.5 py-1 text-[10px] font-bold text-white">
+                                            {{ form.nhan_nut || 'Mua Ngay' }} &rarr;
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
